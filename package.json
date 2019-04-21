@@ -1,0 +1,25 @@
+{
+  "name": "aang",
+  "version": "1.0.0",
+  "description": "A powerful functional programming library.",
+  "main": "aang.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://github.com/aaditmshah/aang.git"
+  },
+  "keywords": [
+    "aang",
+    "functional",
+    "arrow",
+    "curry"
+  ],
+  "author": "Aadit M Shah <aaditmshah@fastmail.fm> (https://aaditmshah.github.io/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/aaditmshah/aang/issues"
+  },
+  "homepage": "https://github.com/aaditmshah/aang#readme"
+}

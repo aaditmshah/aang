@@ -1,0 +1,48 @@
+<!-- Copyright (c) 2019 Aadit M Shah -->
+<svg width="128" height="128" viewBox="-28 -15.5 128 128" xmlns="http://www.w3.org/2000/svg" version="1.1">
+    <defs>
+        <!-- avatar state glow -->
+        <filter id="glow" x="-5000%" y="-5000%" width="10000%" height="10000%">
+            <feFlood result="flood" flood-color="#A1C1E6" flood-opacity="1"></feFlood>
+            <feComposite in="flood" result="mask" in2="SourceGraphic" operator="in"></feComposite>
+            <feMorphology in="mask" result="dilated" operator="dilate" radius="2"></feMorphology>
+            <feGaussianBlur in="dilated" result="blurred" stdDeviation="5"></feGaussianBlur>
+            <feMerge>
+                <feMergeNode in="blurred"></feMergeNode>
+                <feMergeNode in="SourceGraphic"></feMergeNode>
+            </feMerge>
+        </filter>
+    </defs>
+    <!-- left eye -->
+    <path fill="#FFFFFF" filter="url(#glow)" d="
+        M 28.316 90.594
+        C 24.937 91.228 21.347 97.563 14.801 96.718
+        C  8.255 95.873  2.130 85.103  0.230 86.159
+        C -1.671 87.215  8.677 81.302 14.379 82.569
+        C 20.081 83.836 25.360 91.650 28.316 90.594
+        Z
+    "/>
+    <!-- right eye -->
+    <path fill="#FFFFFF" filter="url(#glow)" d="
+        M 43.526 90.594
+        C 46.905 91.228 50.495 97.563 57.041 96.718
+        C 63.587 95.873 69.712 85.103 71.612 86.159
+        C 73.513 87.215 63.165 81.302 57.463 82.569
+        C 51.761 83.836 46.482 91.650 43.526 90.594
+        Z
+    "/>
+    <!-- arrow tattoo -->
+    <path fill="#FFFFFF" filter="url(#glow)" d="
+        M 26.204 0
+        C 23.932  5.371 22.291 15.107 21.320 25.147
+        C 20.198 36.728 19.966 48.712 20.677 54.869
+        C 14.417 55.442  7.485 54.372  0.440 53.376
+        C  6.953 62.322 26.132 81.074 35.921 87.637
+        C 45.710 81.074 64.889 62.322 71.402 53.376
+        C 64.357 54.372 57.425 55.442 51.165 54.869
+        C 51.876 48.712 51.644 36.728 50.523 25.147
+        C 49.551 15.107 47.910  5.371 45.638 0
+        Q 35.921 -2.000 26.204 0
+        Z
+    "/>
+</svg>
