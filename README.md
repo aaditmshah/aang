@@ -1,4 +1,4 @@
-![Aang](https://github.com/aaditmshah/aang/blob/master/aang.svg?sanitize=true)
+![Aang](https://raw.github.com/aaditmshah/aang/master/aang.svg?sanitize=true)
 
 # Aang #
 
