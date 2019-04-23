@@ -2,7 +2,7 @@
 <svg width="128" height="128" viewBox="-28 -15.5 128 128" xmlns="http://www.w3.org/2000/svg" version="1.1">
     <defs>
         <!-- avatar state glow -->
-        <filter id="glow" x="-5000%" y="-5000%" width="10000%" height="10000%">
+        <filter id="glow" filterUnits="userSpaceOnUse">
             <feFlood result="flood" flood-color="#A1C1E6" flood-opacity="1"></feFlood>
             <feComposite in="flood" result="mask" in2="SourceGraphic" operator="in"></feComposite>
             <feMorphology in="mask" result="dilated" operator="dilate" radius="2"></feMorphology>
