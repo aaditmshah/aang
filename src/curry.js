@@ -1,3 +1,5 @@
+"use strict";
+
 const stringify = value => JSON.stringify(value);
 
 const curried = Symbol("curried");
