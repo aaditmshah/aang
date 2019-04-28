@@ -1,7 +1,5 @@
 "use strict";
 
-const stringify = value => JSON.stringify(value);
-
 const curried = Symbol("curried");
 
 Object.defineProperty(curry, curried, { value: true });
@@ -13,8 +11,7 @@ function curry(functor, ...initArgs) {
 
     if (typeof functor !== "function") {
         const value = JSON.stringify(functor);
-        const tuple = initArgs.map(stringify).join(",");
-        throw new TypeError(`can't apply ${value} to (${tuple})`);
+        throw new TypeError(`${value} is not a function`);
     }
 
     if (functor[curried]) return functor(...initArgs);
