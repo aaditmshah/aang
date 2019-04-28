@@ -28,10 +28,7 @@ function curry(functor, ...initArgs) {
             curry(result, ...initArgs.slice(arity)) : result;
     }
 
-    return Object.defineProperties((...restArgs) =>
-        curry(functor, ...initArgs, ...restArgs), {
-            name:      { value: functor.name },
-            length:    { value: arity - args },
-            [curried]: { value: true }
-        });
+    const result = (...restArgs) => curry(functor, ...initArgs, ...restArgs);
+
+    return Object.defineProperty(result, curried, { value: true });
 }
