@@ -17,6 +17,6 @@ describe("fun", () => {
     });
 
     it("applies the function to the argument", () => {
-        assert.strictEqual(sub1(3), flip(sub, 3, 5));
+        assert.strictEqual(sub1(3), 2);
     });
 });
