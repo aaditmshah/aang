@@ -47,6 +47,6 @@ describe("curry", () => {
     }
 
     function epsilonTransition(functor) {
-        return Math.random() < 0.5 ? epsilonTransition(functor()) : functor;
+        return Math.random() < 0.5 ? epsilonTransition(functor()) : functor();
     }
 });
