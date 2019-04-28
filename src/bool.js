@@ -3,13 +3,9 @@
 const fun   = require("./fun");
 const curry = require("./curry");
 
-module.exports = fun(bool);
-
-function bool(functor, flag) {
-    if (typeof flag !== "boolean") {
-        const value = JSON.stringify(flag);
+module.exports = fun((functor, bool) => {
+    if (typeof bool !== "boolean") {
+        const value = JSON.stringify(bool);
         throw new TypeError(`${value} is not a boolean`);
-    }
-
-    return curry(functor, flag);
-}
+    } else return curry(functor, bool);
+});
