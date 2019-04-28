@@ -1,6 +1,6 @@
 ![Aang](https://raw.github.com/aaditmshah/aang/master/aang.svg?sanitize=true)
 
-# Aang #
+# Aang (安昂) #
 
 A powerful functional programming library.
 
