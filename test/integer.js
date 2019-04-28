@@ -16,12 +16,11 @@ describe("integer", () => {
         assert.throws(() => sub1(-Infinity), TypeError);
     });
 
-    it("checks whether the argument is a safe integer", () => {
+    it("checks whether the argument is an integer", () => {
         assert.throws(() => sub1(Math.PI), TypeError);
-        assert.throws(() => sub1(2 ** 53), TypeError);
     });
 
     it("applies the function to the argument", () => {
-        assert.strictEqual(sub1(1), 0);
+        assert.strictEqual(sub1(2 ** 53), Number.MAX_SAFE_INTEGER);
     });
 });
