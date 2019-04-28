@@ -22,6 +22,6 @@ describe("nat", () => {
     });
 
     it("applies the function to the argument", () => {
-        assert.strictEqual(sub1(1), 0);
+        assert.strictEqual(sub1(2 ** 53), Number.MAX_SAFE_INTEGER);
     });
 });
