@@ -25,6 +25,7 @@
   "homepage": "https://github.com/aaditmshah/aang#readme",
   "devDependencies": {
     "coveralls": "^3.0.3",
+    "mocha": "^6.1.4",
     "nyc": "^14.0.0"
   }
 }
