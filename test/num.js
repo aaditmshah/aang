@@ -7,7 +7,7 @@ describe("num", () => {
     const reciprocal = num(n => 1 / n);
 
     it("checks whether the argument is a number", () => {
-        assert.throws(() => reciprocal("abc"), TypeError);
+        assert.throws(() => reciprocal("abc"),      TypeError);
         assert.throws(() => reciprocal("abc" / 10), TypeError);
     });
 
