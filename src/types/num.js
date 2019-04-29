@@ -5,7 +5,7 @@ const curry = require("./curry");
 
 module.exports = fun((functor, num) => {
     if (num !== +num) {
-        const value = JSON.stringify(num);
+        const value = JSON.stringify(num) || "function";
         throw new TypeError(`${value} is not a number`);
     } else return curry(functor, num);
 });
