@@ -1,6 +1,7 @@
 "use strict";
 
-const curry = require("./curry");
+const curry     = require("./curry");
+const stringify = require("../stringify");
 
 module.exports = curry((functor1, functor2) => {
     checkFunction(functor1);
@@ -10,7 +11,7 @@ module.exports = curry((functor1, functor2) => {
 
 function checkFunction(functor) {
     if (typeof functor !== "function") {
-        const value = JSON.stringify(functor);
+        const value = stringify(functor);
         throw new TypeError(`${value} is not a function`);
     }
 }

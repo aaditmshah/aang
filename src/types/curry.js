@@ -1,5 +1,7 @@
 "use strict";
 
+const stringify = require("../stringify");
+
 const curried = Symbol("curried");
 
 Object.defineProperty(curry, curried, { value: true });
@@ -10,7 +12,7 @@ function curry(functor, ...initArgs) {
     if (arguments.length === 0) return curry;
 
     if (typeof functor !== "function") {
-        const value = JSON.stringify(functor);
+        const value = stringify(functor);
         throw new TypeError(`${value} is not a function`);
     }
 
