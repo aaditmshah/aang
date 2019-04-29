@@ -1,7 +1,7 @@
 "use strict";
 
 const assert = require("assert").strict;
-const fun    = require("../src/fun");
+const fun    = require("../../src/types/fun");
 
 describe("fun", () => {
     const flip = fun(functor => (b, a) => functor(a, b));

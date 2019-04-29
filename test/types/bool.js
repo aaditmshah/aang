@@ -1,7 +1,7 @@
 "use strict";
 
 const assert = require("assert").strict;
-const bool   = require("../src/bool");
+const bool   = require("../../src/types/bool");
 
 describe("bool", () => {
     const not = bool(x => !x);

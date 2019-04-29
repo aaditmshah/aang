@@ -1,7 +1,7 @@
 "use strict";
 
 const assert = require("assert").strict;
-const curry  = require("../src/curry");
+const curry  = require("../../src/types/curry");
 
 describe("curry", () => {
     it("expects a function", () => {

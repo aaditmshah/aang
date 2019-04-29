@@ -1,7 +1,7 @@
 "use strict";
 
 const assert = require("assert").strict;
-const fin    = require("../src/fin");
+const fin    = require("../../src/types/fin");
 
 describe("fin", () => {
     const reciprocal = fin(n => 1 / n);

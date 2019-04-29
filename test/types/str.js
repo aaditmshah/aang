@@ -1,7 +1,7 @@
 "use strict";
 
 const assert = require("assert").strict;
-const str    = require("../src/str");
+const str    = require("../../src/types/str");
 
 describe("str", () => {
     const scream = str(sentence => sentence.toUpperCase());
