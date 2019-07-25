@@ -1,6 +1,7 @@
 "use strict";
 
 exports.bool    = require("./src/types/bool");
+exports.chr     = require("./src/types/chr");
 exports.curry   = require("./src/types/curry");
 exports.fin     = require("./src/types/fin");
 exports.fun     = require("./src/types/fun");
