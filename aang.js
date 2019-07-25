@@ -2,6 +2,7 @@
 
 exports.array   = require("./src/types/array");
 exports.bool    = require("./src/types/bool");
+exports.check   = require("./src/types/check");
 exports.chr     = require("./src/types/chr");
 exports.curry   = require("./src/types/curry");
 exports.fin     = require("./src/types/fin");
