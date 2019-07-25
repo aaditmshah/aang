@@ -2,7 +2,7 @@
 
 module.exports = value => {
     try {
-        return JSON.stringify(value) || "function";
+        return JSON.stringify(value) || typeof value;
     } catch {
         return "circular object";
     }

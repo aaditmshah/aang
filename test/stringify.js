@@ -9,6 +9,10 @@ describe("stringify", () => {
         assert.strictEqual(stringify(false), "false");
     });
 
+    it("can stringify undefined", () => {
+        assert.strictEqual(stringify(undefined), "undefined");
+    });
+
     it("can stringify functions", () => {
         assert.strictEqual(stringify(() => {}), "function");
     });
