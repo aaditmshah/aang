@@ -1,5 +1,6 @@
 "use strict";
 
+exports.array   = require("./src/types/array");
 exports.bool    = require("./src/types/bool");
 exports.chr     = require("./src/types/chr");
 exports.curry   = require("./src/types/curry");
