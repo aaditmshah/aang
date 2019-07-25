@@ -3,10 +3,13 @@
 const curry     = require("./curry");
 const stringify = require("../stringify");
 
-module.exports = curry((functor1, functor2) => {
+module.exports = curry(functor1 => {
     checkFunction(functor1);
-    checkFunction(functor2);
-    return curry(functor1, functor2);
+
+    return functor2 => {
+        checkFunction(functor2);
+        return curry(functor1, functor2);
+    };
 });
 
 function checkFunction(functor) {

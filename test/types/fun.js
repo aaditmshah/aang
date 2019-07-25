@@ -10,6 +10,7 @@ describe("fun", () => {
 
     it("expects a function", () => {
         assert.throws(() => fun([1, 2, 3], [4, 5, 6]), TypeError);
+        assert.throws(() => fun([1, 2, 3]), TypeError);
     });
 
     it("checks whether the argument is a function", () => {
