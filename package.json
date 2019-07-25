@@ -7,10 +7,7 @@
     "test": "nyc --reporter=html --reporter=text mocha --recursive",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://github.com/aaditmshah/aang.git"
-  },
+  "repository": "github:aaditmshah/aang",
   "keywords": [
     "aang",
     "functional",
@@ -19,9 +16,7 @@
   ],
   "author": "Aadit M Shah <aaditmshah@fastmail.fm> (https://aaditmshah.github.io/)",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/aaditmshah/aang/issues"
-  },
+  "bugs": "https://github.com/aaditmshah/aang/issues",
   "homepage": "https://github.com/aaditmshah/aang#readme",
   "devDependencies": {
     "coveralls": "^3.0.4",
