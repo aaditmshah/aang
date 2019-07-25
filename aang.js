@@ -1,6 +1,7 @@
 "use strict";
 
 exports.array   = require("./src/types/array");
+exports.arrayOf = require("./src/types/arrayOf");
 exports.bool    = require("./src/types/bool");
 exports.check   = require("./src/types/check");
 exports.chr     = require("./src/types/chr");
