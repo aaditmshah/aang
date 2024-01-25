@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.1](https://github.com/aaditmshah/aang/compare/v1.1.0-alpha.2...v2.0.0-alpha.1) (2024-01-25)
+
+## 💥 Breaking Changes
+
+- [`2b8bdad`](https://github.com/aaditmshah/aang/commit/2b8bdad) Bump the major version number
+
 # [v1.1.0-alpha.2](https://github.com/aaditmshah/aang/compare/v1.1.0-alpha.1...v1.1.0-alpha.2) (2024-01-25)
 
 ## ✨ New Features
