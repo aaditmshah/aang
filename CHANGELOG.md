@@ -1,3 +1,10 @@
+# [v1.1.0-alpha.1](https://github.com/aaditmshah/aang/compare/v1.0.0...v1.1.0-alpha.1) (2024-01-25)
+
+## ✨ New Features
+
+- [`c113e48`](https://github.com/aaditmshah/aang/commit/c113e48) Add an abstract &#x60;CustomError&#x60; class
+- [`0aca877`](https://github.com/aaditmshah/aang/commit/0aca877) Add the &#x60;Option&#x60; type and its data constructors
+
 # v1.0.0 (2024-01-25)
 
 ## ✨ New Features
