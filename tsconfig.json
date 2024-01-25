@@ -1,0 +1,29 @@
+{
+  "include": ["src", "tests"],
+  "compilerOptions": {
+    "outDir": "lib",
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "verbatimModuleSyntax": true,
+    "resolveJsonModule": false, // ESM doesn't support JSON modules yet.
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "stripInternal": true,
+    "skipLibCheck": true,
+    "declaration": true,
+    // Type Checking
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "strict": true,
+  },
+}

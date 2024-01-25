@@ -1,0 +1,86 @@
+{
+  "name": "aang",
+  "version": "0.0.0-development",
+  "description": "A powerful functional programming library for TypeScript.",
+  "keywords": [
+    "aang",
+    "functional",
+    "library",
+    "typescript"
+  ],
+  "homepage": "https://github.com/aaditmshah/aang",
+  "bugs": "https://github.com/aaditmshah/aang/issues",
+  "license": "MIT",
+  "author": "Aadit M Shah <aaditmshah@aadit.codes> (https://aadit.codes/)",
+  "funding": [
+    {
+      "type": "individual",
+      "url": "https://aadit.codes/sponsor"
+    },
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/aaditmshah"
+    },
+    {
+      "type": "opencollective",
+      "url": "https://opencollective.com/aaditmshah"
+    },
+    {
+      "type": "patreon",
+      "url": "https://www.patreon.com/aaditmshah"
+    },
+    {
+      "type": "buymeacoffee",
+      "url": "https://www.buymeacoffee.com/aaditmshah"
+    }
+  ],
+  "files": [
+    "lib"
+  ],
+  "type": "module",
+  "exports": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "repository": "github:aaditmshah/aang",
+  "scripts": {
+    "clean": "git clean -fdx",
+    "prettier:write": "prettier --write .",
+    "prettier:check": "prettier --check .",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "rimraf coverage && jest",
+    "build": "rimraf lib && tsc -p tsconfig.build.json",
+    "check": "concurrently --kill-others-on-fail 'pnpm prettier:check' 'pnpm lint' 'pnpm typecheck' 'pnpm test' 'pnpm build'",
+    "prepare": "is-ci || husky install"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/exec": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@typescript-eslint/eslint-plugin": "^6.19.1",
+    "@typescript-eslint/parser": "^6.19.1",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-eslint-comments": "^3.2.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jest": "^27.6.3",
+    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-unicorn": "^50.0.1",
+    "fast-check": "^3.15.0",
+    "gitmoji-cli": "^9.0.0",
+    "husky": "^8.0.3",
+    "is-ci": "^3.0.1",
+    "jest": "^29.7.0",
+    "prettier": "^3.2.4",
+    "rimraf": "^5.0.5",
+    "semantic-release": "^22.0.12",
+    "semantic-release-gitmoji": "^1.6.5",
+    "ts-jest": "^29.1.2",
+    "typescript": "^5.3.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

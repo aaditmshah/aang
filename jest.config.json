@@ -1,0 +1,30 @@
+{
+  "roots": ["<rootDir>/src", "<rootDir>/tests"],
+  "testMatch": ["**/*.test.ts"],
+  "preset": "ts-jest/presets/default-esm",
+  "moduleNameMapper": {
+    "^(\\.{1,2}/.*)\\.js$": "$1"
+  },
+  "transform": {
+    "^.+\\.tsx?$": [
+      "ts-jest",
+      {
+        "useESM": true,
+        "isolatedModules": true,
+        "tsconfig": {
+          "moduleResolution": "classic"
+        }
+      }
+    ]
+  },
+  "collectCoverage": true,
+  "collectCoverageFrom": ["src/**/*.ts"],
+  "coverageThreshold": {
+    "global": {
+      "statements": 100,
+      "branches": 100,
+      "functions": 100,
+      "lines": 100
+    }
+  }
+}
