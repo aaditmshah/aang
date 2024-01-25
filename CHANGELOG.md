@@ -1,3 +1,9 @@
+# [v1.1.0-alpha.2](https://github.com/aaditmshah/aang/compare/v1.1.0-alpha.1...v1.1.0-alpha.2) (2024-01-25)
+
+## ✨ New Features
+
+- [`30625f6`](https://github.com/aaditmshah/aang/commit/30625f6) Export the &#x60;Option&#x60; type and data constructors
+
 # [v1.1.0-alpha.1](https://github.com/aaditmshah/aang/compare/v1.0.0...v1.1.0-alpha.1) (2024-01-25)
 
 ## ✨ New Features
