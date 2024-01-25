@@ -19,3 +19,9 @@ export abstract class CustomError extends Error {
     }
   }
 }
+
+export class UnsafeExtractError extends CustomError {
+  public constructor(message: string) {
+    super("UnsafeExtractError", message);
+  }
+}
