@@ -1,6 +1,6 @@
 {
   "name": "aang",
-  "version": "0.0.0-development",
+  "version": "1.0.0",
   "description": "A powerful functional programming library for TypeScript.",
   "keywords": [
     "aang",
