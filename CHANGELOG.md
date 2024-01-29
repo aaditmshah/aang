@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.2](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.1...v2.0.0-alpha.2) (2024-01-29)
+
+## 💥 Breaking Changes
+
+- [`57c8b3c`](https://github.com/aaditmshah/aang/commit/57c8b3c) Add a distinction between exceptions and errors
+
 # [v2.0.0-alpha.1](https://github.com/aaditmshah/aang/compare/v1.1.0-alpha.2...v2.0.0-alpha.1) (2024-01-25)
 
 ## 💥 Breaking Changes
