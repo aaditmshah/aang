@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.3](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.2...v2.0.0-alpha.3) (2024-01-29)
+
+## ✨ New Features
+
+- [`4c3a710`](https://github.com/aaditmshah/aang/commit/4c3a710) Add &#x60;safeExtract&#x60; and &#x60;safeExtractFrom&#x60; methods
+
 # [v2.0.0-alpha.2](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.1...v2.0.0-alpha.2) (2024-01-29)
 
 ## 💥 Breaking Changes
