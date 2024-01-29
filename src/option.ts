@@ -12,6 +12,14 @@ abstract class OptionMethods {
     return this.isSome ? new Some(morphism(this.value)) : none;
   }
 
+  public safeExtract<A>(this: Option<A>, defaultValue: A): A {
+    return this.isSome ? this.value : defaultValue;
+  }
+
+  public safeExtractFrom<A>(this: Option<A>, getDefaultValue: () => A): A {
+    return this.isSome ? this.value : getDefaultValue();
+  }
+
   public unsafeExtract<A>(this: Option<A>, error: Exception | string): A {
     if (this.isSome) return this.value;
     throw error instanceof Exception ? error : new UnsafeExtractError(error);
