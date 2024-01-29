@@ -1,4 +1,5 @@
 import { UnsafeExtractError } from "./errors.js";
+import { Exception } from "./exceptions.js";
 
 export type Option<A> = Some<A> | None;
 
@@ -11,9 +12,9 @@ abstract class OptionMethods {
     return this.isSome ? new Some(morphism(this.value)) : none;
   }
 
-  public unsafeExtract<A>(this: Option<A>, error: Error | string): A {
+  public unsafeExtract<A>(this: Option<A>, error: Exception | string): A {
     if (this.isSome) return this.value;
-    throw error instanceof Error ? error : new UnsafeExtractError(error);
+    throw error instanceof Exception ? error : new UnsafeExtractError(error);
   }
 }
 

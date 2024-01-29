@@ -1,27 +1,8 @@
-export interface ErrorOptions {
-  cause?: unknown;
-}
+import { Exception } from "./exceptions.js";
 
-export abstract class CustomError extends Error {
-  public constructor(name: string, message?: string, options?: ErrorOptions) {
-    super(message, options);
-
-    Object.defineProperty(this, "name", {
-      value: name,
-      enumerable: false,
-      configurable: true,
-    });
-
-    Object.setPrototypeOf(this, new.target.prototype);
-
-    if ("captureStackTrace" in Error) {
-      Error.captureStackTrace(this, new.target);
-    }
-  }
-}
-
-export class UnsafeExtractError extends CustomError {
+export class UnsafeExtractError extends Exception {
   public constructor(message: string) {
-    super("UnsafeExtractError", message);
+    super(message);
+    this.setName("UnsafeExtractError");
   }
 }
