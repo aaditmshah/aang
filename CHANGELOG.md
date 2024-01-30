@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.6](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.5...v2.0.0-alpha.6) (2024-01-30)
+
+## ✨ New Features
+
+- [`391e6ef`](https://github.com/aaditmshah/aang/commit/391e6ef) Add the &#x60;Result&#x60; type and its data constructors
+
 # [v2.0.0-alpha.5](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.4...v2.0.0-alpha.5) (2024-01-30)
 
 ## 💥 Breaking Changes
