@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.9](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.8...v2.0.0-alpha.9) (2024-01-30)
+
+## ✨ New Features
+
+- [`ce7cbaf`](https://github.com/aaditmshah/aang/commit/ce7cbaf) Add &#x60;[Symbol.iterator]&#x60; to &#x60;OptionMethods&#x60;
+
 # [v2.0.0-alpha.8](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.7...v2.0.0-alpha.8) (2024-01-30)
 
 ## ✨ New Features
