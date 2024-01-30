@@ -13,7 +13,7 @@ abstract class ResultMethods {
   }
 }
 
-class Success<out A> extends ResultMethods {
+export class Success<out A> extends ResultMethods {
   public override readonly isSuccess = true;
 
   public override readonly isFailure = false;
@@ -23,7 +23,7 @@ class Success<out A> extends ResultMethods {
   }
 }
 
-class Failure<out E> extends ResultMethods {
+export class Failure<out E> extends ResultMethods {
   public override readonly isSuccess = false;
 
   public override readonly isFailure = true;
@@ -32,9 +32,3 @@ class Failure<out E> extends ResultMethods {
     super();
   }
 }
-
-export const success = <A>(value: A): Success<A> => new Success(value);
-
-export const failure = <E>(error: E): Failure<E> => new Failure(error);
-
-export type { Success, Failure };

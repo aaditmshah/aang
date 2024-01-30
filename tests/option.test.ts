@@ -3,15 +3,15 @@ import fc from "fast-check";
 
 import { UnsafeExtractError } from "../src/errors.js";
 import { Exception } from "../src/exceptions.js";
-import type { None, Option, Some } from "../src/option.js";
-import { none, some } from "../src/option.js";
+import type { Option } from "../src/option.js";
+import { None, Some } from "../src/option.js";
 
 const id = <A>(value: A): A => value;
 
 const genSome = <A>(genValue: fc.Arbitrary<A>): fc.Arbitrary<Some<A>> =>
-  genValue.map((value) => some(value));
+  genValue.map((value) => new Some(value));
 
-const genNone: fc.Arbitrary<None> = fc.constant(none);
+const genNone: fc.Arbitrary<None> = fc.constant(None.instance);
 
 const genOption = <A>(genValue: fc.Arbitrary<A>): fc.Arbitrary<Option<A>> =>
   fc.oneof(genSome(genValue), genNone);
@@ -38,9 +38,9 @@ describe("Option", () => {
           fc.anything(),
           fc.func(genOption(fc.anything())),
           (value, arrow) => {
-            expect(some(value).flatMap((value) => arrow(value))).toStrictEqual(
-              arrow(value),
-            );
+            expect(
+              new Some(value).flatMap((value) => arrow(value)),
+            ).toStrictEqual(arrow(value));
           },
         ),
       );
@@ -51,7 +51,9 @@ describe("Option", () => {
 
       fc.assert(
         fc.property(genOption(fc.anything()), (option) => {
-          expect(option.flatMap((value) => some(value))).toStrictEqual(option);
+          expect(option.flatMap((value) => new Some(value))).toStrictEqual(
+            option,
+          );
         }),
       );
     });
@@ -117,7 +119,7 @@ describe("Option", () => {
 
       fc.assert(
         fc.property(genOption(fc.anything()), (option) => {
-          expect(option.filter(() => false)).toStrictEqual(none);
+          expect(option.filter(() => false)).toStrictEqual(None.instance);
         }),
       );
     });
@@ -132,7 +134,7 @@ describe("Option", () => {
           fc.anything(),
           fc.func(fc.anything()),
           (value, getDefaultValue) => {
-            expect(some(value).safeExtract(getDefaultValue)).toStrictEqual(
+            expect(new Some(value).safeExtract(getDefaultValue)).toStrictEqual(
               value,
             );
           },
@@ -145,7 +147,7 @@ describe("Option", () => {
 
       fc.assert(
         fc.property(fc.func(fc.anything()), (getDefaultValue) => {
-          expect(none.safeExtract(getDefaultValue)).toStrictEqual(
+          expect(None.instance.safeExtract(getDefaultValue)).toStrictEqual(
             getDefaultValue(),
           );
         }),
@@ -159,7 +161,7 @@ describe("Option", () => {
 
       fc.assert(
         fc.property(fc.anything(), fc.string(), (value, message) => {
-          expect(some(value).unsafeExtract(message)).toStrictEqual(value);
+          expect(new Some(value).unsafeExtract(message)).toStrictEqual(value);
         }),
       );
     });
@@ -170,8 +172,10 @@ describe("Option", () => {
       fc.assert(
         fc.property(fc.string(), (message) => {
           const error = new UnsafeExtractError(message);
-          expect(() => none.unsafeExtract(message)).toThrow(error);
-          expect(() => none.unsafeExtract(message)).toThrow(UnsafeExtractError);
+          expect(() => None.instance.unsafeExtract(message)).toThrow(error);
+          expect(() => None.instance.unsafeExtract(message)).toThrow(
+            UnsafeExtractError,
+          );
         }),
       );
     });
@@ -183,8 +187,10 @@ describe("Option", () => {
         fc.property(fc.string(), (message) => {
           class SomeException extends Exception {}
           const error = new SomeException(message);
-          expect(() => none.unsafeExtract(error)).toThrow(error);
-          expect(() => none.unsafeExtract(error)).toThrow(SomeException);
+          expect(() => None.instance.unsafeExtract(error)).toThrow(error);
+          expect(() => None.instance.unsafeExtract(error)).toThrow(
+            SomeException,
+          );
         }),
       );
     });

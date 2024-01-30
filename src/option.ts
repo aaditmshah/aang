@@ -9,21 +9,21 @@ abstract class OptionMethods {
   public abstract readonly isNone: boolean;
 
   public map<A, B>(this: Option<A>, morphism: (value: A) => B): Option<B> {
-    return this.isSome ? new Some(morphism(this.value)) : none;
+    return this.isSome ? new Some(morphism(this.value)) : None.instance;
   }
 
   public flatMap<A, B>(
     this: Option<A>,
     arrow: (value: A) => Option<B>,
   ): Option<B> {
-    return this.isSome ? arrow(this.value) : none;
+    return this.isSome ? arrow(this.value) : None.instance;
   }
 
   public filter<A>(
     this: Option<A>,
     predicate: (value: A) => boolean,
   ): Option<A> {
-    return this.isSome && predicate(this.value) ? this : none;
+    return this.isSome && predicate(this.value) ? this : None.instance;
   }
 
   public safeExtract<A>(this: Option<A>, getDefaultValue: () => A): A {
@@ -36,7 +36,7 @@ abstract class OptionMethods {
   }
 }
 
-class Some<out A> extends OptionMethods {
+export class Some<out A> extends OptionMethods {
   public override readonly isSome = true;
 
   public override readonly isNone = false;
@@ -46,14 +46,14 @@ class Some<out A> extends OptionMethods {
   }
 }
 
-class None extends OptionMethods {
+export class None extends OptionMethods {
   public override readonly isSome = false;
 
   public override readonly isNone = true;
+
+  private constructor() {
+    super();
+  }
+
+  public static readonly instance = new None();
 }
-
-export const some = <A>(value: A): Some<A> => new Some(value);
-
-export const none = new None();
-
-export type { Some, None };

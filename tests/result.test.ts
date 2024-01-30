@@ -1,16 +1,16 @@
 import { describe, expect, it } from "@jest/globals";
 import fc from "fast-check";
 
-import type { Failure, Result, Success } from "../src/result.js";
-import { failure, success } from "../src/result.js";
+import type { Result } from "../src/result.js";
+import { Failure, Success } from "../src/result.js";
 
 const id = <A>(value: A): A => value;
 
 const genSuccess = <A>(genValue: fc.Arbitrary<A>): fc.Arbitrary<Success<A>> =>
-  genValue.map((value) => success(value));
+  genValue.map((value) => new Success(value));
 
 const genFailure = <E>(genError: fc.Arbitrary<E>): fc.Arbitrary<Failure<E>> =>
-  genError.map((error) => failure(error));
+  genError.map((error) => new Failure(error));
 
 const genResult = <E, A>(
   genValue: fc.Arbitrary<A>,
