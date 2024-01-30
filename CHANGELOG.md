@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.7](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.6...v2.0.0-alpha.7) (2024-01-30)
+
+## 💥 Breaking Changes
+
+- [`21bc737`](https://github.com/aaditmshah/aang/commit/21bc737) Export classes instead of the data constructors
+
 # [v2.0.0-alpha.6](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.5...v2.0.0-alpha.6) (2024-01-30)
 
 ## ✨ New Features
