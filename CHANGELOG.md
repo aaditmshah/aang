@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.5](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.4...v2.0.0-alpha.5) (2024-01-30)
+
+## 💥 Breaking Changes
+
+- [`7f82535`](https://github.com/aaditmshah/aang/commit/7f82535) Rename &#x60;safeExtractFrom&#x60; and overwrite &#x60;safeExtract&#x60;
+
 # [v2.0.0-alpha.4](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.3...v2.0.0-alpha.4) (2024-01-30)
 
 ## ✨ New Features
