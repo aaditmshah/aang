@@ -128,33 +128,11 @@ describe("Option", () => {
       expect.assertions(100);
 
       fc.assert(
-        fc.property(fc.anything(), fc.anything(), (value, defaultValue) => {
-          expect(some(value).safeExtract(defaultValue)).toStrictEqual(value);
-        }),
-      );
-    });
-
-    it("should return the default value for None", () => {
-      expect.assertions(100);
-
-      fc.assert(
-        fc.property(fc.anything(), (defaultValue) => {
-          expect(none.safeExtract(defaultValue)).toStrictEqual(defaultValue);
-        }),
-      );
-    });
-  });
-
-  describe("safeExtractFrom", () => {
-    it("should extract the value from Some", () => {
-      expect.assertions(100);
-
-      fc.assert(
         fc.property(
           fc.anything(),
           fc.func(fc.anything()),
           (value, getDefaultValue) => {
-            expect(some(value).safeExtractFrom(getDefaultValue)).toStrictEqual(
+            expect(some(value).safeExtract(getDefaultValue)).toStrictEqual(
               value,
             );
           },
@@ -167,7 +145,7 @@ describe("Option", () => {
 
       fc.assert(
         fc.property(fc.func(fc.anything()), (getDefaultValue) => {
-          expect(none.safeExtractFrom(getDefaultValue)).toStrictEqual(
+          expect(none.safeExtract(getDefaultValue)).toStrictEqual(
             getDefaultValue(),
           );
         }),
