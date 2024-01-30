@@ -5,6 +5,7 @@ import { UnsafeExtractError } from "../src/errors.js";
 import { Exception } from "../src/exceptions.js";
 import type { Option } from "../src/option.js";
 import { None, Some } from "../src/option.js";
+import { Failure, Success } from "../src/result.js";
 
 const id = <A>(value: A): A => value;
 
@@ -190,6 +191,36 @@ describe("Option", () => {
           expect(() => None.instance.unsafeExtract(error)).toThrow(error);
           expect(() => None.instance.unsafeExtract(error)).toThrow(
             SomeException,
+          );
+        }),
+      );
+    });
+  });
+
+  describe("toResult", () => {
+    it("should convert Some to Success", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          fc.anything(),
+          fc.func(fc.anything()),
+          (value, getError) => {
+            expect(new Some(value).toResult(getError)).toStrictEqual(
+              new Success(value),
+            );
+          },
+        ),
+      );
+    });
+
+    it("should convert None to Failure", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(genNone, fc.func(fc.anything()), (none, getError) => {
+          expect(none.toResult(getError)).toStrictEqual(
+            new Failure(getError()),
           );
         }),
       );

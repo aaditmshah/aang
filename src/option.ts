@@ -1,5 +1,7 @@
 import { UnsafeExtractError } from "./errors.js";
 import { Exception } from "./exceptions.js";
+import type { Result } from "./result.js";
+import { Failure, Success } from "./result.js";
 
 export type Option<A> = Some<A> | None;
 
@@ -33,6 +35,10 @@ abstract class OptionMethods {
   public unsafeExtract<A>(this: Option<A>, error: Exception | string): A {
     if (this.isSome) return this.value;
     throw error instanceof Exception ? error : new UnsafeExtractError(error);
+  }
+
+  public toResult<E, A>(this: Option<A>, getError: () => E): Result<E, A> {
+    return this.isSome ? new Success(this.value) : new Failure(getError());
   }
 }
 
