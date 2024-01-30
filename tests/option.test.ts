@@ -226,4 +226,26 @@ describe("Option", () => {
       );
     });
   });
+
+  describe("[Symbol.iterator]", () => {
+    it("should iterate over the value of Some", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(fc.anything(), (value) => {
+          expect([...new Some(value)]).toStrictEqual([value]);
+        }),
+      );
+    });
+
+    it("should not iterate over None", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(genNone, (none) => {
+          expect([...none]).toStrictEqual([]);
+        }),
+      );
+    });
+  });
 });

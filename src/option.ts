@@ -40,6 +40,10 @@ abstract class OptionMethods {
   public toResult<E, A>(this: Option<A>, getError: () => E): Result<E, A> {
     return this.isSome ? new Success(this.value) : new Failure(getError());
   }
+
+  public *[Symbol.iterator]<A>(this: Option<A>): Generator<A, void, undefined> {
+    if (this.isSome) yield this.value;
+  }
 }
 
 export class Some<out A> extends OptionMethods {
