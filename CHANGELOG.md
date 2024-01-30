@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.8](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.7...v2.0.0-alpha.8) (2024-01-30)
+
+## ✨ New Features
+
+- [`391beaa`](https://github.com/aaditmshah/aang/commit/391beaa) Add the &#x60;toResult&#x60; method to &#x60;OptionMethods&#x60;
+
 # [v2.0.0-alpha.7](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.6...v2.0.0-alpha.7) (2024-01-30)
 
 ## 💥 Breaking Changes
