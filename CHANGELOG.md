@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.4](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.3...v2.0.0-alpha.4) (2024-01-30)
+
+## ✨ New Features
+
+- [`018b2eb`](https://github.com/aaditmshah/aang/commit/018b2eb) Add the &#x60;flatMap&#x60; and &#x60;filter&#x60; Option methods
+
 # [v2.0.0-alpha.3](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.2...v2.0.0-alpha.3) (2024-01-29)
 
 ## ✨ New Features
