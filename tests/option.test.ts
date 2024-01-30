@@ -29,6 +29,100 @@ describe("Option", () => {
     });
   });
 
+  describe("flatMap", () => {
+    it("should have a left identity", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          fc.anything(),
+          fc.func(genOption(fc.anything())),
+          (value, arrow) => {
+            expect(some(value).flatMap((value) => arrow(value))).toStrictEqual(
+              arrow(value),
+            );
+          },
+        ),
+      );
+    });
+
+    it("should have a right identity", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(genOption(fc.anything()), (option) => {
+          expect(option.flatMap((value) => some(value))).toStrictEqual(option);
+        }),
+      );
+    });
+
+    it("should be associative", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          genOption(fc.anything()),
+          fc.func(genOption(fc.anything())),
+          fc.func(genOption(fc.anything())),
+          (option, arrow1, arrow2) => {
+            expect(
+              option.flatMap((value1) =>
+                arrow1(value1).flatMap((value2) => arrow2(value2)),
+              ),
+            ).toStrictEqual(
+              option
+                .flatMap((value1) => arrow1(value1))
+                .flatMap((value2) => arrow2(value2)),
+            );
+          },
+        ),
+      );
+    });
+  });
+
+  describe("filter", () => {
+    it("should be distributive", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          genOption(fc.anything()),
+          fc.func(fc.boolean()),
+          fc.func(fc.boolean()),
+          (option, predicate1, predicate2) => {
+            expect(
+              option
+                .filter((value) => predicate1(value))
+                .filter((value) => predicate2(value)),
+            ).toStrictEqual(
+              option.filter((value) => predicate1(value) && predicate2(value)),
+            );
+          },
+        ),
+      );
+    });
+
+    it("should have an identity input", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(genOption(fc.anything()), (option) => {
+          expect(option.filter(() => true)).toStrictEqual(option);
+        }),
+      );
+    });
+
+    it("should have an annihilating input", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(genOption(fc.anything()), (option) => {
+          expect(option.filter(() => false)).toStrictEqual(none);
+        }),
+      );
+    });
+  });
+
   describe("safeExtract", () => {
     it("should extract the value from Some", () => {
       expect.assertions(100);

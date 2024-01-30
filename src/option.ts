@@ -12,6 +12,20 @@ abstract class OptionMethods {
     return this.isSome ? new Some(morphism(this.value)) : none;
   }
 
+  public flatMap<A, B>(
+    this: Option<A>,
+    arrow: (value: A) => Option<B>,
+  ): Option<B> {
+    return this.isSome ? arrow(this.value) : none;
+  }
+
+  public filter<A>(
+    this: Option<A>,
+    predicate: (value: A) => boolean,
+  ): Option<A> {
+    return this.isSome && predicate(this.value) ? this : none;
+  }
+
   public safeExtract<A>(this: Option<A>, defaultValue: A): A {
     return this.isSome ? this.value : defaultValue;
   }
