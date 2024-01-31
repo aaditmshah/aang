@@ -3,30 +3,100 @@ import fc from "fast-check";
 
 import { UnsafeExtractError } from "../src/errors.js";
 import { Exception } from "../src/exceptions.js";
+import { evaluate, type Expression } from "../src/expression.js";
 import type { Option } from "../src/option.js";
 import { None, Some } from "../src/option.js";
 import { Failure, Success } from "../src/result.js";
 
+import { expression, none, option } from "./arbitraries.js";
+
 const id = <A>(value: A): A => value;
 
-const genSome = <A>(genValue: fc.Arbitrary<A>): fc.Arbitrary<Some<A>> =>
-  genValue.map((value) => new Some(value));
+const mapIdentity = <A>(u: Option<A>): void => {
+  expect(u.map(id)).toStrictEqual(u);
+};
 
-const genNone: fc.Arbitrary<None> = fc.constant(None.instance);
+const flatMapLeftIdentity = <A, B>(a: A, k: (a: A) => Option<B>): void => {
+  expect(new Some(a).flatMap(k)).toStrictEqual(k(a));
+};
 
-const genOption = <A>(genValue: fc.Arbitrary<A>): fc.Arbitrary<Option<A>> =>
-  fc.oneof(genSome(genValue), genNone);
+const flatMapRightIdentity = <A>(m: Option<A>): void => {
+  expect(m.flatMap((a) => new Some(a))).toStrictEqual(m);
+};
+
+const flatMapAssociativity = <A, B, C>(
+  m: Option<A>,
+  k: (a: A) => Option<B>,
+  h: (b: B) => Option<C>,
+): void => {
+  expect(m.flatMap((a) => k(a).flatMap(h))).toStrictEqual(
+    m.flatMap(k).flatMap(h),
+  );
+};
+
+const filterDistributivity = <A>(
+  m: Option<A>,
+  p: (a: A) => boolean,
+  q: (a: A) => boolean,
+): void => {
+  expect(m.filter(p).filter(q)).toStrictEqual(m.filter((a) => p(a) && q(a)));
+};
+
+const filterIdentity = <A>(m: Option<A>): void => {
+  expect(m.filter(() => true)).toStrictEqual(m);
+};
+
+const filterAnnihilation = <A>(m: Option<A>): void => {
+  expect(m.filter(() => false)).toStrictEqual(None.instance);
+};
+
+const safeExtractSome = <A>(a: A, x: Expression<A>): void => {
+  expect(new Some(a).safeExtract(x)).toStrictEqual(a);
+};
+
+const safeExtractNone = <A>(x: Expression<A>): void => {
+  expect(None.instance.safeExtract(x)).toStrictEqual(evaluate(x));
+};
+
+const unsafeExtractSome = <A>(a: A, x: Expression<string>): void => {
+  expect(new Some(a).unsafeExtract(x)).toStrictEqual(a);
+};
+
+const unsafeExtractError = (x: Expression<string>): void => {
+  const error = new UnsafeExtractError(evaluate(x));
+  expect(() => None.instance.unsafeExtract(x)).toThrow(error);
+  expect(() => None.instance.unsafeExtract(x)).toThrow(UnsafeExtractError);
+};
+
+const unsafeExtractException = (x: Expression<string>): void => {
+  class SomeException extends Exception {}
+  const error = new SomeException(evaluate(x));
+  expect(() => None.instance.unsafeExtract(error)).toThrow(error);
+  expect(() => None.instance.unsafeExtract(error)).toThrow(SomeException);
+};
+
+const toResultSuccess = <E, A>(a: A, x: Expression<E>): void => {
+  expect(new Some(a).toResult(x)).toStrictEqual(new Success(a));
+};
+
+const toResultFailure = <E>(m: None, x: Expression<E>): void => {
+  expect(m.toResult(x)).toStrictEqual(new Failure(evaluate(x)));
+};
+
+const iterateSome = <A>(a: A): void => {
+  expect([...new Some(a)]).toStrictEqual([a]);
+};
+
+const iterateNone = (m: None): void => {
+  expect([...m]).toStrictEqual([]);
+};
 
 describe("Option", () => {
   describe("map", () => {
     it("should preserve identity morphisms", () => {
       expect.assertions(100);
 
-      fc.assert(
-        fc.property(genOption(fc.anything()), (option) => {
-          expect(option.map((value) => id(value))).toStrictEqual(option);
-        }),
-      );
+      fc.assert(fc.property(option(fc.anything()), mapIdentity));
     });
   });
 
@@ -37,12 +107,8 @@ describe("Option", () => {
       fc.assert(
         fc.property(
           fc.anything(),
-          fc.func(genOption(fc.anything())),
-          (value, arrow) => {
-            expect(
-              new Some(value).flatMap((value) => arrow(value)),
-            ).toStrictEqual(arrow(value));
-          },
+          fc.func(option(fc.anything())),
+          flatMapLeftIdentity,
         ),
       );
     });
@@ -50,13 +116,7 @@ describe("Option", () => {
     it("should have a right identity", () => {
       expect.assertions(100);
 
-      fc.assert(
-        fc.property(genOption(fc.anything()), (option) => {
-          expect(option.flatMap((value) => new Some(value))).toStrictEqual(
-            option,
-          );
-        }),
-      );
+      fc.assert(fc.property(option(fc.anything()), flatMapRightIdentity));
     });
 
     it("should be associative", () => {
@@ -64,20 +124,10 @@ describe("Option", () => {
 
       fc.assert(
         fc.property(
-          genOption(fc.anything()),
-          fc.func(genOption(fc.anything())),
-          fc.func(genOption(fc.anything())),
-          (option, arrow1, arrow2) => {
-            expect(
-              option.flatMap((value1) =>
-                arrow1(value1).flatMap((value2) => arrow2(value2)),
-              ),
-            ).toStrictEqual(
-              option
-                .flatMap((value1) => arrow1(value1))
-                .flatMap((value2) => arrow2(value2)),
-            );
-          },
+          option(fc.anything()),
+          fc.func(option(fc.anything())),
+          fc.func(option(fc.anything())),
+          flatMapAssociativity,
         ),
       );
     });
@@ -89,18 +139,10 @@ describe("Option", () => {
 
       fc.assert(
         fc.property(
-          genOption(fc.anything()),
+          option(fc.anything()),
           fc.func(fc.boolean()),
           fc.func(fc.boolean()),
-          (option, predicate1, predicate2) => {
-            expect(
-              option
-                .filter((value) => predicate1(value))
-                .filter((value) => predicate2(value)),
-            ).toStrictEqual(
-              option.filter((value) => predicate1(value) && predicate2(value)),
-            );
-          },
+          filterDistributivity,
         ),
       );
     });
@@ -108,21 +150,13 @@ describe("Option", () => {
     it("should have an identity input", () => {
       expect.assertions(100);
 
-      fc.assert(
-        fc.property(genOption(fc.anything()), (option) => {
-          expect(option.filter(() => true)).toStrictEqual(option);
-        }),
-      );
+      fc.assert(fc.property(option(fc.anything()), filterIdentity));
     });
 
     it("should have an annihilating input", () => {
       expect.assertions(100);
 
-      fc.assert(
-        fc.property(genOption(fc.anything()), (option) => {
-          expect(option.filter(() => false)).toStrictEqual(None.instance);
-        }),
-      );
+      fc.assert(fc.property(option(fc.anything()), filterAnnihilation));
     });
   });
 
@@ -131,28 +165,14 @@ describe("Option", () => {
       expect.assertions(100);
 
       fc.assert(
-        fc.property(
-          fc.anything(),
-          fc.func(fc.anything()),
-          (value, defaultValue) => {
-            expect(new Some(value).safeExtract(defaultValue)).toStrictEqual(
-              value,
-            );
-          },
-        ),
+        fc.property(fc.anything(), expression(fc.anything()), safeExtractSome),
       );
     });
 
     it("should return the default value for None", () => {
       expect.assertions(100);
 
-      fc.assert(
-        fc.property(fc.func(fc.anything()), (defaultValue) => {
-          expect(None.instance.safeExtract(defaultValue)).toStrictEqual(
-            defaultValue(),
-          );
-        }),
-      );
+      fc.assert(fc.property(expression(fc.anything()), safeExtractNone));
     });
   });
 
@@ -161,39 +181,20 @@ describe("Option", () => {
       expect.assertions(100);
 
       fc.assert(
-        fc.property(fc.anything(), fc.string(), (value, message) => {
-          expect(new Some(value).unsafeExtract(message)).toStrictEqual(value);
-        }),
+        fc.property(fc.anything(), expression(fc.string()), unsafeExtractSome),
       );
     });
 
     it("should throw an UnsafeExtractError for None", () => {
       expect.assertions(200);
 
-      fc.assert(
-        fc.property(fc.string(), (message) => {
-          const error = new UnsafeExtractError(message);
-          expect(() => None.instance.unsafeExtract(message)).toThrow(error);
-          expect(() => None.instance.unsafeExtract(message)).toThrow(
-            UnsafeExtractError,
-          );
-        }),
-      );
+      fc.assert(fc.property(expression(fc.string()), unsafeExtractError));
     });
 
     it("should throw the given exception for None", () => {
       expect.assertions(200);
 
-      fc.assert(
-        fc.property(fc.string(), (message) => {
-          class SomeException extends Exception {}
-          const error = new SomeException(message);
-          expect(() => None.instance.unsafeExtract(error)).toThrow(error);
-          expect(() => None.instance.unsafeExtract(error)).toThrow(
-            SomeException,
-          );
-        }),
-      );
+      fc.assert(fc.property(expression(fc.string()), unsafeExtractException));
     });
   });
 
@@ -202,22 +203,14 @@ describe("Option", () => {
       expect.assertions(100);
 
       fc.assert(
-        fc.property(fc.anything(), fc.func(fc.anything()), (value, error) => {
-          expect(new Some(value).toResult(error)).toStrictEqual(
-            new Success(value),
-          );
-        }),
+        fc.property(fc.anything(), expression(fc.anything()), toResultSuccess),
       );
     });
 
     it("should convert None to Failure", () => {
       expect.assertions(100);
 
-      fc.assert(
-        fc.property(genNone, fc.func(fc.anything()), (none, error) => {
-          expect(none.toResult(error)).toStrictEqual(new Failure(error()));
-        }),
-      );
+      fc.assert(fc.property(none, expression(fc.anything()), toResultFailure));
     });
   });
 
@@ -225,21 +218,13 @@ describe("Option", () => {
     it("should iterate over the value of Some", () => {
       expect.assertions(100);
 
-      fc.assert(
-        fc.property(fc.anything(), (value) => {
-          expect([...new Some(value)]).toStrictEqual([value]);
-        }),
-      );
+      fc.assert(fc.property(fc.anything(), iterateSome));
     });
 
     it("should not iterate over None", () => {
       expect.assertions(100);
 
-      fc.assert(
-        fc.property(genNone, (none) => {
-          expect([...none]).toStrictEqual([]);
-        }),
-      );
+      fc.assert(fc.property(none, iterateNone));
     });
   });
 });
