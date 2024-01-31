@@ -27,6 +27,9 @@
       "node": true
     }
   },
+  "rules": {
+    "unicorn/no-array-callback-reference": "off"
+  },
   "overrides": [
     {
       "files": ["tests/**"],
