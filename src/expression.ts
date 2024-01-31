@@ -5,5 +5,11 @@ export type NonFunction<A> = A extends Function ? never : A;
 
 export type Expression<A> = Thunk<A> | NonFunction<A>;
 
+export const isThunk = <A>(expression: Expression<A>): expression is Thunk<A> =>
+  typeof expression === "function";
+
+export const isNonFunction = <A>(value: A): value is NonFunction<A> =>
+  typeof value !== "function";
+
 export const evaluate = <A>(expression: Expression<A>): A =>
-  typeof expression === "function" ? (expression as Thunk<A>)() : expression;
+  isThunk(expression) ? expression() : expression;
