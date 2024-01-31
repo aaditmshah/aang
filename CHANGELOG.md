@@ -1,3 +1,12 @@
+# [v2.0.0-alpha.10](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.9...v2.0.0-alpha.10) (2024-01-31)
+
+## ✨ New Features
+
+- [`5b5c01a`](https://github.com/aaditmshah/aang/commit/5b5c01a) Add &#x60;Expression&#x60; type and the &#x60;evaluate&#x60; function
+- [`68fd8f5`](https://github.com/aaditmshah/aang/commit/68fd8f5) Make &#x60;Option&#x60; methods work with expression values
+- [`8b351ac`](https://github.com/aaditmshah/aang/commit/8b351ac) Add the &#x60;isThunk&#x60; and &#x60;isNonFunction&#x60; type guards
+- [`1db14e5`](https://github.com/aaditmshah/aang/commit/1db14e5) Move all fast-check arbitraries to separate file
+
 # [v2.0.0-alpha.9](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.8...v2.0.0-alpha.9) (2024-01-30)
 
 ## ✨ New Features
