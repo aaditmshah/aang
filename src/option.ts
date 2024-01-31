@@ -5,7 +5,7 @@ import { Failure, Success } from "./result.js";
 
 export type Option<A> = Some<A> | None;
 
-abstract class OptionMethods {
+abstract class OptionTrait {
   public abstract readonly isSome: boolean;
 
   public abstract readonly isNone: boolean;
@@ -46,7 +46,7 @@ abstract class OptionMethods {
   }
 }
 
-export class Some<out A> extends OptionMethods {
+export class Some<out A> extends OptionTrait {
   public override readonly isSome = true;
 
   public override readonly isNone = false;
@@ -56,7 +56,7 @@ export class Some<out A> extends OptionMethods {
   }
 }
 
-export class None extends OptionMethods {
+export class None extends OptionTrait {
   public override readonly isSome = false;
 
   public override readonly isNone = true;
