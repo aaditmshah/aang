@@ -1,6 +1,6 @@
 export type Result<E, A> = Success<A> | Failure<E>;
 
-abstract class ResultMethods {
+abstract class ResultTrait {
   public abstract readonly isSuccess: boolean;
 
   public abstract readonly isFailure: boolean;
@@ -13,7 +13,7 @@ abstract class ResultMethods {
   }
 }
 
-export class Success<out A> extends ResultMethods {
+export class Success<out A> extends ResultTrait {
   public override readonly isSuccess = true;
 
   public override readonly isFailure = false;
@@ -23,7 +23,7 @@ export class Success<out A> extends ResultMethods {
   }
 }
 
-export class Failure<out E> extends ResultMethods {
+export class Failure<out E> extends ResultTrait {
   public override readonly isSuccess = false;
 
   public override readonly isFailure = true;
