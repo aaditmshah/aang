@@ -134,8 +134,8 @@ describe("Option", () => {
         fc.property(
           fc.anything(),
           fc.func(fc.anything()),
-          (value, getDefaultValue) => {
-            expect(new Some(value).safeExtract(getDefaultValue)).toStrictEqual(
+          (value, defaultValue) => {
+            expect(new Some(value).safeExtract(defaultValue)).toStrictEqual(
               value,
             );
           },
@@ -147,9 +147,9 @@ describe("Option", () => {
       expect.assertions(100);
 
       fc.assert(
-        fc.property(fc.func(fc.anything()), (getDefaultValue) => {
-          expect(None.instance.safeExtract(getDefaultValue)).toStrictEqual(
-            getDefaultValue(),
+        fc.property(fc.func(fc.anything()), (defaultValue) => {
+          expect(None.instance.safeExtract(defaultValue)).toStrictEqual(
+            defaultValue(),
           );
         }),
       );
@@ -202,15 +202,11 @@ describe("Option", () => {
       expect.assertions(100);
 
       fc.assert(
-        fc.property(
-          fc.anything(),
-          fc.func(fc.anything()),
-          (value, getError) => {
-            expect(new Some(value).toResult(getError)).toStrictEqual(
-              new Success(value),
-            );
-          },
-        ),
+        fc.property(fc.anything(), fc.func(fc.anything()), (value, error) => {
+          expect(new Some(value).toResult(error)).toStrictEqual(
+            new Success(value),
+          );
+        }),
       );
     });
 
@@ -218,10 +214,8 @@ describe("Option", () => {
       expect.assertions(100);
 
       fc.assert(
-        fc.property(genNone, fc.func(fc.anything()), (none, getError) => {
-          expect(none.toResult(getError)).toStrictEqual(
-            new Failure(getError()),
-          );
+        fc.property(genNone, fc.func(fc.anything()), (none, error) => {
+          expect(none.toResult(error)).toStrictEqual(new Failure(error()));
         }),
       );
     });

@@ -1,5 +1,7 @@
 import { UnsafeExtractError } from "./errors.js";
 import { Exception } from "./exceptions.js";
+import type { Expression } from "./expression.js";
+import { evaluate } from "./expression.js";
 import type { Result } from "./result.js";
 import { Failure, Success } from "./result.js";
 
@@ -28,17 +30,21 @@ abstract class OptionTrait {
     return this.isSome && predicate(this.value) ? this : None.instance;
   }
 
-  public safeExtract<A>(this: Option<A>, getDefaultValue: () => A): A {
-    return this.isSome ? this.value : getDefaultValue();
+  public safeExtract<A>(this: Option<A>, defaultValue: Expression<A>): A {
+    return this.isSome ? this.value : evaluate(defaultValue);
   }
 
-  public unsafeExtract<A>(this: Option<A>, error: Exception | string): A {
+  public unsafeExtract<A>(
+    this: Option<A>,
+    exception: Expression<Exception | string>,
+  ): A {
     if (this.isSome) return this.value;
+    const error = evaluate(exception);
     throw error instanceof Exception ? error : new UnsafeExtractError(error);
   }
 
-  public toResult<E, A>(this: Option<A>, getError: () => E): Result<E, A> {
-    return this.isSome ? new Success(this.value) : new Failure(getError());
+  public toResult<E, A>(this: Option<A>, error: Expression<E>): Result<E, A> {
+    return this.isSome ? new Success(this.value) : new Failure(evaluate(error));
   }
 
   public *[Symbol.iterator]<A>(this: Option<A>): Generator<A, void, undefined> {
