@@ -1,7 +1,7 @@
 import { UnsafeExtractError } from "./errors.js";
 import { Exception } from "./exceptions.js";
 import type { Expression } from "./expression.js";
-import { evaluate } from "./expression.js";
+import { define, evaluate, fromValue } from "./expression.js";
 import type { Result } from "./result.js";
 import { Failure, Success } from "./result.js";
 
@@ -13,7 +13,7 @@ abstract class OptionTrait {
   public abstract readonly isNone: boolean;
 
   public map<A, B>(this: Option<A>, morphism: (value: A) => B): Option<B> {
-    return this.isSome ? new Some(morphism(this.value)) : None.instance;
+    return this.isSome ? Some.of(morphism(this.value)) : None.instance;
   }
 
   public flatMap<A, B>(
@@ -44,7 +44,7 @@ abstract class OptionTrait {
   }
 
   public toResult<E, A>(this: Option<A>, error: Expression<E>): Result<E, A> {
-    return this.isSome ? new Success(this.value) : new Failure(evaluate(error));
+    return this.isSome ? Success.of(this.value) : new Failure(error);
   }
 
   public *[Symbol.iterator]<A>(this: Option<A>): Generator<A, void, undefined> {
@@ -57,8 +57,15 @@ export class Some<out A> extends OptionTrait {
 
   public override readonly isNone = false;
 
-  public constructor(public readonly value: A) {
+  public readonly value!: A;
+
+  public constructor(value: Expression<A>) {
     super();
+    define(this, "value", value);
+  }
+
+  public static of<A>(value: A): Some<A> {
+    return new Some(fromValue(value));
   }
 }
 

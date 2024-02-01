@@ -17,11 +17,11 @@ const mapIdentity = <A>(u: Option<A>): void => {
 };
 
 const flatMapLeftIdentity = <A, B>(a: A, k: (a: A) => Option<B>): void => {
-  expect(new Some(a).flatMap(k)).toStrictEqual(k(a));
+  expect(Some.of(a).flatMap(k)).toStrictEqual(k(a));
 };
 
 const flatMapRightIdentity = <A>(m: Option<A>): void => {
-  expect(m.flatMap((a) => new Some(a))).toStrictEqual(m);
+  expect(m.flatMap(Some.of)).toStrictEqual(m);
 };
 
 const flatMapAssociativity = <A, B, C>(
@@ -51,7 +51,7 @@ const filterAnnihilation = <A>(m: Option<A>): void => {
 };
 
 const safeExtractSome = <A>(a: A, x: Expression<A>): void => {
-  expect(new Some(a).safeExtract(x)).toStrictEqual(a);
+  expect(Some.of(a).safeExtract(x)).toStrictEqual(a);
 };
 
 const safeExtractNone = <A>(x: Expression<A>): void => {
@@ -59,7 +59,7 @@ const safeExtractNone = <A>(x: Expression<A>): void => {
 };
 
 const unsafeExtractSome = <A>(a: A, x: Expression<string>): void => {
-  expect(new Some(a).unsafeExtract(x)).toStrictEqual(a);
+  expect(Some.of(a).unsafeExtract(x)).toStrictEqual(a);
 };
 
 const unsafeExtractError = (x: Expression<string>): void => {
@@ -76,15 +76,15 @@ const unsafeExtractException = (x: Expression<string>): void => {
 };
 
 const toResultSuccess = <E, A>(a: A, x: Expression<E>): void => {
-  expect(new Some(a).toResult(x)).toStrictEqual(new Success(a));
+  expect(Some.of(a).toResult(x)).toStrictEqual(Success.of(a));
 };
 
 const toResultFailure = <E>(m: None, x: Expression<E>): void => {
-  expect(m.toResult(x)).toStrictEqual(new Failure(evaluate(x)));
+  expect(m.toResult(x)).toStrictEqual(new Failure(x));
 };
 
 const iterateSome = <A>(a: A): void => {
-  expect([...new Some(a)]).toStrictEqual([a]);
+  expect([...Some.of(a)]).toStrictEqual([a]);
 };
 
 const iterateNone = (m: None): void => {
