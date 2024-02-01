@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.11](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.10...v2.0.0-alpha.11) (2024-02-01)
+
+## 💥 Breaking Changes
+
+- [`d8260d8`](https://github.com/aaditmshah/aang/commit/d8260d8) Make the &#x60;Option&#x60; and &#x60;Result&#x60; constructors lazy
+
 # [v2.0.0-alpha.10](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.9...v2.0.0-alpha.10) (2024-01-31)
 
 ## ✨ New Features
