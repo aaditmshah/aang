@@ -1,3 +1,13 @@
+# [v2.0.0-alpha.12](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.11...v2.0.0-alpha.12) (2024-02-06)
+
+## ✨ New Features
+
+- [`7c12fa8`](https://github.com/aaditmshah/aang/commit/7c12fa8) Make the &#x60;None&#x60; class constructor &#x60;public&#x60;
+
+## 💥 Breaking Changes
+
+- [`34c9fe0`](https://github.com/aaditmshah/aang/commit/34c9fe0) Add a new &#x60;Thunk&#x60; class and remove &#x60;NonFunction&#x60;
+
 # [v2.0.0-alpha.11](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.10...v2.0.0-alpha.11) (2024-02-01)
 
 ## 💥 Breaking Changes
