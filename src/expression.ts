@@ -1,42 +1,69 @@
-export type Thunk<A> = () => A;
+export const defineThunk = <T extends Record<K, A>, K extends PropertyKey, A>(
+  object: T,
+  property: K,
+  thunk: () => A,
+  { enumerable = true, configurable = true } = {},
+): void => {
+  Object.defineProperty(object, property, {
+    get: thunk,
+    enumerable,
+    configurable,
+  });
+};
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-export type NonFunction<A> = A extends Function ? never : A;
+export const defineValue = <T extends Record<K, A>, K extends PropertyKey, A>(
+  object: T,
+  property: K,
+  value: A,
+  { writable = true, enumerable = true, configurable = true } = {},
+): void => {
+  Object.defineProperty(object, property, {
+    value,
+    writable,
+    enumerable,
+    configurable,
+  });
+};
 
-export type Expression<A> = Thunk<A> | NonFunction<A>;
+export class Thunk<out A> {
+  protected readonly isThunk = true;
 
-export const isThunk = <A>(expression: Expression<A>): expression is Thunk<A> =>
-  typeof expression === "function";
+  public readonly value!: A;
 
-export const isNonFunction = <A>(value: A): value is NonFunction<A> =>
-  typeof value !== "function";
+  public constructor(thunk: () => A) {
+    defineThunk(this, "value", (): A => {
+      const value = thunk();
+      defineValue(this, "value", value, { writable: false });
+      return value;
+    });
+  }
+}
+
+export type NonThunk<A> = A extends Thunk<unknown> ? never : A;
+
+export type Expression<A> = Thunk<A> | NonThunk<A>;
+
+export const isNonThunk = <A>(value: A): value is NonThunk<A> =>
+  !(value instanceof Thunk);
 
 export const evaluate = <A>(expression: Expression<A>): A =>
-  isThunk(expression) ? expression() : expression;
+  expression instanceof Thunk ? expression.value : expression;
 
 export const fromValue = <A>(value: A): Expression<A> =>
-  isNonFunction(value) ? value : () => value;
+  isNonThunk(value) ? value : new Thunk(() => value);
 
 export const define = <T extends Record<K, A>, K extends PropertyKey, A>(
   object: T,
   property: K,
   expression: Expression<A>,
 ): void => {
-  if (isThunk(expression)) {
-    Object.defineProperty(object, property, {
-      get: (): A => {
-        const value = evaluate(expression);
-        Object.defineProperty(object, property, { value });
-        return value;
-      },
-      enumerable: true,
-      configurable: true,
+  if (expression instanceof Thunk) {
+    defineThunk(object, property, (): A => {
+      const { value } = expression;
+      defineValue(object, property, value, { writable: false });
+      return value;
     });
   } else {
-    Object.defineProperty(object, property, {
-      value: expression,
-      enumerable: true,
-      configurable: true,
-    });
+    defineValue<T, K, A>(object, property, expression, { writable: false });
   }
 };

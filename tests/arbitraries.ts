@@ -1,22 +1,21 @@
 import fc from "fast-check";
 
-import type { Expression, NonFunction, Thunk } from "../src/expression.js";
-import { isNonFunction } from "../src/expression.js";
+import type { Expression, NonThunk } from "../src/expression.js";
+import { Thunk, isNonThunk } from "../src/expression.js";
 import type { Option } from "../src/option.js";
 import { None, Some } from "../src/option.js";
 import type { Result } from "../src/result.js";
 import { Failure, Success } from "../src/result.js";
 
 export const thunk = <A>(a: fc.Arbitrary<A>): fc.Arbitrary<Thunk<A>> =>
-  a.map((value) => () => value);
+  a.map((value) => new Thunk(() => value));
 
-export const nonFunction = <A>(
-  a: fc.Arbitrary<A>,
-): fc.Arbitrary<NonFunction<A>> => a.filter(isNonFunction);
+export const nonThunk = <A>(a: fc.Arbitrary<A>): fc.Arbitrary<NonThunk<A>> =>
+  a.filter(isNonThunk);
 
 export const expression = <A>(
   a: fc.Arbitrary<A>,
-): fc.Arbitrary<Expression<A>> => fc.oneof(thunk(a), nonFunction(a));
+): fc.Arbitrary<Expression<A>> => fc.oneof(thunk(a), nonThunk(a));
 
 export const some = <A>(a: fc.Arbitrary<A>): fc.Arbitrary<Some<A>> =>
   a.map(Some.of);
