@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.13](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.12...v2.0.0-alpha.13) (2024-02-10)
+
+## 💥 Breaking Changes
+
+- [`e9339d2`](https://github.com/aaditmshah/aang/commit/e9339d2) Remove thunks and expressions from the code base
+
 # [v2.0.0-alpha.12](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.11...v2.0.0-alpha.12) (2024-02-06)
 
 ## ✨ New Features
