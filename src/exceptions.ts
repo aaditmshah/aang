@@ -1,5 +1,3 @@
-import { defineValue } from "./expression.js";
-
 export interface ErrorOptions {
   cause?: unknown;
 }
@@ -18,6 +16,10 @@ export abstract class Exception extends Error {
   }
 
   protected setName(name: string): void {
-    defineValue(this, "name", name, { enumerable: false });
+    Object.defineProperty(this, "name", {
+      value: name,
+      enumerable: false,
+      configurable: true,
+    });
   }
 }

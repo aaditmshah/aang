@@ -3,12 +3,11 @@ import fc from "fast-check";
 
 import { UnsafeExtractError } from "../src/errors.js";
 import { Exception } from "../src/exceptions.js";
-import { evaluate, type Expression } from "../src/expression.js";
 import type { Option } from "../src/option.js";
 import { None, Some } from "../src/option.js";
 import { Failure, Success } from "../src/result.js";
 
-import { expression, none, option } from "./arbitraries.js";
+import { none, option } from "./arbitraries.js";
 
 const id = <A>(value: A): A => value;
 
@@ -17,11 +16,11 @@ const mapIdentity = <A>(u: Option<A>): void => {
 };
 
 const flatMapLeftIdentity = <A, B>(a: A, k: (a: A) => Option<B>): void => {
-  expect(Some.of(a).flatMap(k)).toStrictEqual(k(a));
+  expect(new Some(a).flatMap(k)).toStrictEqual(k(a));
 };
 
 const flatMapRightIdentity = <A>(m: Option<A>): void => {
-  expect(m.flatMap(Some.of)).toStrictEqual(m);
+  expect(m.flatMap((value) => new Some(value))).toStrictEqual(m);
 };
 
 const flatMapAssociativity = <A, B, C>(
@@ -50,41 +49,41 @@ const filterAnnihilation = <A>(m: Option<A>): void => {
   expect(m.filter(() => false)).toStrictEqual(None.instance);
 };
 
-const safeExtractSome = <A>(a: A, x: Expression<A>): void => {
-  expect(Some.of(a).safeExtract(x)).toStrictEqual(a);
+const safeExtractSome = <A>(a: A, x: A): void => {
+  expect(new Some(a).safeExtract(x)).toStrictEqual(a);
 };
 
-const safeExtractNone = <A>(x: Expression<A>): void => {
-  expect(None.instance.safeExtract(x)).toStrictEqual(evaluate(x));
+const safeExtractNone = <A>(x: A): void => {
+  expect(None.instance.safeExtract(x)).toStrictEqual(x);
 };
 
-const unsafeExtractSome = <A>(a: A, x: Expression<string>): void => {
-  expect(Some.of(a).unsafeExtract(x)).toStrictEqual(a);
+const unsafeExtractSome = <A>(a: A, x: string): void => {
+  expect(new Some(a).unsafeExtract(x)).toStrictEqual(a);
 };
 
-const unsafeExtractError = (x: Expression<string>): void => {
-  const error = new UnsafeExtractError(evaluate(x));
+const unsafeExtractError = (x: string): void => {
+  const error = new UnsafeExtractError(x);
   expect(() => None.instance.unsafeExtract(x)).toThrow(error);
   expect(() => None.instance.unsafeExtract(x)).toThrow(UnsafeExtractError);
 };
 
-const unsafeExtractException = (x: Expression<string>): void => {
+const unsafeExtractException = (x: string): void => {
   class SomeException extends Exception {}
-  const error = new SomeException(evaluate(x));
+  const error = new SomeException(x);
   expect(() => None.instance.unsafeExtract(error)).toThrow(error);
   expect(() => None.instance.unsafeExtract(error)).toThrow(SomeException);
 };
 
-const toResultSuccess = <E, A>(a: A, x: Expression<E>): void => {
-  expect(Some.of(a).toResult(x)).toStrictEqual(Success.of(a));
+const toResultSuccess = <E, A>(a: A, x: E): void => {
+  expect(new Some(a).toResult(x)).toStrictEqual(new Success(a));
 };
 
-const toResultFailure = <E>(m: None, x: Expression<E>): void => {
+const toResultFailure = <E>(m: None, x: E): void => {
   expect(m.toResult(x)).toStrictEqual(new Failure(x));
 };
 
 const iterateSome = <A>(a: A): void => {
-  expect([...Some.of(a)]).toStrictEqual([a]);
+  expect([...new Some(a)]).toStrictEqual([a]);
 };
 
 const iterateNone = (m: None): void => {
@@ -164,15 +163,13 @@ describe("Option", () => {
     it("should extract the value from Some", () => {
       expect.assertions(100);
 
-      fc.assert(
-        fc.property(fc.anything(), expression(fc.anything()), safeExtractSome),
-      );
+      fc.assert(fc.property(fc.anything(), fc.anything(), safeExtractSome));
     });
 
     it("should return the default value for None", () => {
       expect.assertions(100);
 
-      fc.assert(fc.property(expression(fc.anything()), safeExtractNone));
+      fc.assert(fc.property(fc.anything(), safeExtractNone));
     });
   });
 
@@ -180,21 +177,19 @@ describe("Option", () => {
     it("should extract the value from Some", () => {
       expect.assertions(100);
 
-      fc.assert(
-        fc.property(fc.anything(), expression(fc.string()), unsafeExtractSome),
-      );
+      fc.assert(fc.property(fc.anything(), fc.string(), unsafeExtractSome));
     });
 
     it("should throw an UnsafeExtractError for None", () => {
       expect.assertions(200);
 
-      fc.assert(fc.property(expression(fc.string()), unsafeExtractError));
+      fc.assert(fc.property(fc.string(), unsafeExtractError));
     });
 
     it("should throw the given exception for None", () => {
       expect.assertions(200);
 
-      fc.assert(fc.property(expression(fc.string()), unsafeExtractException));
+      fc.assert(fc.property(fc.string(), unsafeExtractException));
     });
   });
 
@@ -202,15 +197,13 @@ describe("Option", () => {
     it("should convert Some to Success", () => {
       expect.assertions(100);
 
-      fc.assert(
-        fc.property(fc.anything(), expression(fc.anything()), toResultSuccess),
-      );
+      fc.assert(fc.property(fc.anything(), fc.anything(), toResultSuccess));
     });
 
     it("should convert None to Failure", () => {
       expect.assertions(100);
 
-      fc.assert(fc.property(none, expression(fc.anything()), toResultFailure));
+      fc.assert(fc.property(none, fc.anything(), toResultFailure));
     });
   });
 
