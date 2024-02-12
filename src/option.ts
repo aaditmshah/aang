@@ -61,9 +61,5 @@ export class None extends OptionTrait {
 
   public override readonly isNone = true;
 
-  public constructor() {
-    super();
-  }
-
   public static readonly instance = new None();
 }
