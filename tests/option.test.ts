@@ -3,13 +3,12 @@ import fc from "fast-check";
 
 import { UnsafeExtractError } from "../src/errors.js";
 import { Exception } from "../src/exceptions.js";
+import { id } from "../src/miscellaneous.js";
 import type { Option } from "../src/option.js";
 import { None, Some } from "../src/option.js";
 import { Failure, Success } from "../src/result.js";
 
 import { none, option } from "./arbitraries.js";
-
-const id = <A>(value: A): A => value;
 
 const mapIdentity = <A>(u: Option<A>): void => {
   expect(u.map(id)).toStrictEqual(u);

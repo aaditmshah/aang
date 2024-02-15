@@ -1,11 +1,10 @@
 import { describe, expect, it } from "@jest/globals";
 import fc from "fast-check";
 
+import { id } from "../src/miscellaneous.js";
 import type { Result } from "../src/result.js";
 
 import { result } from "./arbitraries.js";
-
-const id = <A>(value: A): A => value;
 
 const mapIdentity = <E, A>(u: Result<E, A>): void => {
   expect(u.map(id)).toStrictEqual(u);
