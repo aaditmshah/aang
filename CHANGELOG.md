@@ -1,3 +1,13 @@
+# [v2.0.0-alpha.14](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.13...v2.0.0-alpha.14) (2024-02-15)
+
+## ✨ New Features
+
+- [`b9d1800`](https://github.com/aaditmshah/aang/commit/b9d1800) Add an &#x60;id&#x60; function and use it in the tests
+
+## 💥 Breaking Changes
+
+- [`bde9d55`](https://github.com/aaditmshah/aang/commit/bde9d55) Rename &#x60;Result&#x60; constructors to &#x60;Okay&#x60; and &#x60;Fail&#x60;
+
 # [v2.0.0-alpha.13](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.12...v2.0.0-alpha.13) (2024-02-10)
 
 ## 💥 Breaking Changes
