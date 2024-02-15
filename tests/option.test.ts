@@ -48,6 +48,14 @@ const filterAnnihilation = <A>(m: Option<A>): void => {
   expect(m.filter(() => false)).toStrictEqual(None.instance);
 };
 
+const isSomeAndFilter = <A>(m: Option<A>, p: (a: A) => boolean): void => {
+  expect(m.isSomeAnd(p)).toStrictEqual(m.filter(p).isSome);
+};
+
+const isNoneOrFilter = <A>(m: Option<A>, p: (a: A) => boolean): void => {
+  expect(m.isNoneOr(p)).toStrictEqual(m.filter((a) => !p(a)).isNone);
+};
+
 const safeExtractSome = <A>(a: A, x: A): void => {
   expect(new Some(a).safeExtract(x)).toStrictEqual(a);
 };
@@ -155,6 +163,34 @@ describe("Option", () => {
       expect.assertions(100);
 
       fc.assert(fc.property(option(fc.anything()), filterAnnihilation));
+    });
+  });
+
+  describe("isSomeAnd", () => {
+    it("should agree with filter", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          option(fc.anything()),
+          fc.func(fc.boolean()),
+          isSomeAndFilter,
+        ),
+      );
+    });
+  });
+
+  describe("isNoneOr", () => {
+    it("should agree with filter", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          option(fc.anything()),
+          fc.func(fc.boolean()),
+          isNoneOrFilter,
+        ),
+      );
     });
   });
 

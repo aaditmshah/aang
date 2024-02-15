@@ -28,6 +28,20 @@ abstract class OptionTrait {
     return this.isSome && predicate(this.value) ? this : None.instance;
   }
 
+  public isSomeAnd<A>(
+    this: Option<A>,
+    predicate: (value: A) => boolean,
+  ): boolean {
+    return this.isSome && predicate(this.value);
+  }
+
+  public isNoneOr<A>(
+    this: Option<A>,
+    predicate: (value: A) => boolean,
+  ): boolean {
+    return this.isNone || predicate(this.value);
+  }
+
   public safeExtract<A>(this: Option<A>, defaultValue: A): A {
     return this.isSome ? this.value : defaultValue;
   }
