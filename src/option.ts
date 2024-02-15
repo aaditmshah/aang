@@ -1,7 +1,7 @@
 import { UnsafeExtractError } from "./errors.js";
 import { Exception } from "./exceptions.js";
 import type { Result } from "./result.js";
-import { Failure, Success } from "./result.js";
+import { Fail, Okay } from "./result.js";
 
 export type Option<A> = Some<A> | None;
 
@@ -37,8 +37,8 @@ abstract class OptionTrait {
     throw error instanceof Exception ? error : new UnsafeExtractError(error);
   }
 
-  public toResult<E, A>(this: Option<A>, error: E): Result<E, A> {
-    return this.isSome ? new Success(this.value) : new Failure(error);
+  public toResult<E, A>(this: Option<A>, defaultValue: E): Result<E, A> {
+    return this.isSome ? new Okay(this.value) : new Fail(defaultValue);
   }
 
   public *[Symbol.iterator]<A>(this: Option<A>): Generator<A, void, undefined> {

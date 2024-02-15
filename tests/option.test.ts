@@ -6,7 +6,7 @@ import { Exception } from "../src/exceptions.js";
 import { id } from "../src/miscellaneous.js";
 import type { Option } from "../src/option.js";
 import { None, Some } from "../src/option.js";
-import { Failure, Success } from "../src/result.js";
+import { Fail, Okay } from "../src/result.js";
 
 import { none, option } from "./arbitraries.js";
 
@@ -74,11 +74,11 @@ const unsafeExtractException = (x: string): void => {
 };
 
 const toResultSuccess = <E, A>(a: A, x: E): void => {
-  expect(new Some(a).toResult(x)).toStrictEqual(new Success(a));
+  expect(new Some(a).toResult(x)).toStrictEqual(new Okay(a));
 };
 
 const toResultFailure = <E>(m: None, x: E): void => {
-  expect(m.toResult(x)).toStrictEqual(new Failure(x));
+  expect(m.toResult(x)).toStrictEqual(new Fail(x));
 };
 
 const iterateSome = <A>(a: A): void => {
