@@ -28,6 +28,10 @@ export class Okay<out A> extends ResultTrait {
   public constructor(public readonly value: A) {
     super();
   }
+
+  public static of<A>(value: A): Okay<A> {
+    return new Okay(value);
+  }
 }
 
 export class Fail<out E> extends ResultTrait {
@@ -37,5 +41,9 @@ export class Fail<out E> extends ResultTrait {
 
   public constructor(public readonly value: E) {
     super();
+  }
+
+  public static of<E>(value: E): Fail<E> {
+    return new Fail(value);
   }
 }

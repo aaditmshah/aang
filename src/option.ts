@@ -68,6 +68,10 @@ export class Some<out A> extends OptionTrait {
   public constructor(public readonly value: A) {
     super();
   }
+
+  public static of<A>(value: A): Some<A> {
+    return new Some(value);
+  }
 }
 
 export class None extends OptionTrait {

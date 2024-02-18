@@ -19,7 +19,7 @@ const flatMapLeftIdentity = <A, B>(a: A, k: (a: A) => Option<B>): void => {
 };
 
 const flatMapRightIdentity = <A>(m: Option<A>): void => {
-  expect(m.flatMap((value) => new Some(value))).toStrictEqual(m);
+  expect(m.flatMap(Some.of)).toStrictEqual(m);
 };
 
 const flatMapAssociativity = <A, B, C>(

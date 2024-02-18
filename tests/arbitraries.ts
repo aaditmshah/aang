@@ -6,7 +6,7 @@ import type { Result } from "../src/result.js";
 import { Fail, Okay } from "../src/result.js";
 
 export const some = <A>(a: fc.Arbitrary<A>): fc.Arbitrary<Some<A>> =>
-  a.map((value) => new Some(value));
+  a.map(Some.of);
 
 export const none: fc.Arbitrary<None> = fc.constant(None.instance);
 
@@ -14,10 +14,10 @@ export const option = <A>(a: fc.Arbitrary<A>): fc.Arbitrary<Option<A>> =>
   fc.oneof(some(a), none);
 
 export const okay = <A>(a: fc.Arbitrary<A>): fc.Arbitrary<Okay<A>> =>
-  a.map((value) => new Okay(value));
+  a.map(Okay.of);
 
 export const fail = <E>(b: fc.Arbitrary<E>): fc.Arbitrary<Fail<E>> =>
-  b.map((value) => new Fail(value));
+  b.map(Fail.of);
 
 export const result = <E, A>(
   a: fc.Arbitrary<A>,
