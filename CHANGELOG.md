@@ -1,3 +1,12 @@
+# [v2.0.0-alpha.15](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.14...v2.0.0-alpha.15) (2024-02-19)
+
+## ✨ New Features
+
+- [`7d8f183`](https://github.com/aaditmshah/aang/commit/7d8f183) Add the &#x60;isSomeAnd&#x60; and &#x60;isNoneOr&#x60; methods
+- [`a8c0186`](https://github.com/aaditmshah/aang/commit/a8c0186) Add the &#x60;of&#x60; static method to &#x60;Some&#x60; and &#x60;Result&#x60;
+- [`01c7d5f`](https://github.com/aaditmshah/aang/commit/01c7d5f) Add and export &#x60;Pair&#x60; data type and unit tests
+- [`da2d8f1`](https://github.com/aaditmshah/aang/commit/da2d8f1) Add more methods to the &#x60;OptionTrait&#x60; class
+
 # [v2.0.0-alpha.14](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.13...v2.0.0-alpha.14) (2024-02-15)
 
 ## ✨ New Features
