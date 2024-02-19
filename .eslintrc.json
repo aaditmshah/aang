@@ -29,7 +29,8 @@
   },
   "rules": {
     "@typescript-eslint/unbound-method": ["error", { "ignoreStatic": true }],
-    "unicorn/no-array-callback-reference": "off"
+    "unicorn/no-array-callback-reference": "off",
+    "unicorn/no-array-method-this-argument": "off"
   },
   "overrides": [
     {
