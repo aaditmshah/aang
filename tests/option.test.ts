@@ -12,6 +12,14 @@ import { Fail, Okay } from "../src/result.js";
 
 import { none, option, pair, result } from "./arbitraries.js";
 
+const toStringSome = <A>(a: A): void => {
+  expect(new Some(a).toString()).toStrictEqual(`Some(${String(a)})`);
+};
+
+const toStringNone = (u: None): void => {
+  expect(u.toString()).toStrictEqual("None");
+};
+
 const mapIdentity = <A>(u: Option<A>): void => {
   expect(u.map(id)).toStrictEqual(u);
 };
@@ -198,6 +206,20 @@ const iterateNone = (m: None): void => {
 };
 
 describe("Option", () => {
+  describe("toString", () => {
+    it("should convert Some to a string", () => {
+      expect.assertions(100);
+
+      fc.assert(fc.property(fc.anything(), toStringSome));
+    });
+
+    it("should convert None to a string", () => {
+      expect.assertions(100);
+
+      fc.assert(fc.property(none, toStringNone));
+    });
+  });
+
   describe("map", () => {
     it("should preserve identity morphisms", () => {
       expect.assertions(100);

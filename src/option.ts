@@ -11,6 +11,10 @@ abstract class OptionTrait {
 
   public abstract readonly isNone: boolean;
 
+  public toString<A>(this: Option<A>): string {
+    return this.isSome ? `Some(${String(this.value)})` : "None";
+  }
+
   public map<A, B>(this: Option<A>, morphism: (value: A) => B): Option<B> {
     return this.isSome ? new Some(morphism(this.value)) : None.instance;
   }
