@@ -1,3 +1,10 @@
+# [v2.0.0-alpha.16](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.15...v2.0.0-alpha.16) (2024-02-23)
+
+## ✨ New Features
+
+- [`d6b2d1b`](https://github.com/aaditmshah/aang/commit/d6b2d1b) Add type predicate overloads for &#x60;Option&#x60; methods
+- [`4c63229`](https://github.com/aaditmshah/aang/commit/4c63229) Add a &#x60;toString&#x60; method to &#x60;OptionTrait&#x60;
+
 # [v2.0.0-alpha.15](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.14...v2.0.0-alpha.15) (2024-02-19)
 
 ## ✨ New Features
