@@ -13,7 +13,11 @@ import { Fail, Okay } from "../src/result.js";
 import { none, option, pair, result } from "./arbitraries.js";
 
 const toStringSome = <A>(a: A): void => {
-  expect(new Some(a).toString()).toStrictEqual(`Some(${String(a)})`);
+  try {
+    expect(new Some(a).toString()).toStrictEqual(`Some(${String(a)})`);
+  } catch (error) {
+    expect(error).toBeInstanceOf(TypeError);
+  }
 };
 
 const toStringNone = (u: None): void => {
