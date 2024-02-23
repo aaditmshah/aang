@@ -48,6 +48,14 @@ abstract class OptionTrait {
     return this.isSome ? this.value : None.instance;
   }
 
+  public filter<A, B extends A>(
+    this: Option<A>,
+    predicate: (value: A) => value is B,
+  ): Option<B>;
+  public filter<A>(
+    this: Option<A>,
+    predicate: (value: A) => boolean,
+  ): Option<A>;
   public filter<A>(
     this: Option<A>,
     predicate: (value: A) => boolean,
@@ -55,6 +63,14 @@ abstract class OptionTrait {
     return this.isSome && predicate(this.value) ? this : None.instance;
   }
 
+  public isSomeAnd<A, B extends A>(
+    this: Option<A>,
+    predicate: (value: A) => value is B,
+  ): this is Option<B>;
+  public isSomeAnd<A>(
+    this: Option<A>,
+    predicate: (value: A) => boolean,
+  ): boolean;
   public isSomeAnd<A>(
     this: Option<A>,
     predicate: (value: A) => boolean,
@@ -62,6 +78,14 @@ abstract class OptionTrait {
     return this.isSome && predicate(this.value);
   }
 
+  public isNoneOr<A, B extends A>(
+    this: Option<A>,
+    predicate: (value: A) => value is B,
+  ): this is Option<B>;
+  public isNoneOr<A>(
+    this: Option<A>,
+    predicate: (value: A) => boolean,
+  ): boolean;
   public isNoneOr<A>(
     this: Option<A>,
     predicate: (value: A) => boolean,
