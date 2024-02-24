@@ -2,7 +2,7 @@ import { describe, expect, it } from "@jest/globals";
 import fc from "fast-check";
 
 import { ComparabilityError } from "../src/errors.js";
-import { Some } from "../src/option.js";
+import { OptionOrder, OptionSetoid, Some } from "../src/option.js";
 import type { Setoid } from "../src/order.js";
 import {
   BigIntOrder,
@@ -13,6 +13,8 @@ import {
   StringOrder,
 } from "../src/order.js";
 import * as ordering from "../src/ordering.js";
+
+import { option } from "./arbitraries.js";
 
 const testSetoid = <A>(
   name: string,
@@ -345,3 +347,15 @@ testOrder("number", fc.double(), NumberOrder.instance);
 testOrder("bigint", fc.bigUint(), BigIntOrder.instance);
 testOrder("boolean", fc.boolean(), BooleanOrder.instance);
 testOrder("Date", fc.date(), DateOrder.instance);
+
+testSetoid(
+  "Option<string>",
+  option(fc.string()),
+  new OptionSetoid(StringOrder.instance),
+);
+
+testOrder(
+  "Option<number>",
+  option(fc.double()),
+  new OptionOrder(NumberOrder.instance),
+);
