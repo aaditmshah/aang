@@ -1,3 +1,11 @@
+# [v2.0.0-alpha.17](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.16...v2.0.0-alpha.17) (2024-02-24)
+
+## ✨ New Features
+
+- [`d6a2baa`](https://github.com/aaditmshah/aang/commit/d6a2baa) Add the &#x60;Ordering&#x60; type, functions, and tests
+- [`fc94760`](https://github.com/aaditmshah/aang/commit/fc94760) Add the &#x60;Order&#x60; class, implementations, and tests
+- [`2672f9f`](https://github.com/aaditmshah/aang/commit/2672f9f) Add the &#x60;OptionSetoid&#x60; and &#x60;OptionOrder&#x60; classes
+
 # [v2.0.0-alpha.16](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.15...v2.0.0-alpha.16) (2024-02-23)
 
 ## ✨ New Features
