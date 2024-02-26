@@ -1,6 +1,6 @@
 import { UnsafeExtractError } from "./errors.js";
 import { Exception } from "./exceptions.js";
-import { Order, Setoid } from "./order.js";
+import type { PartialOrder, Setoid, TotalOrder } from "./order.js";
 import type { Ordering } from "./ordering.js";
 import { Pair } from "./pair.js";
 import type { Result } from "./result.js";
@@ -167,47 +167,65 @@ export class None extends OptionTrait {
   public static readonly instance = new None();
 }
 
-export class OptionSetoid<in A> extends Setoid<Option<A>> {
-  public constructor(public readonly setoid: Setoid<A>) {
-    super();
-  }
+export class OptionSetoid<in A> implements Setoid<Option<A>> {
+  public constructor(public readonly value: Setoid<A>) {}
 
-  public override readonly isSame = (x: Option<A>, y: Option<A>): boolean =>
-    x.isSome ? y.isSome && this.setoid.isSame(x.value, y.value) : y.isNone;
+  public readonly isSame = (x: Option<A>, y: Option<A>): boolean =>
+    x.isSome ? y.isSome && this.value.isSame(x.value, y.value) : y.isNone;
 
-  public override readonly isNotSame = (x: Option<A>, y: Option<A>): boolean =>
-    x.isSome ? y.isNone || this.setoid.isNotSame(x.value, y.value) : y.isSome;
+  public readonly isNotSame = (x: Option<A>, y: Option<A>): boolean =>
+    x.isSome ? y.isNone || this.value.isNotSame(x.value, y.value) : y.isSome;
 }
 
-export class OptionOrder<in out A> extends Order<Option<A>> {
-  public constructor(private readonly order: Order<A>) {
-    super();
+export class OptionPartialOrder<in A>
+  extends OptionSetoid<A>
+  implements PartialOrder<Option<A>>
+{
+  public constructor(public override readonly value: PartialOrder<A>) {
+    super(value);
   }
 
-  public override readonly isSame = (x: Option<A>, y: Option<A>): boolean =>
-    x.isSome ? y.isSome && this.order.isSame(x.value, y.value) : y.isNone;
+  public readonly isLess = (x: Option<A>, y: Option<A>): boolean =>
+    y.isSome && (x.isNone || this.value.isLess(x.value, y.value));
 
-  public override readonly isNotSame = (x: Option<A>, y: Option<A>): boolean =>
-    x.isSome ? y.isNone || this.order.isNotSame(x.value, y.value) : y.isSome;
+  public readonly isNotLess = (x: Option<A>, y: Option<A>): boolean =>
+    y.isNone || (x.isSome && this.value.isNotLess(x.value, y.value));
 
-  public override readonly isLess = (x: Option<A>, y: Option<A>): boolean =>
-    y.isSome && (x.isNone || this.order.isLess(x.value, y.value));
+  public readonly isMore = (x: Option<A>, y: Option<A>): boolean =>
+    x.isSome && (y.isNone || this.value.isMore(x.value, y.value));
 
-  public override readonly isNotLess = (x: Option<A>, y: Option<A>): boolean =>
-    y.isNone || (x.isSome && this.order.isNotLess(x.value, y.value));
+  public readonly isNotMore = (x: Option<A>, y: Option<A>): boolean =>
+    x.isNone || (y.isSome && this.value.isNotMore(x.value, y.value));
 
-  public override readonly isMore = (x: Option<A>, y: Option<A>): boolean =>
-    x.isSome && (y.isNone || this.order.isMore(x.value, y.value));
-
-  public override readonly isNotMore = (x: Option<A>, y: Option<A>): boolean =>
-    x.isNone || (y.isSome && this.order.isNotMore(x.value, y.value));
-
-  public override readonly compare = (
-    x: Option<A>,
-    y: Option<A>,
-  ): Option<Ordering> => {
+  public readonly compare = (x: Option<A>, y: Option<A>): Option<Ordering> => {
     if (x.isNone) return new Some(y.isSome ? "<" : "=");
     if (y.isNone) return new Some(">");
-    return this.order.compare(x.value, y.value);
+    return this.value.compare(x.value, y.value);
   };
+}
+
+export class OptionTotalOrder<in out A>
+  extends OptionPartialOrder<A>
+  implements TotalOrder<Option<A>>
+{
+  public constructor(public override readonly value: TotalOrder<A>) {
+    super(value);
+  }
+
+  public readonly max = (x: Option<A>, y: Option<A>): Option<A> => {
+    if (x.isNone) return y;
+    if (y.isNone) return x;
+    return new Some(this.value.max(x.value, y.value));
+  };
+
+  public readonly min = (x: Option<A>, y: Option<A>): Option<A> => {
+    if (x.isNone || y.isNone) return None.instance;
+    return new Some(this.value.min(x.value, y.value));
+  };
+
+  public readonly clamp = (
+    value: Option<A>,
+    lower: Option<A>,
+    upper: Option<A>,
+  ): Option<A> => this.min(this.max(value, lower), upper);
 }

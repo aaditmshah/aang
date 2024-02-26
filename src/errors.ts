@@ -6,13 +6,3 @@ export class UnsafeExtractError extends Exception {
     this.setName("UnsafeExtractError");
   }
 }
-
-export class ComparabilityError<out A> extends Exception {
-  public constructor(
-    public readonly fst: A,
-    public readonly snd: A,
-  ) {
-    super("The `fst` and `snd` values are not comparable.");
-    this.setName("ComparabilityError");
-  }
-}

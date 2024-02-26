@@ -1,18 +1,17 @@
 import { describe, expect, it } from "@jest/globals";
 import fc from "fast-check";
 
-import { ComparabilityError } from "../src/errors.js";
-import { OptionOrder, OptionSetoid, Some } from "../src/option.js";
-import type { Setoid } from "../src/order.js";
+import type { Option } from "../src/option.js";
+import { None, OptionTotalOrder, Some } from "../src/option.js";
+import type { PartialOrder, Setoid, TotalOrder } from "../src/order.js";
 import {
   BigIntOrder,
   BooleanOrder,
   DateOrder,
   NumberOrder,
-  Order,
   StringOrder,
 } from "../src/order.js";
-import * as ordering from "../src/ordering.js";
+import type { Ordering } from "../src/ordering.js";
 
 import { option } from "./arbitraries.js";
 
@@ -32,19 +31,13 @@ const testSetoid = <A>(
   };
 
   const isSameTransitivity = (x: A, y: A, z: A): void => {
-    if (isSame(x, y) && isSame(y, z)) {
-      expect(isSame(x, z)).toStrictEqual(true);
-    } else {
-      expect(isSame(x, z)).toStrictEqual(expect.anything());
-    }
+    expect(isSame(x, z)).toStrictEqual(
+      (isSame(x, y) && isSame(y, z)) || isSame(x, z),
+    );
   };
 
   const isSameExtensionality = <B>(x: A, y: A, f: (a: A) => B): void => {
-    if (isSame(x, y)) {
-      expect(f(x)).toStrictEqual(f(y));
-    } else {
-      expect(f(x)).toStrictEqual(f(x));
-    }
+    expect(f(x)).toStrictEqual(f(isSame(x, y) ? y : x));
   };
 
   const isNotSameDefinition = (x: A, y: A): void => {
@@ -95,23 +88,12 @@ const testSetoid = <A>(
   });
 };
 
-const testOrder = <A>(
+const testPartialOrder = <A>(
   name: string,
   value: fc.Arbitrary<A>,
-  order: Order<A>,
+  order: PartialOrder<A>,
 ): void => {
-  const {
-    isLess,
-    isNotLess,
-    isMore,
-    isNotMore,
-    compare,
-    unsafeCompare,
-    max,
-    min,
-    clamp,
-    ...setoid
-  } = order;
+  const { isLess, isNotLess, isMore, isNotMore, compare, ...setoid } = order;
 
   const { isSame } = setoid;
 
@@ -122,11 +104,9 @@ const testOrder = <A>(
   };
 
   const isLessTransitive = (x: A, y: A, z: A): void => {
-    if (isLess(x, y) && isLess(y, z)) {
-      expect(isLess(x, z)).toStrictEqual(true);
-    } else {
-      expect(isLess(x, z)).toStrictEqual(expect.anything());
-    }
+    expect(isLess(x, z)).toStrictEqual(
+      (isLess(x, y) && isLess(y, z)) || isLess(x, z),
+    );
   };
 
   const isLessDuality = (x: A, y: A): void => {
@@ -142,11 +122,9 @@ const testOrder = <A>(
   };
 
   const isMoreTransitive = (x: A, y: A, z: A): void => {
-    if (isMore(x, y) && isMore(y, z)) {
-      expect(isMore(x, z)).toStrictEqual(true);
-    } else {
-      expect(isMore(x, z)).toStrictEqual(expect.anything());
-    }
+    expect(isMore(x, z)).toStrictEqual(
+      (isMore(x, y) && isMore(y, z)) || isMore(x, z),
+    );
   };
 
   const isMoreDuality = (x: A, y: A): void => {
@@ -181,43 +159,7 @@ const testOrder = <A>(
     }
   };
 
-  const unsafeCompareDefinition = (x: A, y: A): void => {
-    try {
-      expect(new Some(unsafeCompare(x, y))).toStrictEqual(compare(x, y));
-    } catch (error) {
-      expect(error).toBeInstanceOf(ComparabilityError);
-    }
-  };
-
-  const maxDefinition = (x: A, y: A): void => {
-    try {
-      const expected = ordering.isNotLess(unsafeCompare(x, y)) ? x : y;
-      expect(max(x, y)).toStrictEqual(expected);
-    } catch (error) {
-      expect(error).toBeInstanceOf(ComparabilityError);
-    }
-  };
-
-  const minDefinition = (x: A, y: A): void => {
-    try {
-      const expected = ordering.isNotMore(unsafeCompare(x, y)) ? x : y;
-      expect(min(x, y)).toStrictEqual(expected);
-    } catch (error) {
-      expect(error).toBeInstanceOf(ComparabilityError);
-    }
-  };
-
-  const clampDefinition = (value: A, lower: A, upper: A): void => {
-    try {
-      expect(clamp(value, lower, upper)).toStrictEqual(
-        min(max(value, lower), upper),
-      );
-    } catch (error) {
-      expect(error).toBeInstanceOf(ComparabilityError);
-    }
-  };
-
-  describe(`Order<${name}>`, () => {
+  describe(`PartialOrder<${name}>`, () => {
     describe("isLess", () => {
       it("should be irreflexive", () => {
         expect.assertions(100);
@@ -293,17 +235,41 @@ const testOrder = <A>(
         fc.assert(fc.property(value, value, compareIsMore));
       });
     });
+  });
+};
 
-    describe("unsafeCompare", () => {
-      it("should agree with compare", () => {
-        expect.assertions(100);
+const testTotalOrder = <A>(
+  name: string,
+  value: fc.Arbitrary<A>,
+  order: TotalOrder<A>,
+): void => {
+  const { max, min, clamp, ...partialOrder } = order;
 
-        fc.assert(fc.property(value, value, unsafeCompareDefinition));
-      });
-    });
+  const { compare } = partialOrder;
 
+  testPartialOrder(name, value, partialOrder);
+
+  const maxDefinition = (x: A, y: A): void => {
+    const ordering = compare(x, y);
+    if (ordering.isNone) expect(max(x, y)).toStrictEqual(max(x, y));
+    else expect(max(x, y)).toStrictEqual(ordering.value === "<" ? y : x);
+  };
+
+  const minDefinition = (x: A, y: A): void => {
+    const ordering = compare(x, y);
+    if (ordering.isNone) expect(max(x, y)).toStrictEqual(max(x, y));
+    else expect(min(x, y)).toStrictEqual(ordering.value === ">" ? y : x);
+  };
+
+  const clampDefinition = (value: A, lower: A, upper: A): void => {
+    expect(clamp(value, lower, upper)).toStrictEqual(
+      min(max(value, lower), upper),
+    );
+  };
+
+  describe(`TotalOrder<${name}>`, () => {
     describe("max", () => {
-      it("should agree with unsafeCompare", () => {
+      it("should agree with compare", () => {
         expect.assertions(100);
 
         fc.assert(fc.property(value, value, maxDefinition));
@@ -311,7 +277,7 @@ const testOrder = <A>(
     });
 
     describe("min", () => {
-      it("should agree with unsafeCompare", () => {
+      it("should agree with compare", () => {
         expect.assertions(100);
 
         fc.assert(fc.property(value, value, minDefinition));
@@ -328,34 +294,51 @@ const testOrder = <A>(
   });
 };
 
-class UnknownOrder extends Order<unknown> {
-  public override readonly isSame: (x: unknown, y: unknown) => boolean =
-    Object.is;
+class UnknownOrder implements PartialOrder<unknown> {
+  public readonly isSame: (x: unknown, y: unknown) => boolean = Object.is;
 
-  public override readonly isLess: (x: unknown, y: unknown) => boolean = () =>
-    false;
+  public readonly isNotSame = (x: unknown, y: unknown): boolean =>
+    !this.isSame(x, y);
 
-  public override readonly isMore: (x: unknown, y: unknown) => boolean = () =>
-    false;
+  public readonly isLess: (x: unknown, y: unknown) => boolean = () => false;
+
+  public readonly isNotLess: (x: unknown, y: unknown) => boolean = Object.is;
+
+  public readonly isMore: (x: unknown, y: unknown) => boolean = () => false;
+
+  public readonly isNotMore: (x: unknown, y: unknown) => boolean = Object.is;
+
+  public readonly compare = (x: unknown, y: unknown): Option<Ordering> =>
+    this.isSame(x, y) ? new Some("=") : None.instance;
 
   public static readonly instance = new UnknownOrder();
 }
 
-testOrder("unknown", fc.anything(), UnknownOrder.instance);
-testOrder("string", fc.string(), StringOrder.instance);
-testOrder("number", fc.double(), NumberOrder.instance);
-testOrder("bigint", fc.bigUint(), BigIntOrder.instance);
-testOrder("boolean", fc.boolean(), BooleanOrder.instance);
-testOrder("Date", fc.date(), DateOrder.instance);
-
-testSetoid(
-  "Option<string>",
-  option(fc.string()),
-  new OptionSetoid(StringOrder.instance),
+const number = fc.oneof(
+  fc.nat(9),
+  fc.constant(-0),
+  fc.constant(Number.NaN),
+  fc.constant(Number.POSITIVE_INFINITY),
+  fc.constant(Number.NEGATIVE_INFINITY),
 );
 
-testOrder(
+testPartialOrder("unknown", fc.anything(), UnknownOrder.instance);
+testTotalOrder("string", fc.string(), StringOrder.instance);
+testTotalOrder("number", number, NumberOrder.instance);
+testTotalOrder("bigint", fc.bigUint(9n), BigIntOrder.instance);
+testTotalOrder("boolean", fc.boolean(), BooleanOrder.instance);
+testTotalOrder(
+  "Date",
+  fc.date({
+    min: new Date(0),
+    max: new Date(9),
+    noInvalidDate: false,
+  }),
+  DateOrder.instance,
+);
+
+testTotalOrder(
   "Option<number>",
-  option(fc.double()),
-  new OptionOrder(NumberOrder.instance),
+  option(number),
+  new OptionTotalOrder(NumberOrder.instance),
 );

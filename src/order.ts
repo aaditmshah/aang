@@ -1,139 +1,193 @@
-import { ComparabilityError } from "./errors.js";
 import type { Option } from "./option.js";
 import { None, Some } from "./option.js";
 import type { Ordering } from "./ordering.js";
-import { isNotLess, isNotMore } from "./ordering.js";
 
-export abstract class Setoid<in A> {
-  public abstract readonly isSame: (x: A, y: A) => boolean;
+export interface Setoid<in A> {
+  readonly isSame: (x: A, y: A) => boolean;
 
-  public readonly isNotSame = (x: A, y: A): boolean => !this.isSame(x, y);
+  readonly isNotSame: (x: A, y: A) => boolean;
 }
 
-export abstract class Order<in out A> extends Setoid<A> {
-  public abstract readonly isLess: (x: A, y: A) => boolean;
+export interface PartialOrder<in A> extends Setoid<A> {
+  readonly isLess: (x: A, y: A) => boolean;
 
-  public readonly isNotLess = (x: A, y: A): boolean =>
-    this.compare(x, y).isSomeAnd(isNotLess);
+  readonly isNotLess: (x: A, y: A) => boolean;
 
-  public abstract readonly isMore: (x: A, y: A) => boolean;
+  readonly isMore: (x: A, y: A) => boolean;
 
-  public readonly isNotMore = (x: A, y: A): boolean =>
-    this.compare(x, y).isSomeAnd(isNotMore);
+  readonly isNotMore: (x: A, y: A) => boolean;
 
-  public readonly compare = (x: A, y: A): Option<Ordering> => {
-    if (this.isSame(x, y)) return new Some("=");
-    if (this.isLess(x, y)) return new Some("<");
-    if (this.isMore(x, y)) return new Some(">");
-    return None.instance;
-  };
-
-  public readonly unsafeCompare = (x: A, y: A): Ordering =>
-    this.compare(x, y).unsafeExtract(new ComparabilityError(x, y));
-
-  public readonly max = (x: A, y: A): A =>
-    isNotLess(this.unsafeCompare(x, y)) ? x : y;
-
-  public readonly min = (x: A, y: A): A =>
-    isNotMore(this.unsafeCompare(x, y)) ? x : y;
-
-  public readonly clamp = (value: A, lower: A, upper: A): A =>
-    this.min(this.max(value, lower), upper);
+  readonly compare: (x: A, y: A) => Option<Ordering>;
 }
 
-export class StringOrder extends Order<string> {
-  public override readonly isSame = (x: string, y: string): boolean => x === y;
+export interface TotalOrder<in out A> extends PartialOrder<A> {
+  readonly max: (x: A, y: A) => A;
 
-  public override readonly isNotSame = (x: string, y: string): boolean =>
-    x !== y;
+  readonly min: (x: A, y: A) => A;
 
-  public override readonly isLess = (x: string, y: string): boolean => x < y;
+  readonly clamp: (value: A, lower: A, upper: A) => A;
+}
 
-  public override readonly isNotLess = (x: string, y: string): boolean =>
-    x >= y;
+export class StringOrder implements TotalOrder<string> {
+  public readonly isSame = (x: string, y: string): boolean => x === y;
 
-  public override readonly isMore = (x: string, y: string): boolean => x > y;
+  public readonly isNotSame = (x: string, y: string): boolean => x !== y;
 
-  public override readonly isNotMore = (x: string, y: string): boolean =>
-    x <= y;
+  public readonly isLess = (x: string, y: string): boolean => x < y;
+
+  public readonly isNotLess = (x: string, y: string): boolean => x >= y;
+
+  public readonly isMore = (x: string, y: string): boolean => x > y;
+
+  public readonly isNotMore = (x: string, y: string): boolean => x <= y;
+
+  public readonly compare = (x: string, y: string): Option<Ordering> =>
+    new Some(x < y ? "<" : x > y ? ">" : "=");
+
+  public readonly max = (x: string, y: string): string => (x >= y ? x : y);
+
+  public readonly min = (x: string, y: string): string => (x <= y ? x : y);
+
+  public readonly clamp = (
+    value: string,
+    lower: string,
+    upper: string,
+  ): string => this.min(this.max(value, lower), upper);
 
   public static readonly instance = new StringOrder();
 }
 
-export class NumberOrder extends Order<number> {
-  public override readonly isSame: (x: number, y: number) => boolean =
-    Object.is;
+export class NumberOrder implements TotalOrder<number> {
+  public readonly isSame: (x: number, y: number) => boolean = Object.is;
 
-  public override readonly isLess = (x: number, y: number): boolean => x < y;
+  public readonly isNotSame = (x: number, y: number): boolean =>
+    !this.isSame(x, y);
 
-  public override readonly isNotLess = (x: number, y: number): boolean =>
-    x >= y;
+  public readonly isLess = (x: number, y: number): boolean => x < y;
 
-  public override readonly isMore = (x: number, y: number): boolean => x > y;
+  public readonly isNotLess = (x: number, y: number): boolean =>
+    x > y || this.isSame(x, y);
 
-  public override readonly isNotMore = (x: number, y: number): boolean =>
-    x <= y;
+  public readonly isMore = (x: number, y: number): boolean => x > y;
 
-  public override readonly max: (x: number, y: number) => number = Math.max;
+  public readonly isNotMore = (x: number, y: number): boolean =>
+    x < y || this.isSame(x, y);
 
-  public override readonly min: (x: number, y: number) => number = Math.min;
+  public readonly compare = (x: number, y: number): Option<Ordering> => {
+    if (this.isSame(x, y)) return new Some("=");
+    if (x < y) return new Some("<");
+    if (x > y) return new Some(">");
+    return None.instance;
+  };
+
+  public readonly max: (x: number, y: number) => number = Math.max;
+
+  public readonly min: (x: number, y: number) => number = Math.min;
+
+  public readonly clamp = (
+    value: number,
+    lower: number,
+    upper: number,
+  ): number => this.min(this.max(value, lower), upper);
 
   public static readonly instance = new NumberOrder();
 }
 
-export class BigIntOrder extends Order<bigint> {
-  public override readonly isSame = (x: bigint, y: bigint): boolean => x === y;
+export class BigIntOrder implements TotalOrder<bigint> {
+  public readonly isSame = (x: bigint, y: bigint): boolean => x === y;
 
-  public override readonly isNotSame = (x: bigint, y: bigint): boolean =>
-    x !== y;
+  public readonly isNotSame = (x: bigint, y: bigint): boolean => x !== y;
 
-  public override readonly isLess = (x: bigint, y: bigint): boolean => x < y;
+  public readonly isLess = (x: bigint, y: bigint): boolean => x < y;
 
-  public override readonly isNotLess = (x: bigint, y: bigint): boolean =>
-    x >= y;
+  public readonly isNotLess = (x: bigint, y: bigint): boolean => x >= y;
 
-  public override readonly isMore = (x: bigint, y: bigint): boolean => x > y;
+  public readonly isMore = (x: bigint, y: bigint): boolean => x > y;
 
-  public override readonly isNotMore = (x: bigint, y: bigint): boolean =>
-    x <= y;
+  public readonly isNotMore = (x: bigint, y: bigint): boolean => x <= y;
+
+  public readonly compare = (x: bigint, y: bigint): Option<Ordering> =>
+    new Some(x < y ? "<" : x > y ? ">" : "=");
+
+  public readonly max = (x: bigint, y: bigint): bigint => (x >= y ? x : y);
+
+  public readonly min = (x: bigint, y: bigint): bigint => (x <= y ? x : y);
+
+  public readonly clamp = (
+    value: bigint,
+    lower: bigint,
+    upper: bigint,
+  ): bigint => this.min(this.max(value, lower), upper);
 
   public static readonly instance = new BigIntOrder();
 }
 
-export class BooleanOrder extends Order<boolean> {
-  public override readonly isSame = (x: boolean, y: boolean): boolean =>
-    x === y;
+export class BooleanOrder implements TotalOrder<boolean> {
+  public readonly isSame = (x: boolean, y: boolean): boolean => x === y;
 
-  public override readonly isNotSame = (x: boolean, y: boolean): boolean =>
-    x !== y;
+  public readonly isNotSame = (x: boolean, y: boolean): boolean => x !== y;
 
-  public override readonly isLess = (x: boolean, y: boolean): boolean => x < y;
+  public readonly isLess = (x: boolean, y: boolean): boolean => x < y;
 
-  public override readonly isNotLess = (x: boolean, y: boolean): boolean =>
-    x >= y;
+  public readonly isNotLess = (x: boolean, y: boolean): boolean => x >= y;
 
-  public override readonly isMore = (x: boolean, y: boolean): boolean => x > y;
+  public readonly isMore = (x: boolean, y: boolean): boolean => x > y;
 
-  public override readonly isNotMore = (x: boolean, y: boolean): boolean =>
-    x <= y;
+  public readonly isNotMore = (x: boolean, y: boolean): boolean => x <= y;
+
+  public readonly compare = (x: boolean, y: boolean): Option<Ordering> =>
+    new Some(x < y ? "<" : x > y ? ">" : "=");
+
+  public readonly max = (x: boolean, y: boolean): boolean => (x >= y ? x : y);
+
+  public readonly min = (x: boolean, y: boolean): boolean => (x <= y ? x : y);
+
+  public readonly clamp = (
+    value: boolean,
+    lower: boolean,
+    upper: boolean,
+  ): boolean => this.min(this.max(value, lower), upper);
 
   public static readonly instance = new BooleanOrder();
 }
 
-export class DateOrder extends Order<Date> {
-  public override readonly isSame = (x: Date, y: Date): boolean =>
+export class DateOrder implements TotalOrder<Date> {
+  public readonly isSame = (x: Date, y: Date): boolean =>
     NumberOrder.instance.isSame(x.getTime(), y.getTime());
 
-  public override readonly isNotSame = (x: Date, y: Date): boolean =>
-    NumberOrder.instance.isNotSame(x.getTime(), y.getTime());
+  public readonly isNotSame = (x: Date, y: Date): boolean => !this.isSame(x, y);
 
-  public override readonly isLess = (x: Date, y: Date): boolean => x < y;
+  public readonly isLess = (x: Date, y: Date): boolean => x < y;
 
-  public override readonly isNotLess = (x: Date, y: Date): boolean => x >= y;
+  public readonly isNotLess = (x: Date, y: Date): boolean =>
+    x > y || this.isSame(x, y);
 
-  public override readonly isMore = (x: Date, y: Date): boolean => x > y;
+  public readonly isMore = (x: Date, y: Date): boolean => x > y;
 
-  public override readonly isNotMore = (x: Date, y: Date): boolean => x <= y;
+  public readonly isNotMore = (x: Date, y: Date): boolean =>
+    x < y || this.isSame(x, y);
+
+  public readonly compare = (x: Date, y: Date): Option<Ordering> => {
+    if (this.isSame(x, y)) return new Some("=");
+    if (x < y) return new Some("<");
+    if (x > y) return new Some(">");
+    return None.instance;
+  };
+
+  public readonly max = (x: Date, y: Date): Date => {
+    if (Number.isNaN(x.getTime())) return x;
+    if (Number.isNaN(y.getTime())) return y;
+    return x >= y ? x : y;
+  };
+
+  public readonly min = (x: Date, y: Date): Date => {
+    if (Number.isNaN(x.getTime())) return x;
+    if (Number.isNaN(y.getTime())) return y;
+    return x <= y ? x : y;
+  };
+
+  public readonly clamp = (value: Date, lower: Date, upper: Date): Date =>
+    this.min(this.max(value, lower), upper);
 
   public static readonly instance = new DateOrder();
 }
