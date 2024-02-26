@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.18](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.17...v2.0.0-alpha.18) (2024-02-26)
+
+## 💥 Breaking Changes
+
+- [`565d39b`](https://github.com/aaditmshah/aang/commit/565d39b) Split &#x60;Order&#x60; into &#x60;PartialOrder&#x60; and &#x60;TotalOrder&#x60;
+
 # [v2.0.0-alpha.17](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.16...v2.0.0-alpha.17) (2024-02-24)
 
 ## ✨ New Features
