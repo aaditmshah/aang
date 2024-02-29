@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.21](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.20...v2.0.0-alpha.21) (2024-02-29)
+
+## ✨ New Features
+
+- [`99e467e`](https://github.com/aaditmshah/aang/commit/99e467e) Add a &#x60;Semigroup&#x60; interface and implementations
+
 # [v2.0.0-alpha.20](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.19...v2.0.0-alpha.20) (2024-02-29)
 
 ## 💥 Breaking Changes
