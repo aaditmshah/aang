@@ -2,6 +2,7 @@ import type { Option } from "./option.js";
 import { Some } from "./option.js";
 import type { TotalOrder } from "./order.js";
 import type { Ordering } from "./ordering.js";
+import type { Semigroup } from "./semigroup.js";
 
 export class Integer implements TotalOrder<Integer> {
   public constructor(public readonly value: bigint) {}
@@ -50,5 +51,25 @@ export class Integer implements TotalOrder<Integer> {
 
   public clamp(this: Integer, lower: Integer, upper: Integer): Integer {
     return this.max(lower).min(upper);
+  }
+}
+
+export class Sum extends Integer implements Semigroup<Sum> {
+  public static override of(value: bigint): Sum {
+    return new Sum(value);
+  }
+
+  public append(this: Sum, that: Sum): Sum {
+    return new Sum(this.value + that.value);
+  }
+}
+
+export class Product extends Integer implements Semigroup<Product> {
+  public static override of(value: bigint): Product {
+    return new Product(value);
+  }
+
+  public append(this: Product, that: Product): Product {
+    return new Product(this.value * that.value);
   }
 }

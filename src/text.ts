@@ -2,12 +2,17 @@ import type { Option } from "./option.js";
 import { Some } from "./option.js";
 import type { TotalOrder } from "./order.js";
 import type { Ordering } from "./ordering.js";
+import type { Semigroup } from "./semigroup.js";
 
-export class Text implements TotalOrder<Text> {
+export class Text implements Semigroup<Text>, TotalOrder<Text> {
   public constructor(public readonly value: string) {}
 
   public static of(value: string): Text {
     return new Text(value);
+  }
+
+  public append(this: Text, that: Text): Text {
+    return new Text(`${this.value}${that.value}`);
   }
 
   public isSame(this: Text, that: Text): boolean {

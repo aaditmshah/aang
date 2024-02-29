@@ -5,10 +5,13 @@ import type { Ordering } from "./ordering.js";
 import { Pair } from "./pair.js";
 import type { Result } from "./result.js";
 import { Fail, Okay } from "./result.js";
+import type { Semigroup } from "./semigroup.js";
 
 export type Option<A> = Some<A> | None;
 
-abstract class OptionTrait implements TotalOrder<Option<never>> {
+abstract class OptionTrait
+  implements Semigroup<Option<never>>, TotalOrder<Option<never>>
+{
   public abstract readonly isSome: boolean;
 
   public abstract readonly isNone: boolean;
@@ -138,6 +141,15 @@ abstract class OptionTrait implements TotalOrder<Option<never>> {
 
   public toResult<E, A>(this: Option<A>, defaultValue: E): Result<E, A> {
     return this.isSome ? new Okay(this.value) : new Fail(defaultValue);
+  }
+
+  public append<A extends Semigroup<A>>(
+    this: Option<A>,
+    that: Option<A>,
+  ): Option<A> {
+    if (this.isNone) return that;
+    if (that.isNone) return this;
+    return new Some(this.value.append(that.value));
   }
 
   public isSame<A extends Setoid<A>>(
