@@ -5,7 +5,13 @@ import { UnsafeExtractError } from "../src/errors.js";
 import { Exception } from "../src/exceptions.js";
 import { id } from "../src/miscellaneous.js";
 import type { Option } from "../src/option.js";
-import { None, Some } from "../src/option.js";
+import {
+  None,
+  Some,
+  fromFalsy,
+  fromNullable,
+  fromValue,
+} from "../src/option.js";
 import { Pair } from "../src/pair.js";
 import type { Result } from "../src/result.js";
 import { Fail, Okay } from "../src/result.js";
@@ -207,6 +213,20 @@ const iterateSome = <A>(a: A): void => {
 
 const iterateNone = (m: None): void => {
   expect([...m]).toStrictEqual([]);
+};
+
+const fromNullableDefinition = <A>(a: A): void => {
+  expect(fromNullable(a)).toStrictEqual(
+    a == null ? None.instance : new Some(a),
+  );
+};
+
+const fromFalsyDefinition = <A>(a: A): void => {
+  expect(fromFalsy(a)).toStrictEqual(a ? new Some(a) : None.instance);
+};
+
+const fromValueDefinition = <A>(a: A, f: (a: A) => boolean): void => {
+  expect(fromValue(a, f)).toStrictEqual(f(a) ? new Some(a) : None.instance);
 };
 
 describe("Option", () => {
@@ -590,6 +610,32 @@ describe("Option", () => {
       expect.assertions(100);
 
       fc.assert(fc.property(none, iterateNone));
+    });
+  });
+
+  describe("fromNullable", () => {
+    it("should convert any value into a non-nullabe option", () => {
+      expect.assertions(100);
+
+      fc.assert(fc.property(fc.anything(), fromNullableDefinition));
+    });
+  });
+
+  describe("fromFalsy", () => {
+    it("should convert any value into a non-falsy option", () => {
+      expect.assertions(100);
+
+      fc.assert(fc.property(fc.anything(), fromFalsyDefinition));
+    });
+  });
+
+  describe("fromValue", () => {
+    it("should agree with the predicate", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(fc.anything(), fc.func(fc.boolean()), fromValueDefinition),
+      );
     });
   });
 });

@@ -229,3 +229,24 @@ export class OptionTotalOrder<in out A>
     upper: Option<A>,
   ): Option<A> => this.min(this.max(value, lower), upper);
 }
+
+export const fromNullable = <A>(value: A): Option<NonNullable<A>> =>
+  value == null ? None.instance : new Some(value);
+
+export const fromFalsy = <A>(value: A): Option<NonNullable<A>> =>
+  value ? new Some(value) : None.instance;
+
+export function fromValue<A, B extends A>(
+  value: A,
+  predicate: (value: A) => value is B,
+): Option<B>;
+export function fromValue<A>(
+  value: A,
+  predicate: (value: A) => boolean,
+): Option<A>;
+export function fromValue<A>(
+  value: A,
+  predicate: (value: A) => boolean,
+): Option<A> {
+  return predicate(value) ? new Some(value) : None.instance;
+}
