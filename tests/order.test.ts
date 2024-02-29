@@ -1,47 +1,42 @@
 import { describe, expect, it } from "@jest/globals";
 import fc from "fast-check";
 
+import { Bool } from "../src/bool.js";
+import { DateTime } from "../src/datetime.js";
+import { Double } from "../src/double.js";
+import { Integer } from "../src/integer.js";
 import type { Option } from "../src/option.js";
-import { None, OptionTotalOrder, Some } from "../src/option.js";
+import { None, Some } from "../src/option.js";
 import type { PartialOrder, Setoid, TotalOrder } from "../src/order.js";
-import {
-  BigIntOrder,
-  BooleanOrder,
-  DateOrder,
-  NumberOrder,
-  StringOrder,
-} from "../src/order.js";
 import type { Ordering } from "../src/ordering.js";
+import { Text } from "../src/text.js";
 
 import { option } from "./arbitraries.js";
 
-const testSetoid = <A>(
+const testSetoid = <A extends Setoid<A>>(
   name: string,
   value: fc.Arbitrary<A>,
-  setoid: Setoid<A>,
 ): void => {
-  const { isSame, isNotSame } = setoid;
-
   const isSameReflexivity = (x: A): void => {
-    expect(isSame(x, x)).toStrictEqual(true);
+    expect(x.isSame(x)).toStrictEqual(true);
   };
 
   const isSameSymmetry = (x: A, y: A): void => {
-    expect(isSame(x, y)).toStrictEqual(isSame(y, x));
+    expect(x.isSame(y)).toStrictEqual(y.isSame(x));
   };
 
   const isSameTransitivity = (x: A, y: A, z: A): void => {
-    expect(isSame(x, z)).toStrictEqual(
-      (isSame(x, y) && isSame(y, z)) || isSame(x, z),
+    expect(x.isSame(z)).toStrictEqual(
+      (x.isSame(y) && y.isSame(z)) || x.isSame(z),
     );
   };
 
   const isSameExtensionality = <B>(x: A, y: A, f: (a: A) => B): void => {
-    expect(f(x)).toStrictEqual(f(isSame(x, y) ? y : x));
+    expect(f(x)).toStrictEqual(f(x.isSame(y) ? y : x));
   };
 
   const isNotSameDefinition = (x: A, y: A): void => {
-    expect(isNotSame(x, y)).toStrictEqual(!isSame(x, y));
+    expect(x.isNotSame(y)).toStrictEqual(!x.isSame(y));
   };
 
   describe(`Setoid<${name}>`, () => {
@@ -88,74 +83,69 @@ const testSetoid = <A>(
   });
 };
 
-const testPartialOrder = <A>(
+const testPartialOrder = <A extends PartialOrder<A>>(
   name: string,
   value: fc.Arbitrary<A>,
-  order: PartialOrder<A>,
 ): void => {
-  const { isLess, isNotLess, isMore, isNotMore, compare, ...setoid } = order;
-
-  const { isSame } = setoid;
-
-  testSetoid(name, value, setoid);
+  testSetoid(name, value);
 
   const isLessIrreflexivity = (x: A): void => {
-    expect(isLess(x, x)).toStrictEqual(false);
+    expect(x.isLess(x)).toStrictEqual(false);
   };
 
   const isLessTransitive = (x: A, y: A, z: A): void => {
-    expect(isLess(x, z)).toStrictEqual(
-      (isLess(x, y) && isLess(y, z)) || isLess(x, z),
+    expect(x.isLess(z)).toStrictEqual(
+      (x.isLess(y) && y.isLess(z)) || x.isLess(z),
     );
   };
 
   const isLessDuality = (x: A, y: A): void => {
-    expect(isLess(x, y)).toStrictEqual(isMore(y, x));
+    expect(x.isLess(y)).toStrictEqual(y.isMore(x));
   };
 
   const isNotLessDefinition = (x: A, y: A): void => {
-    expect(isNotLess(x, y)).toStrictEqual(isMore(x, y) || isSame(x, y));
+    expect(x.isNotLess(y)).toStrictEqual(x.isMore(y) || x.isSame(y));
   };
 
   const isMoreIrreflexivity = (x: A): void => {
-    expect(isMore(x, x)).toStrictEqual(false);
+    expect(x.isMore(x)).toStrictEqual(false);
   };
 
   const isMoreTransitive = (x: A, y: A, z: A): void => {
-    expect(isMore(x, z)).toStrictEqual(
-      (isMore(x, y) && isMore(y, z)) || isMore(x, z),
+    expect(x.isMore(z)).toStrictEqual(
+      (x.isMore(y) && y.isMore(z)) || x.isMore(z),
     );
   };
 
   const isMoreDuality = (x: A, y: A): void => {
-    expect(isMore(x, y)).toStrictEqual(isLess(y, x));
+    expect(x.isMore(y)).toStrictEqual(y.isLess(x));
   };
 
   const isNotMoreDefinition = (x: A, y: A): void => {
-    expect(isNotMore(x, y)).toStrictEqual(isLess(x, y) || isSame(x, y));
+    expect(x.isNotMore(y)).toStrictEqual(x.isLess(y) || x.isSame(y));
   };
 
   const compareIsSame = (x: A, y: A): void => {
-    if (isSame(x, y)) {
-      expect(compare(x, y)).toStrictEqual(new Some("="));
+    if (x.isSame(y)) {
+      expect(x.compare(y)).toStrictEqual(new Some("="));
     } else {
-      expect(compare(x, y)).not.toStrictEqual(new Some("="));
+      expect(x.compare(y)).not.toStrictEqual(new Some("="));
     }
   };
 
   const compareIsLess = (x: A, y: A): void => {
-    if (isLess(x, y)) {
-      expect(compare(x, y)).toStrictEqual(new Some("<"));
+    if (x.isLess(y)) {
+      expect(x.compare(y)).toStrictEqual(new Some("<"));
     } else {
-      expect(compare(x, y)).not.toStrictEqual(new Some("<"));
+      expect(x.compare(y)).not.toStrictEqual(new Some("<"));
     }
   };
 
   const compareIsMore = (x: A, y: A): void => {
-    if (isMore(x, y)) {
-      expect(compare(x, y)).toStrictEqual(new Some(">"));
+    if (x.isMore(y)) {
+      expect(x.compare(y)).toStrictEqual(new Some(">"));
     } else {
-      expect(compare(x, y)).not.toStrictEqual(new Some(">"));
+      expect(x.compare(y)).not.toStrictEqual(new Some(">"));
     }
   };
 
@@ -238,32 +228,27 @@ const testPartialOrder = <A>(
   });
 };
 
-const testTotalOrder = <A>(
+const testTotalOrder = <A extends TotalOrder<A>>(
   name: string,
   value: fc.Arbitrary<A>,
-  order: TotalOrder<A>,
 ): void => {
-  const { max, min, clamp, ...partialOrder } = order;
-
-  const { compare } = partialOrder;
-
-  testPartialOrder(name, value, partialOrder);
+  testPartialOrder(name, value);
 
   const maxDefinition = (x: A, y: A): void => {
-    const ordering = compare(x, y);
-    if (ordering.isNone) expect(max(x, y)).toStrictEqual(max(x, y));
-    else expect(max(x, y)).toStrictEqual(ordering.value === "<" ? y : x);
+    const ordering = x.compare(y);
+    if (ordering.isNone) expect(x.max(y)).toStrictEqual(x.max(y));
+    else expect(x.max(y)).toStrictEqual(ordering.value === "<" ? y : x);
   };
 
   const minDefinition = (x: A, y: A): void => {
-    const ordering = compare(x, y);
-    if (ordering.isNone) expect(max(x, y)).toStrictEqual(max(x, y));
-    else expect(min(x, y)).toStrictEqual(ordering.value === ">" ? y : x);
+    const ordering = x.compare(y);
+    if (ordering.isNone) expect(x.max(y)).toStrictEqual(x.max(y));
+    else expect(x.min(y)).toStrictEqual(ordering.value === ">" ? y : x);
   };
 
   const clampDefinition = (value: A, lower: A, upper: A): void => {
-    expect(clamp(value, lower, upper)).toStrictEqual(
-      min(max(value, lower), upper),
+    expect(value.clamp(lower, upper)).toStrictEqual(
+      value.max(lower).min(upper),
     );
   };
 
@@ -294,51 +279,71 @@ const testTotalOrder = <A>(
   });
 };
 
-class UnknownOrder implements PartialOrder<unknown> {
-  public readonly isSame: (x: unknown, y: unknown) => boolean = Object.is;
+class Unknown implements PartialOrder<Unknown> {
+  public constructor(public readonly value: unknown) {}
 
-  public readonly isNotSame = (x: unknown, y: unknown): boolean =>
-    !this.isSame(x, y);
+  public static of(value: unknown): Unknown {
+    return new Unknown(value);
+  }
 
-  public readonly isLess: (x: unknown, y: unknown) => boolean = () => false;
+  public isSame(this: Unknown, that: Unknown): boolean {
+    return Object.is(this.value, that.value);
+  }
 
-  public readonly isNotLess: (x: unknown, y: unknown) => boolean = Object.is;
+  public isNotSame(this: Unknown, that: Unknown): boolean {
+    return !Object.is(this.value, that.value);
+  }
 
-  public readonly isMore: (x: unknown, y: unknown) => boolean = () => false;
+  public isLess(): boolean {
+    return false;
+  }
 
-  public readonly isNotMore: (x: unknown, y: unknown) => boolean = Object.is;
+  public isNotLess(this: Unknown, that: Unknown): boolean {
+    return Object.is(this.value, that.value);
+  }
 
-  public readonly compare = (x: unknown, y: unknown): Option<Ordering> =>
-    this.isSame(x, y) ? new Some("=") : None.instance;
+  public isMore(): boolean {
+    return false;
+  }
 
-  public static readonly instance = new UnknownOrder();
+  public isNotMore(this: Unknown, that: Unknown): boolean {
+    return Object.is(this.value, that.value);
+  }
+
+  public compare(this: Unknown, that: Unknown): Option<Ordering> {
+    return Object.is(this.value, that.value) ? new Some("=") : None.instance;
+  }
 }
 
-const number = fc.oneof(
-  fc.nat(9),
-  fc.constant(-0),
-  fc.constant(Number.NaN),
-  fc.constant(Number.POSITIVE_INFINITY),
-  fc.constant(Number.NEGATIVE_INFINITY),
-);
+const double = fc
+  .oneof(
+    fc.nat(9),
+    fc.constant(-0),
+    fc.constant(Number.NaN),
+    fc.constant(Number.POSITIVE_INFINITY),
+    fc.constant(Number.NEGATIVE_INFINITY),
+  )
+  .map(Double.of);
 
-testPartialOrder("unknown", fc.anything(), UnknownOrder.instance);
-testTotalOrder("string", fc.string(), StringOrder.instance);
-testTotalOrder("number", number, NumberOrder.instance);
-testTotalOrder("bigint", fc.bigUint(9n), BigIntOrder.instance);
-testTotalOrder("boolean", fc.boolean(), BooleanOrder.instance);
-testTotalOrder(
-  "Date",
-  fc.date({
-    min: new Date(0),
-    max: new Date(9),
-    noInvalidDate: false,
-  }),
-  DateOrder.instance,
-);
+testPartialOrder("Unknown", fc.anything().map(Unknown.of));
+
+testTotalOrder("Text", fc.string().map(Text.of));
+
+testTotalOrder("Double", double);
+
+testTotalOrder("Integer", fc.bigUint(9n).map(Integer.of));
+
+testTotalOrder("Bool", fc.boolean().map(Bool.of));
 
 testTotalOrder(
-  "Option<number>",
-  option(number),
-  new OptionTotalOrder(NumberOrder.instance),
+  "DateTime",
+  fc
+    .date({
+      min: new Date(0),
+      max: new Date(9),
+      noInvalidDate: false,
+    })
+    .map(DateTime.of),
 );
+
+testTotalOrder("Option<Double>", option(double));

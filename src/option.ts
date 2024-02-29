@@ -8,7 +8,7 @@ import { Fail, Okay } from "./result.js";
 
 export type Option<A> = Some<A> | None;
 
-abstract class OptionTrait {
+abstract class OptionTrait implements TotalOrder<Option<never>> {
   public abstract readonly isSome: boolean;
 
   public abstract readonly isNone: boolean;
@@ -140,6 +140,86 @@ abstract class OptionTrait {
     return this.isSome ? new Okay(this.value) : new Fail(defaultValue);
   }
 
+  public isSame<A extends Setoid<A>>(
+    this: Option<A>,
+    that: Option<A>,
+  ): boolean {
+    return this.isSome
+      ? that.isSome && this.value.isSame(that.value)
+      : that.isNone;
+  }
+
+  public isNotSame<A extends Setoid<A>>(
+    this: Option<A>,
+    that: Option<A>,
+  ): boolean {
+    return this.isSome
+      ? that.isNone || this.value.isNotSame(that.value)
+      : that.isSome;
+  }
+
+  public isLess<A extends PartialOrder<A>>(
+    this: Option<A>,
+    that: Option<A>,
+  ): boolean {
+    return that.isSome && (this.isNone || this.value.isLess(that.value));
+  }
+
+  public isNotLess<A extends PartialOrder<A>>(
+    this: Option<A>,
+    that: Option<A>,
+  ): boolean {
+    return that.isNone || (this.isSome && this.value.isNotLess(that.value));
+  }
+
+  public isMore<A extends PartialOrder<A>>(
+    this: Option<A>,
+    that: Option<A>,
+  ): boolean {
+    return this.isSome && (that.isNone || this.value.isMore(that.value));
+  }
+
+  public isNotMore<A extends PartialOrder<A>>(
+    this: Option<A>,
+    that: Option<A>,
+  ): boolean {
+    return this.isNone || (that.isSome && this.value.isNotMore(that.value));
+  }
+
+  public compare<A extends PartialOrder<A>>(
+    this: Option<A>,
+    that: Option<A>,
+  ): Option<Ordering> {
+    if (this.isNone) return new Some(that.isSome ? "<" : "=");
+    if (that.isNone) return new Some(">");
+    return this.value.compare(that.value);
+  }
+
+  public max<A extends TotalOrder<A>>(
+    this: Option<A>,
+    that: Option<A>,
+  ): Option<A> {
+    if (this.isNone) return that;
+    if (that.isNone) return this;
+    return new Some(this.value.max(that.value));
+  }
+
+  public min<A extends TotalOrder<A>>(
+    this: Option<A>,
+    that: Option<A>,
+  ): Option<A> {
+    if (this.isNone || that.isNone) return None.instance;
+    return new Some(this.value.min(that.value));
+  }
+
+  public clamp<A extends TotalOrder<A>>(
+    this: Option<A>,
+    lower: Option<A>,
+    upper: Option<A>,
+  ): Option<A> {
+    return this.max(lower).min(upper);
+  }
+
   public *[Symbol.iterator]<A>(this: Option<A>): Generator<A, void, undefined> {
     if (this.isSome) yield this.value;
   }
@@ -165,69 +245,6 @@ export class None extends OptionTrait {
   public override readonly isNone = true;
 
   public static readonly instance = new None();
-}
-
-export class OptionSetoid<in A> implements Setoid<Option<A>> {
-  public constructor(public readonly value: Setoid<A>) {}
-
-  public readonly isSame = (x: Option<A>, y: Option<A>): boolean =>
-    x.isSome ? y.isSome && this.value.isSame(x.value, y.value) : y.isNone;
-
-  public readonly isNotSame = (x: Option<A>, y: Option<A>): boolean =>
-    x.isSome ? y.isNone || this.value.isNotSame(x.value, y.value) : y.isSome;
-}
-
-export class OptionPartialOrder<in A>
-  extends OptionSetoid<A>
-  implements PartialOrder<Option<A>>
-{
-  public constructor(public override readonly value: PartialOrder<A>) {
-    super(value);
-  }
-
-  public readonly isLess = (x: Option<A>, y: Option<A>): boolean =>
-    y.isSome && (x.isNone || this.value.isLess(x.value, y.value));
-
-  public readonly isNotLess = (x: Option<A>, y: Option<A>): boolean =>
-    y.isNone || (x.isSome && this.value.isNotLess(x.value, y.value));
-
-  public readonly isMore = (x: Option<A>, y: Option<A>): boolean =>
-    x.isSome && (y.isNone || this.value.isMore(x.value, y.value));
-
-  public readonly isNotMore = (x: Option<A>, y: Option<A>): boolean =>
-    x.isNone || (y.isSome && this.value.isNotMore(x.value, y.value));
-
-  public readonly compare = (x: Option<A>, y: Option<A>): Option<Ordering> => {
-    if (x.isNone) return new Some(y.isSome ? "<" : "=");
-    if (y.isNone) return new Some(">");
-    return this.value.compare(x.value, y.value);
-  };
-}
-
-export class OptionTotalOrder<in out A>
-  extends OptionPartialOrder<A>
-  implements TotalOrder<Option<A>>
-{
-  public constructor(public override readonly value: TotalOrder<A>) {
-    super(value);
-  }
-
-  public readonly max = (x: Option<A>, y: Option<A>): Option<A> => {
-    if (x.isNone) return y;
-    if (y.isNone) return x;
-    return new Some(this.value.max(x.value, y.value));
-  };
-
-  public readonly min = (x: Option<A>, y: Option<A>): Option<A> => {
-    if (x.isNone || y.isNone) return None.instance;
-    return new Some(this.value.min(x.value, y.value));
-  };
-
-  public readonly clamp = (
-    value: Option<A>,
-    lower: Option<A>,
-    upper: Option<A>,
-  ): Option<A> => this.min(this.max(value, lower), upper);
 }
 
 export const fromNullable = <A>(value: A): Option<NonNullable<A>> =>
