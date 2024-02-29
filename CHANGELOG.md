@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.20](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.19...v2.0.0-alpha.20) (2024-02-29)
+
+## 💥 Breaking Changes
+
+- [`13196f5`](https://github.com/aaditmshah/aang/commit/13196f5) Replace instance functions with instance methods
+
 # [v2.0.0-alpha.19](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.18...v2.0.0-alpha.19) (2024-02-29)
 
 ## ✨ New Features
