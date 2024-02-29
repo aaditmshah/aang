@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.19](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.18...v2.0.0-alpha.19) (2024-02-29)
+
+## ✨ New Features
+
+- [`d7ab868`](https://github.com/aaditmshah/aang/commit/d7ab868) Add &#x60;fromNullable&#x60;, &#x60;fromFalsy&#x60;, and &#x60;fromValue&#x60;
+
 # [v2.0.0-alpha.18](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.17...v2.0.0-alpha.18) (2024-02-26)
 
 ## 💥 Breaking Changes
