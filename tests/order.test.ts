@@ -325,25 +325,18 @@ const double = fc
   )
   .map(Double.of);
 
+const datetime = fc
+  .date({
+    min: new Date(0),
+    max: new Date(9),
+    noInvalidDate: false,
+  })
+  .map(DateTime.of);
+
 testPartialOrder("Unknown", fc.anything().map(Unknown.of));
-
 testTotalOrder("Text", fc.string().map(Text.of));
-
 testTotalOrder("Double", double);
-
 testTotalOrder("Integer", fc.bigUint(9n).map(Integer.of));
-
 testTotalOrder("Bool", fc.boolean().map(Bool.of));
-
-testTotalOrder(
-  "DateTime",
-  fc
-    .date({
-      min: new Date(0),
-      max: new Date(9),
-      noInvalidDate: false,
-    })
-    .map(DateTime.of),
-);
-
+testTotalOrder("DateTime", datetime);
 testTotalOrder("Option<Double>", option(double));
