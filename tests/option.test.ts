@@ -18,6 +18,11 @@ import { Fail, Okay } from "../src/result.js";
 
 import { none, option, pair, result } from "./arbitraries.js";
 
+const isPowerOfTwo = (n: number): boolean =>
+  (Math.log(n) / Math.log(2)) % 1 === 0;
+
+const hotpo = (n: number): number => (n % 2 === 0 ? n / 2 : 3 * n + 1);
+
 const toStringSome = <A>(a: A): void => {
   try {
     expect(new Some(a).toString()).toStrictEqual(`Some(${String(a)})`);
@@ -124,6 +129,18 @@ const flatMapAssociativity = <A, B, C>(
 
 const flattenDefinition = <A>(u: Option<Option<A>>): void => {
   expect(u.flatten()).toStrictEqual(u.flatMap(id));
+};
+
+const flatMapUntilEquivalence = <A, B>(
+  m: Option<A>,
+  p: (a: A) => boolean,
+  f: (a: A) => Option<A>,
+  g: (a: A) => Option<B>,
+): void => {
+  const step = (a: A): Option<B> => (p(a) ? g(a) : f(a).flatMap(step));
+  expect(
+    m.flatMapUntil((a) => (p(a) ? g(a).map(Okay.of) : f(a).map(Fail.of))),
+  ).toStrictEqual(m.flatMap(step));
 };
 
 const filterDistributivity = <A>(
@@ -420,6 +437,22 @@ describe("Option", () => {
       expect.assertions(100);
 
       fc.assert(fc.property(option(option(fc.anything())), flattenDefinition));
+    });
+  });
+
+  describe("flatMapUntil", () => {
+    it("should be equivalent to multiple flatMap calls", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          option(fc.integer({ min: 1 })),
+          fc.constant(isPowerOfTwo),
+          fc.constant((n: number): Option<number> => new Some(hotpo(n))),
+          fc.func(option(fc.anything())),
+          flatMapUntilEquivalence,
+        ),
+      );
     });
   });
 

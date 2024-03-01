@@ -57,6 +57,15 @@ abstract class OptionTrait
     return this.isSome ? this.value : None.instance;
   }
 
+  public flatMapUntil<A, B>(
+    this: Option<A>,
+    arrow: (value: A) => Option<Result<A, B>>,
+  ): Option<B> {
+    let result = this.flatMap(arrow).transpose();
+    while (result.isFail) result = arrow(result.value).transpose();
+    return result.value;
+  }
+
   public filter<A, B extends A>(
     this: Option<A>,
     predicate: (value: A) => value is B,
