@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.22](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.21...v2.0.0-alpha.22) (2024-03-01)
+
+## ✨ New Features
+
+- [`54b161b`](https://github.com/aaditmshah/aang/commit/54b161b) Add the &#x60;flatMapUntil&#x60; method to &#x60;OptionTrait&#x60;
+
 # [v2.0.0-alpha.21](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.20...v2.0.0-alpha.21) (2024-02-29)
 
 ## ✨ New Features
