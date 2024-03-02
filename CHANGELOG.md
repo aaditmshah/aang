@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.23](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.22...v2.0.0-alpha.23) (2024-03-02)
+
+## ✨ New Features
+
+- [`606b9c8`](https://github.com/aaditmshah/aang/commit/606b9c8) Add &#x60;fromGenerator&#x60; function and &#x60;effect&#x60; method
+
 # [v2.0.0-alpha.22](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.21...v2.0.0-alpha.22) (2024-03-01)
 
 ## ✨ New Features
