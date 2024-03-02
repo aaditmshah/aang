@@ -9,6 +9,7 @@ import {
   None,
   Some,
   fromFalsy,
+  fromGenerator,
   fromNullable,
   fromValue,
 } from "../src/option.js";
@@ -232,6 +233,34 @@ const iterateNone = (m: None): void => {
   expect([...m]).toStrictEqual([]);
 };
 
+const effectMapDefinition = <A, B>(m: Option<A>, f: (a: A) => B): void => {
+  expect(
+    fromGenerator(function* () {
+      const b: B = yield* m.effectMap(f);
+      return b;
+    }),
+  ).toStrictEqual(
+    fromGenerator(function* () {
+      const b: B = f(yield* m.effect());
+      return b;
+    }),
+  );
+};
+
+const effectDefinition = <A>(m: Option<A>): void => {
+  expect(
+    fromGenerator(function* () {
+      const a: A = yield* m.effect();
+      return a;
+    }),
+  ).toStrictEqual(
+    fromGenerator(function* () {
+      const a: A = yield* m.effectMap(id);
+      return a;
+    }),
+  );
+};
+
 const fromNullableDefinition = <A>(a: A): void => {
   expect(fromNullable(a)).toStrictEqual(
     a == null ? None.instance : new Some(a),
@@ -244,6 +273,24 @@ const fromFalsyDefinition = <A>(a: A): void => {
 
 const fromValueDefinition = <A>(a: A, f: (a: A) => boolean): void => {
   expect(fromValue(a, f)).toStrictEqual(f(a) ? new Some(a) : None.instance);
+};
+
+const fromGeneratorEquivalence = <A, B>(
+  m: Option<A>,
+  p: (a: A) => boolean,
+  f: (a: A) => Option<A>,
+  g: (a: A) => Option<B>,
+): void => {
+  expect(
+    fromGenerator(function* () {
+      let a: A = yield* m.effect();
+      while (!p(a)) a = yield* f(a).effect();
+      const b: B = yield* g(a).effect();
+      return b;
+    }),
+  ).toStrictEqual(
+    m.flatMapUntil((a) => (p(a) ? g(a).map(Okay.of) : f(a).map(Fail.of))),
+  );
 };
 
 describe("Option", () => {
@@ -646,6 +693,28 @@ describe("Option", () => {
     });
   });
 
+  describe("effectMap", () => {
+    it("should agree with effect", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          option(fc.anything()),
+          fc.func(fc.anything()),
+          effectMapDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("effect", () => {
+    it("should agree with effectMap", () => {
+      expect.assertions(100);
+
+      fc.assert(fc.property(option(fc.anything()), effectDefinition));
+    });
+  });
+
   describe("fromNullable", () => {
     it("should convert any value into a non-nullabe option", () => {
       expect.assertions(100);
@@ -668,6 +737,22 @@ describe("Option", () => {
 
       fc.assert(
         fc.property(fc.anything(), fc.func(fc.boolean()), fromValueDefinition),
+      );
+    });
+  });
+
+  describe("fromGenerator", () => {
+    it("should be equivalent to multiple flatMap calls", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          option(fc.integer({ min: 1 })),
+          fc.constant(isPowerOfTwo),
+          fc.constant((n: number): Option<number> => new Some(hotpo(n))),
+          fc.func(option(fc.anything())),
+          fromGeneratorEquivalence,
+        ),
       );
     });
   });
