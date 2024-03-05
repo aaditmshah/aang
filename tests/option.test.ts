@@ -1,8 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 import fc from "fast-check";
 
-import { UnsafeExtractError } from "../src/errors.js";
-import { Exception } from "../src/exceptions.js";
 import { id } from "../src/miscellaneous.js";
 import type { Option } from "../src/option.js";
 import {
@@ -192,29 +190,16 @@ const transposeDefinition = <E, B>(u: Option<Result<E, B>>): void => {
   expect(u.transpose()).toStrictEqual(u.transposeMap(id));
 };
 
-const safeExtractSome = <A>(a: A, x: A): void => {
-  expect(new Some(a).safeExtract(x)).toStrictEqual(a);
+const extractSomeFromSome = <A>(a: A, x: A): void => {
+  expect(new Some(a).extractSome(x)).toStrictEqual(a);
 };
 
-const safeExtractNone = <A>(x: A): void => {
-  expect(None.instance.safeExtract(x)).toStrictEqual(x);
+const extractSomeFromNone = <A>(x: A): void => {
+  expect(None.instance.extractSome(x)).toStrictEqual(x);
 };
 
-const unsafeExtractSome = <A>(a: A, x: string): void => {
-  expect(new Some(a).unsafeExtract(x)).toStrictEqual(a);
-};
-
-const unsafeExtractError = (x: string): void => {
-  const error = new UnsafeExtractError(x);
-  expect(() => None.instance.unsafeExtract(x)).toThrow(error);
-  expect(() => None.instance.unsafeExtract(x)).toThrow(UnsafeExtractError);
-};
-
-const unsafeExtractException = (x: string): void => {
-  class SomeException extends Exception {}
-  const error = new SomeException(x);
-  expect(() => None.instance.unsafeExtract(error)).toThrow(error);
-  expect(() => None.instance.unsafeExtract(error)).toThrow(SomeException);
+const mapExtractSomeDefinition = <A>(m: Option<A>, a: A): void => {
+  expect(m.mapExtractSome(() => a)).toStrictEqual(m.extractSome(a));
 };
 
 const toResultSuccess = <E, A>(a: A, x: E): void => {
@@ -631,37 +616,31 @@ describe("Option", () => {
     });
   });
 
-  describe("safeExtract", () => {
+  describe("extractSome", () => {
     it("should extract the value from Some", () => {
       expect.assertions(100);
 
-      fc.assert(fc.property(fc.anything(), fc.anything(), safeExtractSome));
+      fc.assert(fc.property(fc.anything(), fc.anything(), extractSomeFromSome));
     });
 
     it("should return the default value for None", () => {
       expect.assertions(100);
 
-      fc.assert(fc.property(fc.anything(), safeExtractNone));
+      fc.assert(fc.property(fc.anything(), extractSomeFromNone));
     });
   });
 
-  describe("unsafeExtract", () => {
-    it("should extract the value from Some", () => {
+  describe("mapExtractSome", () => {
+    it("should agree with extractSome", () => {
       expect.assertions(100);
 
-      fc.assert(fc.property(fc.anything(), fc.string(), unsafeExtractSome));
-    });
-
-    it("should throw an UnsafeExtractError for None", () => {
-      expect.assertions(200);
-
-      fc.assert(fc.property(fc.string(), unsafeExtractError));
-    });
-
-    it("should throw the given exception for None", () => {
-      expect.assertions(200);
-
-      fc.assert(fc.property(fc.string(), unsafeExtractException));
+      fc.assert(
+        fc.property(
+          option(fc.anything()),
+          fc.anything(),
+          mapExtractSomeDefinition,
+        ),
+      );
     });
   });
 

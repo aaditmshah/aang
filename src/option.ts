@@ -1,5 +1,3 @@
-import { UnsafeExtractError } from "./errors.js";
-import { Exception } from "./exceptions.js";
 import type { PartialOrder, Setoid, TotalOrder } from "./order.js";
 import type { Ordering } from "./ordering.js";
 import { Pair } from "./pair.js";
@@ -139,13 +137,12 @@ abstract class OptionTrait
     return this.isNone ? new Okay(None.instance) : this.value.mapOkay(Some.of);
   }
 
-  public safeExtract<A>(this: Option<A>, defaultValue: A): A {
+  public extractSome<A>(this: Option<A>, defaultValue: A): A {
     return this.isSome ? this.value : defaultValue;
   }
 
-  public unsafeExtract<A>(this: Option<A>, error: Exception | string): A {
-    if (this.isSome) return this.value;
-    throw error instanceof Exception ? error : new UnsafeExtractError(error);
+  public mapExtractSome<A>(this: Option<A>, getDefaultValue: () => A): A {
+    return this.isSome ? this.value : getDefaultValue();
   }
 
   public toResult<E, A>(this: Option<A>, defaultValue: E): Result<E, A> {
