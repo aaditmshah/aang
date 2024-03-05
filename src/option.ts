@@ -82,15 +82,15 @@ abstract class OptionTrait
   public isSomeAnd<A, B extends A>(
     this: Option<A>,
     predicate: (value: A) => value is B,
-  ): this is Option<B>;
+  ): this is Some<B>;
   public isSomeAnd<A>(
     this: Option<A>,
     predicate: (value: A) => boolean,
-  ): boolean;
+  ): this is Some<A>;
   public isSomeAnd<A>(
     this: Option<A>,
     predicate: (value: A) => boolean,
-  ): boolean {
+  ): this is Some<A> {
     return this.isSome && predicate(this.value);
   }
 
