@@ -1,3 +1,20 @@
+# [v2.0.0-alpha.24](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.23...v2.0.0-alpha.24) (2024-03-15)
+
+## ✨ New Features
+
+- [`9f321b2`](https://github.com/aaditmshah/aang/commit/9f321b2) Narrow the type of &#x60;this&#x60; input in &#x60;isSomeAnd&#x60;
+- [`5348232`](https://github.com/aaditmshah/aang/commit/5348232) Add both the &#x60;Result#map&#x60; method &amp; its unit tests
+
+## 💥 Breaking Changes
+
+- [`1c6eecb`](https://github.com/aaditmshah/aang/commit/1c6eecb) Replace &#x60;unsafeExtract&#x60; and rename &#x60;safeExtract&#x60;
+- [`f9ca690`](https://github.com/aaditmshah/aang/commit/f9ca690) Move the &#x60;Option&#x60; utilities into a new namespace
+- [`720214e`](https://github.com/aaditmshah/aang/commit/720214e) Throw &#x60;NoneException&#x60; when generator yields &#x60;None&#x60;
+- [`db7a6f9`](https://github.com/aaditmshah/aang/commit/db7a6f9) Convert the &#x60;Option&#x60; utilities into static methods
+- [`ed2b01b`](https://github.com/aaditmshah/aang/commit/ed2b01b) Rename the &#x60;andWith&#x60; option method to &#x60;andWhen&#x60;
+- [`4781113`](https://github.com/aaditmshah/aang/commit/4781113) Return a union type from the option &#x60;or&#x60; method
+- [`b8e6155`](https://github.com/aaditmshah/aang/commit/b8e6155) Add &#x60;transpose&#x60;, &#x60;toResult&#x60; &amp; &#x60;toOption&#x60; methods
+
 # [v2.0.0-alpha.23](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.22...v2.0.0-alpha.23) (2024-03-02)
 
 ## ✨ New Features
