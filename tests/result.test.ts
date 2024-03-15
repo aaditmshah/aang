@@ -6,6 +6,10 @@ import type { Result } from "../src/result.js";
 
 import { result } from "./arbitraries.js";
 
+const mapIdentity = <E, A>(u: Result<E, A>): void => {
+  expect(u.map(id, id)).toStrictEqual(u);
+};
+
 const mapOkayIdentity = <E, A>(u: Result<E, A>): void => {
   expect(u.mapOkay(id)).toStrictEqual(u);
 };
@@ -15,6 +19,14 @@ const mapFailIdentity = <E, A>(u: Result<E, A>): void => {
 };
 
 describe("Result", () => {
+  describe("map", () => {
+    it("should preserve identity morphisms", () => {
+      expect.assertions(100);
+
+      fc.assert(fc.property(result(fc.anything(), fc.anything()), mapIdentity));
+    });
+  });
+
   describe("mapOkay", () => {
     it("should preserve identity morphisms", () => {
       expect.assertions(100);

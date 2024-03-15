@@ -8,6 +8,16 @@ abstract class ResultTrait {
 
   public abstract readonly isFail: boolean;
 
+  public map<E, F, A, B>(
+    this: Result<E, A>,
+    okayMorphism: (value: A) => B,
+    failMorphism: (value: E) => F,
+  ): Result<F, B> {
+    return this.isOkay
+      ? new Okay(okayMorphism(this.value))
+      : new Fail(failMorphism(this.value));
+  }
+
   public mapOkay<E, A, B>(
     this: Result<E, A>,
     morphism: (value: A) => B,
