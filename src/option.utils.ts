@@ -1,3 +1,4 @@
+import { NoneException } from "./exceptions.js";
 import type { Option } from "./option.js";
 import { None, Some } from "./option.js";
 
@@ -28,12 +29,25 @@ export const fromGenerator = <A>(
 ): Option<A> => {
   const generator = getGenerator();
 
-  let result = generator.next();
+  let result: IteratorResult<Option<unknown>, A>;
+
+  try {
+    result = generator.next();
+  } catch (error) {
+    if (error instanceof NoneException) return None.instance;
+    throw error;
+  }
 
   while (!result.done) {
     const option = result.value;
-    if (option.isNone) return None.instance;
-    result = generator.next(option.value);
+    try {
+      result = option.isSome
+        ? generator.next(option.value)
+        : generator.throw(new NoneException());
+    } catch (error) {
+      if (error instanceof NoneException) return None.instance;
+      throw error;
+    }
   }
 
   return new Some(result.value);
