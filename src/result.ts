@@ -1,3 +1,6 @@
+import type { Option } from "./option.js";
+import { None, Some } from "./option.js";
+
 export type Result<E, A> = Okay<A> | Fail<E>;
 
 abstract class ResultTrait {
@@ -17,6 +20,52 @@ abstract class ResultTrait {
     morphism: (value: E) => F,
   ): Result<F, A> {
     return this.isFail ? new Fail(morphism(this.value)) : this;
+  }
+
+  public transposeMap<E, F, A, B>(
+    this: Result<E, A>,
+    transposeOkay: (value: A) => Option<B>,
+    transposeFail: (value: E) => Option<F>,
+  ): Option<Result<F, B>> {
+    return this.isOkay
+      ? transposeOkay(this.value).map(Okay.of)
+      : transposeFail(this.value).map(Fail.of);
+  }
+
+  public transposeMapOkay<E, A, B>(
+    this: Result<E, A>,
+    transpose: (value: A) => Option<B>,
+  ): Option<Result<E, B>> {
+    return this.isFail ? new Some(this) : transpose(this.value).map(Okay.of);
+  }
+
+  public transposeMapFail<E, F, A>(
+    this: Result<E, A>,
+    transpose: (value: E) => Option<F>,
+  ): Option<Result<F, A>> {
+    return this.isOkay ? new Some(this) : transpose(this.value).map(Fail.of);
+  }
+
+  public transpose<E, A>(
+    this: Result<Option<E>, Option<A>>,
+  ): Option<Result<E, A>> {
+    return this.isOkay ? this.value.map(Okay.of) : this.value.map(Fail.of);
+  }
+
+  public transposeOkay<E, A>(this: Result<E, Option<A>>): Option<Result<E, A>> {
+    return this.isFail ? new Some(this) : this.value.map(Okay.of);
+  }
+
+  public transposeFail<E, A>(this: Result<Option<E>, A>): Option<Result<E, A>> {
+    return this.isOkay ? new Some(this) : this.value.map(Fail.of);
+  }
+
+  public toOptionOkay<E, A>(this: Result<E, A>): Option<A> {
+    return this.isOkay ? new Some(this.value) : None.instance;
+  }
+
+  public toOptionFail<E, A>(this: Result<E, A>): Option<E> {
+    return this.isFail ? new Some(this.value) : None.instance;
   }
 }
 
