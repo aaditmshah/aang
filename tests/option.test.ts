@@ -67,7 +67,7 @@ const andThenDefinition = <A, B>(u: Option<A>, v: Option<B>): void => {
 };
 
 const andWithDefinition = <A, B>(u: Option<A>, v: Option<B>): void => {
-  expect(u.andWith(v)).toStrictEqual(u.and(v).map((x) => x.fst));
+  expect(u.andWhen(v)).toStrictEqual(u.and(v).map((x) => x.fst));
 };
 
 const orLeftIdentity = <A>(v: Option<A>): void => {
@@ -395,7 +395,7 @@ describe("Option", () => {
     });
   });
 
-  describe("andWith", () => {
+  describe("andWhen", () => {
     it("should agree with and", () => {
       expect.assertions(100);
 
