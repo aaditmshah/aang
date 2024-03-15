@@ -5,7 +5,6 @@ export * from "./exceptions.js";
 export * from "./integer.js";
 export * from "./miscellaneous.js";
 export * from "./option.js";
-export * as option from "./option.utils.js";
 export * from "./order.js";
 export * from "./ordering.js";
 export * from "./pair.js";

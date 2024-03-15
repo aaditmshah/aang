@@ -1,3 +1,4 @@
+import { NoneException } from "./exceptions.js";
 import type { PartialOrder, Setoid, TotalOrder } from "./order.js";
 import type { Ordering } from "./ordering.js";
 import { Pair } from "./pair.js";
@@ -268,6 +269,51 @@ export class Some<out A> extends OptionTrait {
   public static of<A>(value: A): Some<A> {
     return new Some(value);
   }
+
+  public static fromValid<A, B extends A>(
+    value: A,
+    validate: (value: A) => value is B,
+  ): Option<B>;
+  public static fromValid<A>(
+    value: A,
+    validate: (value: A) => boolean,
+  ): Option<A>;
+  public static fromValid<A>(
+    value: A,
+    validate: (value: A) => boolean,
+  ): Option<A> {
+    return validate(value) ? new Some(value) : None.instance;
+  }
+
+  // TODO: <A, B>(getGenerator: () => Generator<Option<A>, B, A>) => Option<B>
+  public static fromGenerator<A>(
+    getGenerator: () => Generator<Option<unknown>, A, unknown>,
+  ): Option<A> {
+    const generator = getGenerator();
+
+    let result: IteratorResult<Option<unknown>, A>;
+
+    try {
+      result = generator.next();
+    } catch (error) {
+      if (error instanceof NoneException) return None.instance;
+      throw error;
+    }
+
+    while (!result.done) {
+      const option = result.value;
+      try {
+        result = option.isSome
+          ? generator.next(option.value)
+          : generator.throw(new NoneException());
+      } catch (error) {
+        if (error instanceof NoneException) return None.instance;
+        throw error;
+      }
+    }
+
+    return new Some(result.value);
+  }
 }
 
 export class None extends OptionTrait {
@@ -276,4 +322,12 @@ export class None extends OptionTrait {
   public override readonly isNone = true;
 
   public static readonly instance = new None();
+
+  public static fromNullish<A>(value: A): Option<NonNullable<A>> {
+    return value == null ? None.instance : new Some(value);
+  }
+
+  public static fromFalsy<A>(value: A): Option<NonNullable<A>> {
+    return value ? new Some(value) : None.instance;
+  }
 }
