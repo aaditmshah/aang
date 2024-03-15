@@ -41,7 +41,7 @@ abstract class OptionTrait
     return this.isSome && that.isSome ? this : None.instance;
   }
 
-  public or<A>(this: Option<A>, that: Option<A>): Option<A> {
+  public or<A, B>(this: Option<A>, that: Option<B>): Option<A | B> {
     return this.isSome ? this : that;
   }
 
