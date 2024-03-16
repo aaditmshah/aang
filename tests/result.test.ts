@@ -213,6 +213,18 @@ const flatMapFailUntilEquivalence = <E, F, A>(
   expect(m.flatMapFailUntil(c)).toStrictEqual(m.flatMapFail(c).flatMapFail(g));
 };
 
+const commuteInverse = <E, A>(m: Result<E, A>): void => {
+  expect(m.commute().commute()).toStrictEqual(m);
+};
+
+const associateLeftInverse = <A, B, C>(m: Result<Result<A, B>, C>): void => {
+  expect(m.associateRight().associateLeft()).toStrictEqual(m);
+};
+
+const associateRightInverse = <A, B, C>(m: Result<A, Result<B, C>>): void => {
+  expect(m.associateLeft().associateRight()).toStrictEqual(m);
+};
+
 describe("Result", () => {
   describe("toString", () => {
     it("should convert Okay to a string", () => {
@@ -590,6 +602,42 @@ describe("Result", () => {
           result(fc.anything(), fc.integer({ min: 1 })),
           fc.constant((n: number) => new Fail(collatz(n))),
           flatMapFailUntilEquivalence,
+        ),
+      );
+    });
+  });
+
+  describe("commute", () => {
+    it("should be its own inverse", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(result(fc.anything(), fc.anything()), commuteInverse),
+      );
+    });
+  });
+
+  describe("associateLeft", () => {
+    it("should be the inverse of associateRight", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), result(fc.anything(), fc.anything())),
+          associateLeftInverse,
+        ),
+      );
+    });
+  });
+
+  describe("associateRight", () => {
+    it("should be the inverse of associateLeft", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(result(fc.anything(), fc.anything()), fc.anything()),
+          associateRightInverse,
         ),
       );
     });

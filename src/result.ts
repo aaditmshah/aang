@@ -164,6 +164,29 @@ abstract class ResultTrait {
     return result.value;
   }
 
+  public commute<A>(this: Okay<A>): Fail<A>;
+  public commute<A>(this: Fail<A>): Okay<A>;
+  public commute<A, B>(this: Result<A, B>): Result<B, B>;
+  public commute<A, B>(this: Result<A, B>): Result<B, A> {
+    return this.isOkay ? new Fail(this.value) : new Okay(this.value);
+  }
+
+  public associateLeft<A, B, C>(
+    this: Result<A, Result<B, C>>,
+  ): Result<Result<A, B>, C> {
+    if (this.isFail) return new Fail(this);
+    const result = this.value;
+    return result.isFail ? new Fail(new Okay(result.value)) : result;
+  }
+
+  public associateRight<A, B, C>(
+    this: Result<Result<A, B>, C>,
+  ): Result<A, Result<B, C>> {
+    if (this.isOkay) return new Okay(this);
+    const result = this.value;
+    return result.isOkay ? new Okay(new Fail(result.value)) : result;
+  }
+
   public transposeMap<E, F, A, B>(
     this: Result<E, A>,
     transposeOkay: (value: A) => Option<B>,
