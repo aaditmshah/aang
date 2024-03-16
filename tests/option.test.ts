@@ -10,7 +10,7 @@ import type { Result } from "../src/result.js";
 import { Fail, Okay } from "../src/result.js";
 
 import { none, option, pair, result } from "./arbitraries.js";
-import { hotpo, isPowerOfTwo } from "./utils.js";
+import { collatz, hotpo, isPowerOfTwo } from "./utils.js";
 
 const toStringSome = <A>(a: A): void => {
   try {
@@ -122,14 +122,11 @@ const flattenDefinition = <A>(u: Option<Option<A>>): void => {
 
 const flatMapUntilEquivalence = <A, B>(
   m: Option<A>,
-  p: (a: A) => boolean,
-  f: (a: A) => Option<A>,
-  g: (a: A) => Option<B>,
+  k: (a: A) => Option<Result<A, B>>,
 ): void => {
-  const step = (a: A): Option<B> => (p(a) ? g(a) : f(a).flatMap(step));
-  expect(
-    m.flatMapUntil((a) => (p(a) ? g(a).map(Okay.of) : f(a).map(Fail.of))),
-  ).toStrictEqual(m.flatMap(step));
+  const f = (x: Result<A, B>): Option<B> =>
+    x.isOkay ? new Some(x.value) : k(x.value).flatMap(f);
+  expect(m.flatMapUntil(k)).toStrictEqual(m.flatMap(k).flatMap(f));
 };
 
 const filterDistributivity = <A>(
@@ -522,9 +519,9 @@ describe("Option", () => {
       fc.assert(
         fc.property(
           option(fc.integer({ min: 1 })),
-          fc.constant(isPowerOfTwo),
-          fc.constant((n: number): Option<number> => new Some(hotpo(n))),
-          fc.func(option(fc.anything())),
+          fc.constant(
+            (n: number): Option<Result<number, number>> => new Some(collatz(n)),
+          ),
           flatMapUntilEquivalence,
         ),
       );
