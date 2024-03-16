@@ -38,6 +38,22 @@ abstract class ResultTrait {
     return this.isFail ? new Fail(morphism(this.value)) : this;
   }
 
+  public replace<E, F, A, B>(
+    this: Result<E, A>,
+    okayValue: B,
+    failValue: F,
+  ): Result<F, B> {
+    return this.isOkay ? new Okay(okayValue) : new Fail(failValue);
+  }
+
+  public replaceOkay<E, A, B>(this: Result<E, A>, value: B): Result<E, B> {
+    return this.isOkay ? new Okay(value) : this;
+  }
+
+  public replaceFail<E, F, A>(this: Result<E, A>, value: F): Result<F, A> {
+    return this.isFail ? new Fail(value) : this;
+  }
+
   public transposeMap<E, F, A, B>(
     this: Result<E, A>,
     transposeOkay: (value: A) => Option<B>,

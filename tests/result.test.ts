@@ -35,6 +35,23 @@ const mapFailIdentity = <E, A>(u: Result<E, A>): void => {
   expect(u.mapFail(id)).toStrictEqual(u);
 };
 
+const replaceDefinition = <E, F, A, B>(u: Result<E, A>, f: F, b: B): void => {
+  expect(u.replace(f, b)).toStrictEqual(
+    u.map(
+      () => f,
+      () => b,
+    ),
+  );
+};
+
+const replaceOkayDefinition = <E, A, B>(u: Result<E, A>, b: B): void => {
+  expect(u.replaceOkay(b)).toStrictEqual(u.mapOkay(() => b));
+};
+
+const replaceFailDefinition = <E, F, A>(u: Result<E, A>, f: F): void => {
+  expect(u.replaceFail(f)).toStrictEqual(u.mapFail(() => f));
+};
+
 describe("Result", () => {
   describe("toString", () => {
     it("should convert Okay to a string", () => {
@@ -74,6 +91,49 @@ describe("Result", () => {
 
       fc.assert(
         fc.property(result(fc.anything(), fc.anything()), mapFailIdentity),
+      );
+    });
+  });
+
+  describe("replace", () => {
+    it("should agree with map", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.anything(),
+          fc.anything(),
+          replaceDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("replaceOkay", () => {
+    it("should agree with mapOkay", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.anything(),
+          replaceOkayDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("replaceFail", () => {
+    it("should agree with mapFail", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.anything(),
+          replaceFailDefinition,
+        ),
       );
     });
   });
