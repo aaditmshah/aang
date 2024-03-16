@@ -1,5 +1,6 @@
 import type { Option } from "./option.js";
 import { None, Some } from "./option.js";
+import { Pair } from "./pair.js";
 
 export type Result<E, A> = Okay<A> | Fail<E>;
 
@@ -52,6 +53,52 @@ abstract class ResultTrait {
 
   public replaceFail<E, F, A>(this: Result<E, A>, value: F): Result<F, A> {
     return this.isFail ? new Fail(value) : this;
+  }
+
+  public and<E, F, A, B>(
+    this: Result<E, A>,
+    that: Result<F, B>,
+  ): Result<E | F, Pair<A, B>> {
+    if (this.isFail) return this;
+    if (that.isFail) return that;
+    return new Okay(new Pair(this.value, that.value));
+  }
+
+  public andThen<E, F, A, B>(
+    this: Result<E, A>,
+    that: Result<F, B>,
+  ): Result<E | F, B> {
+    return this.isOkay ? that : this;
+  }
+
+  public andWhen<E, F, A, B>(
+    this: Result<E, A>,
+    that: Result<F, B>,
+  ): Result<E | F, A> {
+    return this.isOkay && that.isFail ? that : this;
+  }
+
+  public or<E, F, A, B>(
+    this: Result<E, A>,
+    that: Result<F, B>,
+  ): Result<Pair<E, F>, A | B> {
+    if (this.isOkay) return this;
+    if (that.isOkay) return that;
+    return new Fail(new Pair(this.value, that.value));
+  }
+
+  public orElse<E, F, A, B>(
+    this: Result<E, A>,
+    that: Result<F, B>,
+  ): Result<F, A | B> {
+    return this.isOkay ? this : that;
+  }
+
+  public orErst<E, F, A, B>(
+    this: Result<E, A>,
+    that: Result<F, B>,
+  ): Result<E, A | B> {
+    return this.isOkay || that.isFail ? this : that;
   }
 
   public transposeMap<E, F, A, B>(

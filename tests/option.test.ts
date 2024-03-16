@@ -66,7 +66,7 @@ const andThenDefinition = <A, B>(u: Option<A>, v: Option<B>): void => {
   expect(u.andThen(v)).toStrictEqual(u.and(v).map((x) => x.snd));
 };
 
-const andWithDefinition = <A, B>(u: Option<A>, v: Option<B>): void => {
+const andWhenDefinition = <A, B>(u: Option<A>, v: Option<B>): void => {
   expect(u.andWhen(v)).toStrictEqual(u.and(v).map((x) => x.fst));
 };
 
@@ -415,7 +415,7 @@ describe("Option", () => {
         fc.property(
           option(fc.anything()),
           option(fc.anything()),
-          andWithDefinition,
+          andWhenDefinition,
         ),
       );
     });
