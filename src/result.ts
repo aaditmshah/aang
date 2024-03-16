@@ -101,6 +101,40 @@ abstract class ResultTrait {
     return this.isOkay || that.isFail ? this : that;
   }
 
+  public flatMap<E, F, A, B>(
+    this: Result<E, A>,
+    okayArrow: (value: A) => Result<F, B>,
+    failArrow: (value: E) => Result<F, B>,
+  ): Result<F, B> {
+    return this.isOkay ? okayArrow(this.value) : failArrow(this.value);
+  }
+
+  public flatMapOkay<E, A, B>(
+    this: Result<E, A>,
+    arrow: (value: A) => Result<E, B>,
+  ): Result<E, B> {
+    return this.isOkay ? arrow(this.value) : this;
+  }
+
+  public flatMapFail<E, F, A>(
+    this: Result<E, A>,
+    arrow: (value: E) => Result<F, A>,
+  ): Result<F, A> {
+    return this.isFail ? arrow(this.value) : this;
+  }
+
+  public flatten<E, A>(this: Result<Result<E, A>, Result<E, A>>): Result<E, A> {
+    return this.value;
+  }
+
+  public flattenOkay<E, A>(this: Result<E, Result<E, A>>): Result<E, A> {
+    return this.isOkay ? this.value : this;
+  }
+
+  public flattenFail<E, A>(this: Result<Result<E, A>, A>): Result<E, A> {
+    return this.isFail ? this.value : this;
+  }
+
   public transposeMap<E, F, A, B>(
     this: Result<E, A>,
     transposeOkay: (value: A) => Option<B>,

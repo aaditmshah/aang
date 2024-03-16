@@ -121,6 +121,67 @@ const orErstDefinition = <E, F, A>(u: Result<E, A>, v: Result<F, A>): void => {
   expect(u.orErst(v)).toStrictEqual(u.or(v).mapFail((x) => x.fst));
 };
 
+const flatMapLeftIdentityOkay = <E, A, B>(
+  a: A,
+  k: (a: A) => Result<E, B>,
+): void => {
+  expect(new Okay(a).flatMap<E, E, A, B>(k, Fail.of)).toStrictEqual(k(a));
+};
+
+const flatMapLeftIdentityFail = <E, F, A>(
+  x: E,
+  k: (x: E) => Result<F, A>,
+): void => {
+  expect(new Fail(x).flatMap<E, F, A, A>(Okay.of, k)).toStrictEqual(k(x));
+};
+
+const flatMapRightIdentity = <E, A>(m: Result<E, A>): void => {
+  expect(m.flatMap(Okay.of, Fail.of)).toStrictEqual(m);
+};
+
+const flatMapAssociativity = <E, F, G, A, B, C>(
+  m: Result<E, A>,
+  k: (a: A) => Result<F, B>,
+  c: (x: E) => Result<F, B>,
+  h: (b: B) => Result<G, C>,
+  g: (f: F) => Result<G, C>,
+): void => {
+  expect(
+    m.flatMap(
+      (a) => k(a).flatMap(h, g),
+      (x) => c(x).flatMap(h, g),
+    ),
+  ).toStrictEqual(m.flatMap(k, c).flatMap(h, g));
+};
+
+const flatMapOkayDefinition = <E, A, B>(
+  m: Result<E, A>,
+  k: (a: A) => Result<E, B>,
+): void => {
+  expect(m.flatMapOkay(k)).toStrictEqual(m.flatMap(k, Fail.of));
+};
+
+const flatMapFailDefnition = <E, F, A>(
+  m: Result<E, A>,
+  k: (x: E) => Result<F, A>,
+): void => {
+  expect(m.flatMapFail(k)).toStrictEqual(m.flatMap(Okay.of, k));
+};
+
+const flattenDefinition = <E, A>(
+  m: Result<Result<E, A>, Result<E, A>>,
+): void => {
+  expect(m.flatten()).toStrictEqual(m.flatMap(id, id));
+};
+
+const flattenOkayDefinition = <E, A>(m: Result<E, Result<E, A>>): void => {
+  expect(m.flattenOkay()).toStrictEqual(m.flatMapOkay(id));
+};
+
+const flattenFailDefinition = <E, A>(m: Result<Result<E, A>, A>): void => {
+  expect(m.flattenFail()).toStrictEqual(m.flatMapFail(id));
+};
+
 describe("Result", () => {
   describe("toString", () => {
     it("should convert Okay to a string", () => {
@@ -336,6 +397,125 @@ describe("Result", () => {
           result(fc.anything(), fc.anything()),
           result(fc.anything(), fc.anything()),
           orErstDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("flatMap", () => {
+    it("should have a left okay identity", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          fc.anything(),
+          fc.func(result(fc.anything(), fc.anything())),
+          flatMapLeftIdentityOkay,
+        ),
+      );
+    });
+
+    it("should have a left fail identity", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          fc.anything(),
+          fc.func(result(fc.anything(), fc.anything())),
+          flatMapLeftIdentityFail,
+        ),
+      );
+    });
+
+    it("should have a right okay and a right fail identity", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(result(fc.anything(), fc.anything()), flatMapRightIdentity),
+      );
+    });
+
+    it("should be associative", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.func(result(fc.anything(), fc.anything())),
+          fc.func(result(fc.anything(), fc.anything())),
+          fc.func(result(fc.anything(), fc.anything())),
+          fc.func(result(fc.anything(), fc.anything())),
+          flatMapAssociativity,
+        ),
+      );
+    });
+  });
+
+  describe("flatMapOkay", () => {
+    it("should agree with flatMap", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.func(result(fc.anything(), fc.anything())),
+          flatMapOkayDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("flatMapFail", () => {
+    it("should agree with flatMap", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.func(result(fc.anything(), fc.anything())),
+          flatMapFailDefnition,
+        ),
+      );
+    });
+  });
+
+  describe("flatten", () => {
+    it("should agree with flatMap", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(
+            result(fc.anything(), fc.anything()),
+            result(fc.anything(), fc.anything()),
+          ),
+          flattenDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("flattenOkay", () => {
+    it("should agree with flatMapOkay", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(result(fc.anything(), fc.anything()), fc.anything()),
+          flattenOkayDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("flattenFail", () => {
+    it("should agree with flatMapFail", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), result(fc.anything(), fc.anything())),
+          flattenFailDefinition,
         ),
       );
     });
