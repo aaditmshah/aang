@@ -7,6 +7,7 @@ import type { Result } from "../src/result.js";
 import { Fail, Okay } from "../src/result.js";
 
 import { result } from "./arbitraries.js";
+import { collatz } from "./utils.js";
 
 const toStringOkay = <A>(a: A): void => {
   try {
@@ -180,6 +181,36 @@ const flattenOkayDefinition = <E, A>(m: Result<E, Result<E, A>>): void => {
 
 const flattenFailDefinition = <E, A>(m: Result<Result<E, A>, A>): void => {
   expect(m.flattenFail()).toStrictEqual(m.flatMapFail(id));
+};
+
+const flatMapUntilEquivalence = <E, F, A, B>(
+  m: Result<E, A>,
+  k: (a: A) => Result<Result<E, F>, Result<A, B>>,
+  c: (x: E) => Result<Result<E, F>, Result<A, B>>,
+): void => {
+  const f = (x: Result<A, B>): Result<F, B> =>
+    x.isOkay ? x : k(x.value).flatMap(f, g);
+  const g = (y: Result<E, F>): Result<F, B> =>
+    y.isOkay ? new Fail(y.value) : c(y.value).flatMap(f, g);
+  expect(m.flatMapUntil(k, c)).toStrictEqual(m.flatMap(k, c).flatMap(f, g));
+};
+
+const flatMapOkayUntilEquivalence = <E, A, B>(
+  m: Result<E, A>,
+  k: (a: A) => Result<E, Result<A, B>>,
+): void => {
+  const f = (x: Result<A, B>): Result<E, B> =>
+    x.isOkay ? x : k(x.value).flatMapOkay(f);
+  expect(m.flatMapOkayUntil(k)).toStrictEqual(m.flatMapOkay(k).flatMapOkay(f));
+};
+
+const flatMapFailUntilEquivalence = <E, F, A>(
+  m: Result<E, A>,
+  c: (x: E) => Result<Result<E, F>, A>,
+): void => {
+  const g = (y: Result<E, F>): Result<F, A> =>
+    y.isOkay ? new Fail(y.value) : c(y.value).flatMapFail(g);
+  expect(m.flatMapFailUntil(c)).toStrictEqual(m.flatMapFail(c).flatMapFail(g));
 };
 
 describe("Result", () => {
@@ -516,6 +547,49 @@ describe("Result", () => {
         fc.property(
           result(fc.anything(), result(fc.anything(), fc.anything())),
           flattenFailDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("flatMapUntil", () => {
+    it("should be equivalent to multiple flatMap calls", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.integer({ min: 1 }), fc.integer({ min: 1 })),
+          fc.constant((n: number) => new Okay(collatz(n))),
+          fc.constant((n: number) => new Fail(collatz(n))),
+          flatMapUntilEquivalence,
+        ),
+      );
+    });
+  });
+
+  describe("flatMapOkayUntil", () => {
+    it("should be equivalent to multiple flatMapOkay calls", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.integer({ min: 1 }), fc.anything()),
+          fc.constant((n: number) => new Okay(collatz(n))),
+          flatMapOkayUntilEquivalence,
+        ),
+      );
+    });
+  });
+
+  describe("flatMapFailUntil", () => {
+    it("should be equivalent to multiple flatMapFail calls", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.integer({ min: 1 })),
+          fc.constant((n: number) => new Fail(collatz(n))),
+          flatMapFailUntilEquivalence,
         ),
       );
     });

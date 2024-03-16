@@ -135,6 +135,35 @@ abstract class ResultTrait {
     return this.isFail ? this.value : this;
   }
 
+  public flatMapUntil<E, F, A, B>(
+    this: Result<E, A>,
+    okayArrow: (value: A) => Result<Result<E, F>, Result<A, B>>,
+    failArrow: (value: E) => Result<Result<E, F>, Result<A, B>>,
+  ): Result<F, B> {
+    let result = this.flatMap(okayArrow, failArrow).exchange();
+    while (result.isFail)
+      result = result.value.flatMap(okayArrow, failArrow).exchange();
+    return result.value;
+  }
+
+  public flatMapOkayUntil<E, A, B>(
+    this: Result<E, A>,
+    arrow: (value: A) => Result<E, Result<A, B>>,
+  ): Result<E, B> {
+    let result = this.flatMapOkay(arrow).exchangeOkay();
+    while (result.isFail) result = arrow(result.value).exchangeOkay();
+    return result.value;
+  }
+
+  public flatMapFailUntil<E, F, A>(
+    this: Result<E, A>,
+    arrow: (value: E) => Result<Result<E, F>, A>,
+  ): Result<F, A> {
+    let result = this.flatMapFail(arrow).associateRight();
+    while (result.isFail) result = arrow(result.value).associateRight();
+    return result.value;
+  }
+
   public transposeMap<E, F, A, B>(
     this: Result<E, A>,
     transposeOkay: (value: A) => Option<B>,
