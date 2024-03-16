@@ -8,6 +8,12 @@ abstract class ResultTrait {
 
   public abstract readonly isFail: boolean;
 
+  public toString<E, A>(this: Result<E, A>): string {
+    return this.isOkay
+      ? `Okay(${String(this.value)})`
+      : `Fail(${String(this.value)})`;
+  }
+
   public map<E, F, A, B>(
     this: Result<E, A>,
     okayMorphism: (value: A) => B,
