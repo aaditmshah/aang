@@ -225,6 +225,38 @@ const associateRightInverse = <A, B, C>(m: Result<A, Result<B, C>>): void => {
   expect(m.associateLeft().associateRight()).toStrictEqual(m);
 };
 
+const exchangeMapDefinition = <E, F, A, B>(
+  m: Result<Result<E, F>, Result<A, B>>,
+): void => {
+  expect(m.exchangeMap(id, id)).toStrictEqual(m.exchange());
+};
+
+const exchangeMapOkayDefinition = <E, F, A>(
+  m: Result<E, Result<F, A>>,
+): void => {
+  expect(m.exchangeMapOkay(id)).toStrictEqual(m.exchangeOkay());
+};
+
+const exchangeMapFailDefinition = <E, A, B>(
+  m: Result<Result<E, A>, B>,
+): void => {
+  expect(m.exchangeMapFail(id)).toStrictEqual(m.exchangeFail());
+};
+
+const exchangeInverse = <E, F, A, B>(
+  m: Result<Result<E, F>, Result<A, B>>,
+): void => {
+  expect(m.exchange().exchange()).toStrictEqual(m);
+};
+
+const exchangeOkayInverse = <E, F, A>(m: Result<E, Result<F, A>>): void => {
+  expect(m.exchangeOkay().exchangeOkay()).toStrictEqual(m);
+};
+
+const exchangeFailInverse = <E, A, B>(m: Result<Result<E, A>, B>): void => {
+  expect(m.exchangeFail().exchangeFail()).toStrictEqual(m);
+};
+
 describe("Result", () => {
   describe("toString", () => {
     it("should convert Okay to a string", () => {
@@ -638,6 +670,90 @@ describe("Result", () => {
         fc.property(
           result(result(fc.anything(), fc.anything()), fc.anything()),
           associateRightInverse,
+        ),
+      );
+    });
+  });
+
+  describe("exchangeMap", () => {
+    it("should agree with exchange", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(
+            result(fc.anything(), fc.anything()),
+            result(fc.anything(), fc.anything()),
+          ),
+          exchangeMapDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("exchangeMapOkay", () => {
+    it("should agree with exchangeOkay", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(result(fc.anything(), fc.anything()), fc.anything()),
+          exchangeMapOkayDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("exchangeMapFail", () => {
+    it("should agree with exchangeFail", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), result(fc.anything(), fc.anything())),
+          exchangeMapFailDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("exchange", () => {
+    it("should be its own inverse", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(
+            result(fc.anything(), fc.anything()),
+            result(fc.anything(), fc.anything()),
+          ),
+          exchangeInverse,
+        ),
+      );
+    });
+  });
+
+  describe("exchangeOkay", () => {
+    it("should be its own inverse", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(result(fc.anything(), fc.anything()), fc.anything()),
+          exchangeOkayInverse,
+        ),
+      );
+    });
+  });
+
+  describe("exchangeFail", () => {
+    it("should be its own inverse", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), result(fc.anything(), fc.anything())),
+          exchangeFailInverse,
         ),
       );
     });

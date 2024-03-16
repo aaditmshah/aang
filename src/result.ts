@@ -225,6 +225,50 @@ abstract class ResultTrait {
     return this.isOkay ? new Some(this) : this.value.map(Fail.of);
   }
 
+  public exchangeMap<E, F, G, A, B, C>(
+    this: Result<E, A>,
+    exchangeOkay: (value: A) => Result<B, C>,
+    exchangeFail: (value: E) => Result<F, G>,
+  ): Result<Result<F, B>, Result<G, C>> {
+    return this.isOkay
+      ? exchangeOkay(this.value).map(Okay.of, Okay.of)
+      : exchangeFail(this.value).map(Fail.of, Fail.of);
+  }
+
+  public exchangeMapOkay<E, F, A, B>(
+    this: Result<E, A>,
+    exchange: (value: A) => Result<F, B>,
+  ): Result<F, Result<E, B>> {
+    return this.isFail ? new Okay(this) : exchange(this.value).mapOkay(Okay.of);
+  }
+
+  public exchangeMapFail<E, F, A, B>(
+    this: Result<E, A>,
+    exchange: (value: E) => Result<F, B>,
+  ): Result<Result<F, A>, B> {
+    return this.isOkay ? new Fail(this) : exchange(this.value).mapFail(Fail.of);
+  }
+
+  public exchange<E, F, A, B>(
+    this: Result<Result<E, F>, Result<A, B>>,
+  ): Result<Result<E, A>, Result<F, B>> {
+    return this.isOkay
+      ? this.value.map(Okay.of, Okay.of)
+      : this.value.map(Fail.of, Fail.of);
+  }
+
+  public exchangeOkay<E, F, A>(
+    this: Result<E, Result<F, A>>,
+  ): Result<F, Result<E, A>> {
+    return this.isFail ? new Okay(this) : this.value.mapOkay(Okay.of);
+  }
+
+  public exchangeFail<E, A, B>(
+    this: Result<Result<E, A>, B>,
+  ): Result<Result<E, B>, A> {
+    return this.isOkay ? new Fail(this) : this.value.mapFail(Fail.of);
+  }
+
   public toOptionOkay<E, A>(this: Result<E, A>): Option<A> {
     return this.isOkay ? new Some(this.value) : None.instance;
   }
