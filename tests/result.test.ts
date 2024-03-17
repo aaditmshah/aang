@@ -225,6 +225,34 @@ const associateRightInverse = <A, B, C>(m: Result<A, Result<B, C>>): void => {
   expect(m.associateLeft().associateRight()).toStrictEqual(m);
 };
 
+const isOkayAndDefinition = <E, A>(
+  m: Result<E, A>,
+  p: (a: A) => boolean,
+): void => {
+  expect(m.isOkayAnd(p)).toStrictEqual(m.toOptionOkay().isSomeAnd(p));
+};
+
+const isFailAndDefinition = <E, A>(
+  m: Result<E, A>,
+  p: (x: E) => boolean,
+): void => {
+  expect(m.isFailAnd(p)).toStrictEqual(m.toOptionFail().isSomeAnd(p));
+};
+
+const isOkayOrDefinition = <E, A>(
+  m: Result<E, A>,
+  p: (x: E) => boolean,
+): void => {
+  expect(m.isOkayOr(p)).toStrictEqual(m.toOptionFail().isNoneOr(p));
+};
+
+const isFailOrDefinition = <E, A>(
+  m: Result<E, A>,
+  p: (a: A) => boolean,
+): void => {
+  expect(m.isFailOr(p)).toStrictEqual(m.toOptionOkay().isNoneOr(p));
+};
+
 const exchangeMapDefinition = <E, F, A, B>(
   m: Result<Result<E, F>, Result<A, B>>,
 ): void => {
@@ -670,6 +698,62 @@ describe("Result", () => {
         fc.property(
           result(result(fc.anything(), fc.anything()), fc.anything()),
           associateRightInverse,
+        ),
+      );
+    });
+  });
+
+  describe("isOkayAnd", () => {
+    it("should agree with isSomeAnd", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.func(fc.boolean()),
+          isOkayAndDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("isFailAnd", () => {
+    it("should agree with isSomeAnd", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.func(fc.boolean()),
+          isFailAndDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("isOkayOr", () => {
+    it("should agree with isNoneOr", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.func(fc.boolean()),
+          isOkayOrDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("isFailOr", () => {
+    it("should agree with isNoneOr", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.func(fc.boolean()),
+          isFailOrDefinition,
         ),
       );
     });

@@ -187,6 +187,66 @@ abstract class ResultTrait {
     return result.isOkay ? new Okay(new Fail(result.value)) : result;
   }
 
+  public isOkayAnd<E, A, B extends A>(
+    this: Result<E, A>,
+    predicate: (value: A) => value is B,
+  ): this is Okay<B>;
+  public isOkayAnd<E, A>(
+    this: Result<E, A>,
+    predicate: (value: A) => boolean,
+  ): this is Okay<A>;
+  public isOkayAnd<E, A>(
+    this: Result<E, A>,
+    predicate: (value: A) => boolean,
+  ): this is Okay<A> {
+    return this.isOkay && predicate(this.value);
+  }
+
+  public isFailAnd<E, F extends E, A>(
+    this: Result<E, A>,
+    predicate: (value: E) => value is F,
+  ): this is Fail<F>;
+  public isFailAnd<E, A>(
+    this: Result<E, A>,
+    predicate: (value: E) => boolean,
+  ): this is Fail<E>;
+  public isFailAnd<E, A>(
+    this: Result<E, A>,
+    predicate: (value: E) => boolean,
+  ): this is Fail<E> {
+    return this.isFail && predicate(this.value);
+  }
+
+  public isOkayOr<E, F extends E, A>(
+    this: Result<E, A>,
+    predicate: (value: E) => value is F,
+  ): this is Result<F, A>;
+  public isOkayOr<E, A>(
+    this: Result<E, A>,
+    predicate: (value: E) => boolean,
+  ): boolean;
+  public isOkayOr<E, A>(
+    this: Result<E, A>,
+    predicate: (value: E) => boolean,
+  ): boolean {
+    return this.isOkay || predicate(this.value);
+  }
+
+  public isFailOr<E, A, B extends A>(
+    this: Result<E, A>,
+    predicate: (value: A) => value is B,
+  ): this is Result<E, B>;
+  public isFailOr<E, A>(
+    this: Result<E, A>,
+    predicate: (value: A) => boolean,
+  ): boolean;
+  public isFailOr<E, A>(
+    this: Result<E, A>,
+    predicate: (value: A) => boolean,
+  ): boolean {
+    return this.isFail || predicate(this.value);
+  }
+
   public transposeMap<E, F, A, B>(
     this: Result<E, A>,
     transposeOkay: (value: A) => Option<B>,
