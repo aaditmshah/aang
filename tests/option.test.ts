@@ -165,20 +165,12 @@ const unzipDefinition = <A, B>(u: Option<Pair<A, B>>): void => {
   expect(u.unzip()).toStrictEqual(u.unzipWith(id));
 };
 
-const transposeMapInverse = <E, A>(m: Option<Result<E, A>>): void => {
-  expect(m.transposeMap(id).transposeMap(id, id)).toStrictEqual(m);
-};
-
 const transposeMapOkayInverse = <E, A>(m: Option<Result<E, A>>): void => {
   expect(m.transposeMapOkay(id).transposeMapOkay(id)).toStrictEqual(m);
 };
 
 const transposeMapFailInverse = <E, A>(m: Option<Result<E, A>>): void => {
   expect(m.transposeMapFail(id).transposeMapFail(id)).toStrictEqual(m);
-};
-
-const transposeInverse = <E, A>(m: Option<Result<E, A>>): void => {
-  expect(m.transpose().transpose()).toStrictEqual(m);
 };
 
 const transposeOkayInverse = <E, A>(m: Option<Result<E, A>>): void => {
@@ -618,19 +610,6 @@ describe("Option", () => {
     });
   });
 
-  describe("transposeMap", () => {
-    it("should be inverted by Result#transposeMap", () => {
-      expect.assertions(100);
-
-      fc.assert(
-        fc.property(
-          option(result(fc.anything(), fc.anything())),
-          transposeMapInverse,
-        ),
-      );
-    });
-  });
-
   describe("transposeMapOkay", () => {
     it("should be inverted by Result#transposeMapOkay", () => {
       expect.assertions(100);
@@ -652,19 +631,6 @@ describe("Option", () => {
         fc.property(
           option(result(fc.anything(), fc.anything())),
           transposeMapFailInverse,
-        ),
-      );
-    });
-  });
-
-  describe("transpose", () => {
-    it("should be inverted by Result#transpose", () => {
-      expect.assertions(100);
-
-      fc.assert(
-        fc.property(
-          option(result(fc.anything(), fc.anything())),
-          transposeInverse,
         ),
       );
     });

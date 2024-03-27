@@ -125,15 +125,6 @@ abstract class OptionTrait
       : this.value.map(Some.of, Some.of);
   }
 
-  public transposeMap<E, A, B>(
-    this: Option<A>,
-    transpose: (value: A) => Result<E, B>,
-  ): Result<Option<E>, Option<B>> {
-    return this.isNone
-      ? new Okay(None.instance)
-      : transpose(this.value).map(Some.of, Some.of);
-  }
-
   public transposeMapOkay<E, A, B>(
     this: Option<A>,
     transpose: (value: A) => Result<E, B>,
@@ -150,14 +141,6 @@ abstract class OptionTrait
     return this.isNone
       ? new Fail(None.instance)
       : transpose(this.value).mapFail(Some.of);
-  }
-
-  public transpose<E, A>(
-    this: Option<Result<E, A>>,
-  ): Result<Option<E>, Option<A>> {
-    return this.isNone
-      ? new Okay(None.instance)
-      : this.value.map(Some.of, Some.of);
   }
 
   public transposeOkay<E, A>(this: Option<Result<E, A>>): Result<E, Option<A>> {
