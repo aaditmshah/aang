@@ -2,11 +2,13 @@ import { describe, expect, it } from "@jest/globals";
 import fc from "fast-check";
 
 import { id } from "../src/miscellaneous.js";
+import type { Option } from "../src/option.js";
+import { Some } from "../src/option.js";
 import { Pair } from "../src/pair.js";
 import type { Result } from "../src/result.js";
 import { Fail, Okay } from "../src/result.js";
 
-import { result } from "./arbitraries.js";
+import { option, result } from "./arbitraries.js";
 import { collatz } from "./utils.js";
 
 const toStringOkay = <A>(a: A): void => {
@@ -251,6 +253,32 @@ const isFailOrDefinition = <E, A>(
   p: (a: A) => boolean,
 ): void => {
   expect(m.isFailOr(p)).toStrictEqual(m.toOptionOkay().isNoneOr(p));
+};
+
+const transposeMapOkayDefinition = <E, A, B>(
+  m: Result<E, A>,
+  f: (a: A) => Option<B>,
+): void => {
+  expect(m.transposeMapOkay(f)).toStrictEqual(m.transposeMap(f, Some.of));
+};
+
+const transposeMapFailDefinition = <E, F, A>(
+  m: Result<E, A>,
+  g: (x: E) => Option<F>,
+): void => {
+  expect(m.transposeMapFail(g)).toStrictEqual(m.transposeMap(Some.of, g));
+};
+
+const transposeDefinition = <E, A>(m: Result<Option<E>, Option<A>>): void => {
+  expect(m.transpose()).toStrictEqual(m.transposeMap(id, id));
+};
+
+const transposeOkayDefinition = <E, A>(m: Result<E, Option<A>>): void => {
+  expect(m.transposeOkay()).toStrictEqual(m.transposeMap(id, Some.of));
+};
+
+const transposeFailDefinition = <E, A>(m: Result<Option<E>, A>): void => {
+  expect(m.transposeFail()).toStrictEqual(m.transposeMap(Some.of, id));
 };
 
 const exchangeMapDefinition = <E, F, A, B>(
@@ -754,6 +782,73 @@ describe("Result", () => {
           result(fc.anything(), fc.anything()),
           fc.func(fc.boolean()),
           isFailOrDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("transposeMapOkay", () => {
+    it("should agree with transposeMap", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.func(option(fc.anything())),
+          transposeMapOkayDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("transposeMapFail", () => {
+    it("should agree with transposeMap", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.func(option(fc.anything())),
+          transposeMapFailDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("transpose", () => {
+    it("should agree with transposeMap", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(option(fc.anything()), option(fc.anything())),
+          transposeDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("transposeOkay", () => {
+    it("should agree with transposeMap", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(option(fc.anything()), fc.anything()),
+          transposeOkayDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("transposeFail", () => {
+    it("should agree with transposeMap", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), option(fc.anything())),
+          transposeFailDefinition,
         ),
       );
     });
