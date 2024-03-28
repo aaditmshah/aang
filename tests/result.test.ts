@@ -315,16 +315,18 @@ const exchangeMapDefinition = <E, F, A, B>(
   expect(m.exchangeMap(id, id)).toStrictEqual(m.exchange());
 };
 
-const exchangeMapFailDefinition = <E, F, A>(
-  m: Result<E, Result<F, A>>,
+const exchangeMapFailDefinition = <E, F, A, B>(
+  m: Result<E, A>,
+  f: (a: A) => Result<F, B>,
 ): void => {
-  expect(m.exchangeMapFail(id)).toStrictEqual(m.exchangeFail());
+  expect(m.exchangeMapFail(f)).toStrictEqual(m.collectMapOkay(f, Okay.of));
 };
 
-const exchangeMapOkayDefinition = <E, A, B>(
-  m: Result<Result<E, A>, B>,
+const exchangeMapOkayDefinition = <E, F, A, B>(
+  m: Result<E, A>,
+  g: (x: E) => Result<F, B>,
 ): void => {
-  expect(m.exchangeMapOkay(id)).toStrictEqual(m.exchangeOkay());
+  expect(m.exchangeMapOkay(g)).toStrictEqual(m.collectMapFail(Fail.of, g));
 };
 
 const exchangeInverse = <E, F, A, B>(
@@ -974,7 +976,8 @@ describe("Result", () => {
 
       fc.assert(
         fc.property(
-          result(result(fc.anything(), fc.anything()), fc.anything()),
+          result(fc.anything(), fc.anything()),
+          fc.func(result(fc.anything(), fc.anything())),
           exchangeMapFailDefinition,
         ),
       );
@@ -987,7 +990,8 @@ describe("Result", () => {
 
       fc.assert(
         fc.property(
-          result(fc.anything(), result(fc.anything(), fc.anything())),
+          result(fc.anything(), fc.anything()),
+          fc.func(result(fc.anything(), fc.anything())),
           exchangeMapOkayDefinition,
         ),
       );
