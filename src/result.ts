@@ -323,6 +323,42 @@ abstract class ResultTrait {
     return this.isOkay ? Pair.of(this) : this.value.map(Fail.of, Fail.of);
   }
 
+  public collectMapOkay<E, F, A, B, C>(
+    this: Result<E, A>,
+    okayMorphism: (value: A) => Result<F, C>,
+    failMorphism: (value: E) => Result<F, B>,
+  ): Result<F, Result<B, C>> {
+    return this.isOkay
+      ? okayMorphism(this.value).mapOkay(Okay.of)
+      : failMorphism(this.value).mapOkay(Fail.of);
+  }
+
+  public collectOkay<E, A, B>(
+    this: Result<Result<E, A>, Result<E, B>>,
+  ): Result<E, Result<A, B>> {
+    return this.isOkay
+      ? this.value.mapOkay(Okay.of)
+      : this.value.mapOkay(Fail.of);
+  }
+
+  public collectMapFail<E, F, G, A, B>(
+    this: Result<E, A>,
+    okayMorphism: (value: A) => Result<G, B>,
+    failMorphism: (value: E) => Result<F, B>,
+  ): Result<Result<F, G>, B> {
+    return this.isOkay
+      ? okayMorphism(this.value).mapFail(Okay.of)
+      : failMorphism(this.value).mapFail(Fail.of);
+  }
+
+  public collectFail<E, F, A>(
+    this: Result<Result<E, A>, Result<F, A>>,
+  ): Result<Result<E, F>, A> {
+    return this.isOkay
+      ? this.value.mapFail(Okay.of)
+      : this.value.mapFail(Fail.of);
+  }
+
   public exchangeMap<E, F, G, A, B, C>(
     this: Result<E, A>,
     exchangeOkay: (value: A) => Result<B, C>,
