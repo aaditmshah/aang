@@ -8,7 +8,7 @@ import { Pair } from "../src/pair.js";
 import type { Result } from "../src/result.js";
 import { Fail, Okay } from "../src/result.js";
 
-import { option, result } from "./arbitraries.js";
+import { option, pair, result } from "./arbitraries.js";
 import { collatz } from "./utils.js";
 
 const toStringOkay = <A>(a: A): void => {
@@ -279,6 +279,34 @@ const transposeOkayDefinition = <E, A>(m: Result<E, Option<A>>): void => {
 
 const transposeFailDefinition = <E, A>(m: Result<Option<E>, A>): void => {
   expect(m.transposeFail()).toStrictEqual(m.transposeMap(Some.of, id));
+};
+
+const unzipWithOkayDefinition = <E, A, B, C>(
+  m: Result<E, A>,
+  f: (a: A) => Pair<B, C>,
+): void => {
+  expect(m.unzipWithOkay(f)).toStrictEqual(m.unzipWith(f, Pair.of));
+};
+
+const unzipWithFailDefinition = <E, F, G, A>(
+  m: Result<E, A>,
+  g: (x: E) => Pair<F, G>,
+): void => {
+  expect(m.unzipWithFail(g)).toStrictEqual(m.unzipWith(Pair.of, g));
+};
+
+const unzipDefinition = <E, F, A, B>(
+  m: Result<Pair<E, F>, Pair<A, B>>,
+): void => {
+  expect(m.unzip()).toStrictEqual(m.unzipWith(id, id));
+};
+
+const unzipOkayDefinition = <E, A, B>(m: Result<E, Pair<A, B>>): void => {
+  expect(m.unzipOkay()).toStrictEqual(m.unzipWith(id, Pair.of));
+};
+
+const unzipFailDefinition = <E, F, A>(m: Result<Pair<E, F>, A>): void => {
+  expect(m.unzipFail()).toStrictEqual(m.unzipWith(Pair.of, id));
 };
 
 const exchangeMapDefinition = <E, F, A, B>(
@@ -849,6 +877,76 @@ describe("Result", () => {
         fc.property(
           result(fc.anything(), option(fc.anything())),
           transposeFailDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("unzipWithOkay", () => {
+    it("should agree with unzipWith", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.func(pair(fc.anything(), fc.anything())),
+          unzipWithOkayDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("unzipWithFail", () => {
+    it("should agree with unzipWith", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.func(pair(fc.anything(), fc.anything())),
+          unzipWithFailDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("unzip", () => {
+    it("should agree with unzipWith", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(
+            pair(fc.anything(), fc.anything()),
+            pair(fc.anything(), fc.anything()),
+          ),
+          unzipDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("unzipOkay", () => {
+    it("should agree with unzipWith", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(pair(fc.anything(), fc.anything()), fc.anything()),
+          unzipOkayDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("unzipFail", () => {
+    it("should agree with unzipWith", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), pair(fc.anything(), fc.anything())),
+          unzipFailDefinition,
         ),
       );
     });

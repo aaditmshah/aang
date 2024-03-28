@@ -279,6 +279,54 @@ abstract class ResultTrait {
     return this.isOkay ? new Some(this) : this.value.map(Fail.of);
   }
 
+  public unzipWith<E, F, G, A, B, C>(
+    this: Result<E, A>,
+    unzipOkay: (value: A) => Pair<B, C>,
+    unzipFail: (value: E) => Pair<F, G>,
+  ): Pair<Result<F, B>, Result<G, C>> {
+    return this.isOkay
+      ? unzipOkay(this.value).map(Okay.of, Okay.of)
+      : unzipFail(this.value).map(Fail.of, Fail.of);
+  }
+
+  public unzipWithOkay<E, A, B, C>(
+    this: Result<E, A>,
+    unzip: (value: A) => Pair<B, C>,
+  ): Pair<Result<E, B>, Result<E, C>> {
+    return this.isFail
+      ? Pair.of(this)
+      : unzip(this.value).map(Okay.of, Okay.of);
+  }
+
+  public unzipWithFail<E, F, G, A>(
+    this: Result<E, A>,
+    unzip: (value: E) => Pair<F, G>,
+  ): Pair<Result<F, A>, Result<G, A>> {
+    return this.isOkay
+      ? Pair.of(this)
+      : unzip(this.value).map(Fail.of, Fail.of);
+  }
+
+  public unzip<E, F, A, B>(
+    this: Result<Pair<E, F>, Pair<A, B>>,
+  ): Pair<Result<E, A>, Result<F, B>> {
+    return this.isOkay
+      ? this.value.map(Okay.of, Okay.of)
+      : this.value.map(Fail.of, Fail.of);
+  }
+
+  public unzipOkay<E, A, B>(
+    this: Result<E, Pair<A, B>>,
+  ): Pair<Result<E, A>, Result<E, B>> {
+    return this.isFail ? Pair.of(this) : this.value.map(Okay.of, Okay.of);
+  }
+
+  public unzipFail<E, F, A>(
+    this: Result<Pair<E, F>, A>,
+  ): Pair<Result<E, A>, Result<F, A>> {
+    return this.isOkay ? Pair.of(this) : this.value.map(Fail.of, Fail.of);
+  }
+
   public exchangeMap<E, F, G, A, B, C>(
     this: Result<E, A>,
     exchangeOkay: (value: A) => Result<B, C>,
