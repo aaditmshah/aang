@@ -1,10 +1,12 @@
 import type { Option } from "./option.js";
 import { None, Some } from "./option.js";
+import type { PartialOrder, Setoid, TotalOrder } from "./order.js";
+import type { Ordering } from "./ordering.js";
 import { Pair } from "./pair.js";
 
 export type Result<E, A> = Okay<A> | Fail<E>;
 
-abstract class ResultTrait {
+abstract class ResultTrait implements TotalOrder<Result<never, never>> {
   public abstract readonly isOkay: boolean;
 
   public abstract readonly isFail: boolean;
@@ -481,6 +483,107 @@ abstract class ResultTrait {
 
   public toOptionFail<E, A>(this: Result<E, A>): Option<E> {
     return this.isFail ? new Some(this.value) : None.instance;
+  }
+
+  public isSame<E extends Setoid<E>, A extends Setoid<A>>(
+    this: Result<E, A>,
+    that: Result<E, A>,
+  ): boolean {
+    return this.isOkay
+      ? that.isOkay && this.value.isSame(that.value)
+      : that.isFail && this.value.isSame(that.value);
+  }
+
+  public isNotSame<E extends Setoid<E>, A extends Setoid<A>>(
+    this: Result<E, A>,
+    that: Result<E, A>,
+  ): boolean {
+    return this.isOkay
+      ? that.isFail || this.value.isNotSame(that.value)
+      : that.isOkay || this.value.isNotSame(that.value);
+  }
+
+  public isLess<E extends PartialOrder<E>, A extends PartialOrder<A>>(
+    this: Result<E, A>,
+    that: Result<E, A>,
+  ): boolean {
+    return this.isOkay
+      ? that.isOkay && this.value.isLess(that.value)
+      : that.isOkay || this.value.isLess(that.value);
+  }
+
+  public isNotLess<E extends PartialOrder<E>, A extends PartialOrder<A>>(
+    this: Result<E, A>,
+    that: Result<E, A>,
+  ): boolean {
+    return this.isOkay
+      ? that.isFail || this.value.isNotLess(that.value)
+      : that.isFail && this.value.isNotLess(that.value);
+  }
+
+  public isMore<E extends PartialOrder<E>, A extends PartialOrder<A>>(
+    this: Result<E, A>,
+    that: Result<E, A>,
+  ): boolean {
+    return this.isOkay
+      ? that.isFail || this.value.isMore(that.value)
+      : that.isFail && this.value.isMore(that.value);
+  }
+
+  public isNotMore<E extends PartialOrder<E>, A extends PartialOrder<A>>(
+    this: Result<E, A>,
+    that: Result<E, A>,
+  ): boolean {
+    return this.isOkay
+      ? that.isOkay && this.value.isNotMore(that.value)
+      : that.isOkay || this.value.isNotMore(that.value);
+  }
+
+  public compare<E extends PartialOrder<E>, A extends PartialOrder<A>>(
+    this: Result<E, A>,
+    that: Result<E, A>,
+  ): Option<Ordering> {
+    return this.isFail
+      ? that.isOkay
+        ? new Some("<")
+        : this.value.compare(that.value)
+      : that.isFail
+        ? new Some(">")
+        : this.value.compare(that.value);
+  }
+
+  public max<E extends TotalOrder<E>, A extends TotalOrder<A>>(
+    this: Result<E, A>,
+    that: Result<E, A>,
+  ): Result<E, A> {
+    return this.isOkay
+      ? that.isFail
+        ? this
+        : new Okay(this.value.max(that.value))
+      : that.isOkay
+        ? that
+        : new Fail(this.value.max(that.value));
+  }
+
+  public min<E extends TotalOrder<E>, A extends TotalOrder<A>>(
+    this: Result<E, A>,
+    that: Result<E, A>,
+  ): Result<E, A> {
+    return this.isOkay
+      ? that.isFail
+        ? that
+        : new Okay(this.value.min(that.value))
+      : that.isOkay
+        ? this
+        : new Fail(this.value.min(that.value));
+  }
+
+  public clamp<E extends TotalOrder<E>, A extends TotalOrder<A>>(
+    this: Result<E, A>,
+    lower: Result<E, A>,
+    upper: Result<E, A>,
+  ): Result<E, A> {
+    return this.max(lower).min(upper);
   }
 }
 
