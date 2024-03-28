@@ -55,49 +55,43 @@ abstract class ResultTrait {
     return this.isFail ? new Fail(value) : this;
   }
 
-  public and<E, F, A, B>(
+  public and<E, A, B>(
     this: Result<E, A>,
-    that: Result<F, B>,
-  ): Result<E | F, Pair<A, B>> {
+    that: Result<E, B>,
+  ): Result<E, Pair<A, B>> {
     if (this.isFail) return this;
     if (that.isFail) return that;
     return new Okay(new Pair(this.value, that.value));
   }
 
-  public andThen<E, F, A, B>(
+  public andThen<E, A, B>(
     this: Result<E, A>,
-    that: Result<F, B>,
-  ): Result<E | F, B> {
+    that: Result<E, B>,
+  ): Result<E, B> {
     return this.isOkay ? that : this;
   }
 
-  public andWhen<E, F, A, B>(
+  public andWhen<E, A, B>(
     this: Result<E, A>,
-    that: Result<F, B>,
-  ): Result<E | F, A> {
+    that: Result<E, B>,
+  ): Result<E, A> {
     return this.isOkay && that.isFail ? that : this;
   }
 
-  public or<E, F, A, B>(
+  public or<E, F, A>(
     this: Result<E, A>,
-    that: Result<F, B>,
-  ): Result<Pair<E, F>, A | B> {
+    that: Result<F, A>,
+  ): Result<Pair<E, F>, A> {
     if (this.isOkay) return this;
     if (that.isOkay) return that;
     return new Fail(new Pair(this.value, that.value));
   }
 
-  public orElse<E, F, A, B>(
-    this: Result<E, A>,
-    that: Result<F, B>,
-  ): Result<F, A | B> {
+  public orElse<E, F, A>(this: Result<E, A>, that: Result<F, A>): Result<F, A> {
     return this.isOkay ? this : that;
   }
 
-  public orErst<E, F, A, B>(
-    this: Result<E, A>,
-    that: Result<F, B>,
-  ): Result<E, A | B> {
+  public orErst<E, F, A>(this: Result<E, A>, that: Result<F, A>): Result<E, A> {
     return this.isOkay || that.isFail ? this : that;
   }
 
