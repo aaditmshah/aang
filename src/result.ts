@@ -168,17 +168,13 @@ abstract class ResultTrait {
   public associateLeft<A, B, C>(
     this: Result<A, Result<B, C>>,
   ): Result<Result<A, B>, C> {
-    if (this.isFail) return new Fail(this);
-    const result = this.value;
-    return result.isFail ? new Fail(new Okay(result.value)) : result;
+    return this.isFail ? new Fail(this) : this.value.mapFail(Okay.of);
   }
 
   public associateRight<A, B, C>(
     this: Result<Result<A, B>, C>,
   ): Result<A, Result<B, C>> {
-    if (this.isOkay) return new Okay(this);
-    const result = this.value;
-    return result.isOkay ? new Okay(new Fail(result.value)) : result;
+    return this.isOkay ? new Okay(this) : this.value.mapOkay(Fail.of);
   }
 
   public isOkayAnd<E, A, B extends A>(
