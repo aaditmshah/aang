@@ -155,7 +155,7 @@ abstract class OptionTrait
     return this.isSome ? this.value : defaultValue;
   }
 
-  public mapExtractSome<A>(this: Option<A>, getDefaultValue: () => A): A {
+  public extractMapSome<A>(this: Option<A>, getDefaultValue: () => A): A {
     return this.isSome ? this.value : getDefaultValue();
   }
 

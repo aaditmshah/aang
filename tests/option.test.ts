@@ -189,8 +189,8 @@ const extractSomeFromNone = <A>(x: A): void => {
   expect(None.instance.extractSome(x)).toStrictEqual(x);
 };
 
-const mapExtractSomeDefinition = <A>(m: Option<A>, a: A): void => {
-  expect(m.mapExtractSome(() => a)).toStrictEqual(m.extractSome(a));
+const extractMapSomeDefinition = <A>(m: Option<A>, a: A): void => {
+  expect(m.extractMapSome(() => a)).toStrictEqual(m.extractSome(a));
 };
 
 const toResultOkayInverse = <E, A>(m: Option<A>, x: E): void => {
@@ -676,7 +676,7 @@ describe("Option", () => {
     });
   });
 
-  describe("mapExtractSome", () => {
+  describe("extractMapSome", () => {
     it("should agree with extractSome", () => {
       expect.assertions(100);
 
@@ -684,7 +684,7 @@ describe("Option", () => {
         fc.property(
           option(fc.anything()),
           fc.anything(),
-          mapExtractSomeDefinition,
+          extractMapSomeDefinition,
         ),
       );
     });
