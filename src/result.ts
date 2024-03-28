@@ -165,18 +165,6 @@ abstract class ResultTrait {
     return this.isOkay ? new Fail(this.value) : new Okay(this.value);
   }
 
-  public associateLeft<A, B, C>(
-    this: Result<A, Result<B, C>>,
-  ): Result<Result<A, B>, C> {
-    return this.isFail ? new Fail(this) : this.value.mapFail(Okay.of);
-  }
-
-  public associateRight<A, B, C>(
-    this: Result<Result<A, B>, C>,
-  ): Result<A, Result<B, C>> {
-    return this.isOkay ? new Okay(this) : this.value.mapOkay(Fail.of);
-  }
-
   public isOkayAnd<E, A, B extends A>(
     this: Result<E, A>,
     predicate: (value: A) => value is B,
@@ -333,12 +321,31 @@ abstract class ResultTrait {
       : failMorphism(this.value).mapOkay(Fail.of);
   }
 
+  public exchangeMapFail<E, F, A, B>(
+    this: Result<E, A>,
+    exchange: (value: A) => Result<F, B>,
+  ): Result<F, Result<E, B>> {
+    return this.isFail ? new Okay(this) : exchange(this.value).mapOkay(Okay.of);
+  }
+
   public collectOkay<E, A, B>(
     this: Result<Result<E, A>, Result<E, B>>,
   ): Result<E, Result<A, B>> {
     return this.isOkay
       ? this.value.mapOkay(Okay.of)
       : this.value.mapOkay(Fail.of);
+  }
+
+  public exchangeFail<E, F, A>(
+    this: Result<E, Result<F, A>>,
+  ): Result<F, Result<E, A>> {
+    return this.isFail ? new Okay(this) : this.value.mapOkay(Okay.of);
+  }
+
+  public associateRight<A, B, C>(
+    this: Result<Result<A, B>, C>,
+  ): Result<A, Result<B, C>> {
+    return this.isOkay ? new Okay(this) : this.value.mapOkay(Fail.of);
   }
 
   public collectMapFail<E, F, G, A, B>(
@@ -351,12 +358,31 @@ abstract class ResultTrait {
       : failMorphism(this.value).mapFail(Fail.of);
   }
 
+  public exchangeMapOkay<E, F, A, B>(
+    this: Result<E, A>,
+    exchange: (value: E) => Result<F, B>,
+  ): Result<Result<F, A>, B> {
+    return this.isOkay ? new Fail(this) : exchange(this.value).mapFail(Fail.of);
+  }
+
   public collectFail<E, F, A>(
     this: Result<Result<E, A>, Result<F, A>>,
   ): Result<Result<E, F>, A> {
     return this.isOkay
       ? this.value.mapFail(Okay.of)
       : this.value.mapFail(Fail.of);
+  }
+
+  public exchangeOkay<E, A, B>(
+    this: Result<Result<E, A>, B>,
+  ): Result<Result<E, B>, A> {
+    return this.isOkay ? new Fail(this) : this.value.mapFail(Fail.of);
+  }
+
+  public associateLeft<A, B, C>(
+    this: Result<A, Result<B, C>>,
+  ): Result<Result<A, B>, C> {
+    return this.isFail ? new Fail(this) : this.value.mapFail(Okay.of);
   }
 
   public exchangeMap<E, F, G, A, B, C>(
@@ -369,38 +395,12 @@ abstract class ResultTrait {
       : exchangeFail(this.value).map(Fail.of, Fail.of);
   }
 
-  public exchangeMapFail<E, F, A, B>(
-    this: Result<E, A>,
-    exchange: (value: A) => Result<F, B>,
-  ): Result<F, Result<E, B>> {
-    return this.isFail ? new Okay(this) : exchange(this.value).mapOkay(Okay.of);
-  }
-
-  public exchangeMapOkay<E, F, A, B>(
-    this: Result<E, A>,
-    exchange: (value: E) => Result<F, B>,
-  ): Result<Result<F, A>, B> {
-    return this.isOkay ? new Fail(this) : exchange(this.value).mapFail(Fail.of);
-  }
-
   public exchange<E, F, A, B>(
     this: Result<Result<E, F>, Result<A, B>>,
   ): Result<Result<E, A>, Result<F, B>> {
     return this.isOkay
       ? this.value.map(Okay.of, Okay.of)
       : this.value.map(Fail.of, Fail.of);
-  }
-
-  public exchangeFail<E, F, A>(
-    this: Result<E, Result<F, A>>,
-  ): Result<F, Result<E, A>> {
-    return this.isFail ? new Okay(this) : this.value.mapOkay(Okay.of);
-  }
-
-  public exchangeOkay<E, A, B>(
-    this: Result<Result<E, A>, B>,
-  ): Result<Result<E, B>, A> {
-    return this.isOkay ? new Fail(this) : this.value.mapFail(Fail.of);
   }
 
   public toOptionOkay<E, A>(this: Result<E, A>): Option<A> {
