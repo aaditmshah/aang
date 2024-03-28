@@ -309,6 +309,50 @@ const unzipFailDefinition = <E, F, A>(m: Result<Pair<E, F>, A>): void => {
   expect(m.unzipFail()).toStrictEqual(m.unzipWith(Pair.of, id));
 };
 
+const associateMapRightDefinition = <T, A, B, C>(
+  m: Result<T, C>,
+  g: (x: T) => Result<A, B>,
+): void => {
+  expect(m.associateMapRight(g)).toStrictEqual(m.collectMapOkay(Okay.of, g));
+};
+
+const collectOkayDefinition = <E, A, B>(
+  m: Result<Result<E, A>, Result<E, B>>,
+): void => {
+  expect(m.collectOkay()).toStrictEqual(m.collectMapOkay(id, id));
+};
+
+const exchangeFailDefinition = <E, F, A>(m: Result<E, Result<F, A>>): void => {
+  expect(m.exchangeFail()).toStrictEqual(m.collectMapOkay(id, Okay.of));
+};
+
+const associateRightDefinition = <A, B, C>(
+  m: Result<Result<A, B>, C>,
+): void => {
+  expect(m.associateRight()).toStrictEqual(m.collectMapOkay(Okay.of, id));
+};
+
+const associateMapLeftDefinition = <A, B, C, T>(
+  m: Result<A, T>,
+  f: (x: T) => Result<B, C>,
+): void => {
+  expect(m.associateMapLeft(f)).toStrictEqual(m.collectMapFail(f, Fail.of));
+};
+
+const collectFailDefinition = <E, F, A>(
+  m: Result<Result<E, A>, Result<F, A>>,
+): void => {
+  expect(m.collectFail()).toStrictEqual(m.collectMapFail(id, id));
+};
+
+const exchangeOkayDefinition = <E, A, B>(m: Result<Result<E, A>, B>): void => {
+  expect(m.exchangeOkay()).toStrictEqual(m.collectMapFail(Fail.of, id));
+};
+
+const associateLeftDefinition = <A, B, C>(m: Result<A, Result<B, C>>): void => {
+  expect(m.associateLeft()).toStrictEqual(m.collectMapFail(id, Fail.of));
+};
+
 const exchangeMapDefinition = <E, F, A, B>(
   m: Result<Result<E, F>, Result<A, B>>,
 ): void => {
@@ -736,6 +780,17 @@ describe("Result", () => {
   });
 
   describe("associateLeft", () => {
+    it("should agree with collectMapFail", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(result(fc.anything(), fc.anything()), fc.anything()),
+          associateLeftDefinition,
+        ),
+      );
+    });
+
     it("should be the inverse of associateRight", () => {
       expect.assertions(100);
 
@@ -749,6 +804,17 @@ describe("Result", () => {
   });
 
   describe("associateRight", () => {
+    it("should agree with collectMapOkay", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), result(fc.anything(), fc.anything())),
+          associateRightDefinition,
+        ),
+      );
+    });
+
     it("should be the inverse of associateLeft", () => {
       expect.assertions(100);
 
@@ -954,6 +1020,66 @@ describe("Result", () => {
     });
   });
 
+  describe("associateMapRight", () => {
+    it("should agree with collectMapOkay", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.func(result(fc.anything(), fc.anything())),
+          associateMapRightDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("collectOkay", () => {
+    it("should agree with collectMapOkay", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(
+            result(fc.anything(), fc.anything()),
+            result(fc.anything(), fc.anything()),
+          ),
+          collectOkayDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("associateMapLeft", () => {
+    it("should agree with collectMapFail", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.func(result(fc.anything(), fc.anything())),
+          associateMapLeftDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("collectFail", () => {
+    it("should agree with collectMapFail", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(
+            result(fc.anything(), fc.anything()),
+            result(fc.anything(), fc.anything()),
+          ),
+          collectFailDefinition,
+        ),
+      );
+    });
+  });
+
   describe("exchangeMap", () => {
     it("should agree with exchange", () => {
       expect.assertions(100);
@@ -1015,6 +1141,17 @@ describe("Result", () => {
   });
 
   describe("exchangeFail", () => {
+    it("should agree with collectMapOkay", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(result(fc.anything(), fc.anything()), fc.anything()),
+          exchangeFailDefinition,
+        ),
+      );
+    });
+
     it("should be its own inverse", () => {
       expect.assertions(100);
 
@@ -1028,6 +1165,17 @@ describe("Result", () => {
   });
 
   describe("exchangeOkay", () => {
+    it("should agree with collectMapFail", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), result(fc.anything(), fc.anything())),
+          exchangeOkayDefinition,
+        ),
+      );
+    });
+
     it("should be its own inverse", () => {
       expect.assertions(100);
 
