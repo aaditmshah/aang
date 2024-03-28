@@ -328,6 +328,13 @@ abstract class ResultTrait {
     return this.isFail ? new Okay(this) : exchange(this.value).mapOkay(Okay.of);
   }
 
+  public associateMapRight<T, A, B, C>(
+    this: Result<T, C>,
+    morphism: (value: T) => Result<A, B>,
+  ): Result<A, Result<B, C>> {
+    return this.isOkay ? new Okay(this) : morphism(this.value).mapOkay(Fail.of);
+  }
+
   public collectOkay<E, A, B>(
     this: Result<Result<E, A>, Result<E, B>>,
   ): Result<E, Result<A, B>> {
@@ -363,6 +370,13 @@ abstract class ResultTrait {
     exchange: (value: E) => Result<F, B>,
   ): Result<Result<F, A>, B> {
     return this.isOkay ? new Fail(this) : exchange(this.value).mapFail(Fail.of);
+  }
+
+  public associateMapLeft<A, B, C, T>(
+    this: Result<A, T>,
+    morphism: (value: T) => Result<B, C>,
+  ): Result<Result<A, B>, C> {
+    return this.isFail ? new Fail(this) : morphism(this.value).mapFail(Okay.of);
   }
 
   public collectFail<E, F, A>(
