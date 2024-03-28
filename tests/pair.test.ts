@@ -10,6 +10,14 @@ const mapIdentity = <A, B>(u: Pair<A, B>): void => {
   expect(u.map(id, id)).toStrictEqual(u);
 };
 
+const mapFstIdentity = <A, B>(u: Pair<A, B>): void => {
+  expect(u.mapFst(id)).toStrictEqual(u);
+};
+
+const mapSndIdentity = <A, B>(u: Pair<A, B>): void => {
+  expect(u.mapSnd(id)).toStrictEqual(u);
+};
+
 const ofParametricity = <A, B>(a: A, f: (a: A) => B): void => {
   expect(Pair.of(a).map(f, f)).toStrictEqual(Pair.of(f(a)));
 };
@@ -26,7 +34,28 @@ describe("Pair", () => {
   describe("map", () => {
     it("should preserve identity morphisms", () => {
       expect.assertions(100);
+
       fc.assert(fc.property(pair(fc.anything(), fc.anything()), mapIdentity));
+    });
+  });
+
+  describe("mapFst", () => {
+    it("should preserve identity morphisms", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(pair(fc.anything(), fc.anything()), mapFstIdentity),
+      );
+    });
+  });
+
+  describe("mapSnd", () => {
+    it("should preserve identity morphisms", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(pair(fc.anything(), fc.anything()), mapSndIdentity),
+      );
     });
   });
 

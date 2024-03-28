@@ -10,7 +10,7 @@ import type { Result } from "../src/result.js";
 import { Fail, Okay } from "../src/result.js";
 
 import { none, option, pair, result } from "./arbitraries.js";
-import { hotpo, isPowerOfTwo } from "./utils.js";
+import { collatz, hotpo, isPowerOfTwo } from "./utils.js";
 
 const toStringSome = <A>(a: A): void => {
   try {
@@ -66,7 +66,7 @@ const andThenDefinition = <A, B>(u: Option<A>, v: Option<B>): void => {
   expect(u.andThen(v)).toStrictEqual(u.and(v).map((x) => x.snd));
 };
 
-const andWithDefinition = <A, B>(u: Option<A>, v: Option<B>): void => {
+const andWhenDefinition = <A, B>(u: Option<A>, v: Option<B>): void => {
   expect(u.andWhen(v)).toStrictEqual(u.and(v).map((x) => x.fst));
 };
 
@@ -122,14 +122,11 @@ const flattenDefinition = <A>(u: Option<Option<A>>): void => {
 
 const flatMapUntilEquivalence = <A, B>(
   m: Option<A>,
-  p: (a: A) => boolean,
-  f: (a: A) => Option<A>,
-  g: (a: A) => Option<B>,
+  k: (a: A) => Option<Result<A, B>>,
 ): void => {
-  const step = (a: A): Option<B> => (p(a) ? g(a) : f(a).flatMap(step));
-  expect(
-    m.flatMapUntil((a) => (p(a) ? g(a).map(Okay.of) : f(a).map(Fail.of))),
-  ).toStrictEqual(m.flatMap(step));
+  const f = (x: Result<A, B>): Option<B> =>
+    x.isOkay ? new Some(x.value) : k(x.value).flatMap(f);
+  expect(m.flatMapUntil(k)).toStrictEqual(m.flatMap(k).flatMap(f));
 };
 
 const filterDistributivity = <A>(
@@ -168,27 +165,19 @@ const unzipDefinition = <A, B>(u: Option<Pair<A, B>>): void => {
   expect(u.unzip()).toStrictEqual(u.unzipWith(id));
 };
 
-const transposeMapIdentity = <E, A>(m: Option<Result<E, A>>): void => {
-  expect(m.transposeMap(id).transposeMap(id, id)).toStrictEqual(m);
-};
-
-const transposeMapOkayIdentity = <E, A>(m: Option<Result<E, A>>): void => {
+const transposeMapOkayInverse = <E, A>(m: Option<Result<E, A>>): void => {
   expect(m.transposeMapOkay(id).transposeMapOkay(id)).toStrictEqual(m);
 };
 
-const transposeMapFailIdentity = <E, A>(m: Option<Result<E, A>>): void => {
+const transposeMapFailInverse = <E, A>(m: Option<Result<E, A>>): void => {
   expect(m.transposeMapFail(id).transposeMapFail(id)).toStrictEqual(m);
 };
 
-const transposeIdentity = <E, A>(m: Option<Result<E, A>>): void => {
-  expect(m.transpose().transpose()).toStrictEqual(m);
-};
-
-const transposeOkayIdentity = <E, A>(m: Option<Result<E, A>>): void => {
+const transposeOkayInverse = <E, A>(m: Option<Result<E, A>>): void => {
   expect(m.transposeOkay().transposeOkay()).toStrictEqual(m);
 };
 
-const transposeFailIdentity = <E, A>(m: Option<Result<E, A>>): void => {
+const transposeFailInverse = <E, A>(m: Option<Result<E, A>>): void => {
   expect(m.transposeFail().transposeFail()).toStrictEqual(m);
 };
 
@@ -200,15 +189,15 @@ const extractSomeFromNone = <A>(x: A): void => {
   expect(None.instance.extractSome(x)).toStrictEqual(x);
 };
 
-const mapExtractSomeDefinition = <A>(m: Option<A>, a: A): void => {
-  expect(m.mapExtractSome(() => a)).toStrictEqual(m.extractSome(a));
+const extractMapSomeDefinition = <A>(m: Option<A>, a: A): void => {
+  expect(m.extractMapSome(() => a)).toStrictEqual(m.extractSome(a));
 };
 
-const toResultOkayIdentity = <E, A>(m: Option<A>, x: E): void => {
+const toResultOkayInverse = <E, A>(m: Option<A>, x: E): void => {
   expect(m.toResultOkay(x).toOptionOkay()).toStrictEqual(m);
 };
 
-const toResultFailIdentity = <E, A>(m: Option<E>, x: A): void => {
+const toResultFailInverse = <E, A>(m: Option<E>, x: A): void => {
   expect(m.toResultFail(x).toOptionFail()).toStrictEqual(m);
 };
 
@@ -415,7 +404,7 @@ describe("Option", () => {
         fc.property(
           option(fc.anything()),
           option(fc.anything()),
-          andWithDefinition,
+          andWhenDefinition,
         ),
       );
     });
@@ -522,9 +511,9 @@ describe("Option", () => {
       fc.assert(
         fc.property(
           option(fc.integer({ min: 1 })),
-          fc.constant(isPowerOfTwo),
-          fc.constant((n: number): Option<number> => new Some(hotpo(n))),
-          fc.func(option(fc.anything())),
+          fc.constant(
+            (n: number): Option<Result<number, number>> => new Some(collatz(n)),
+          ),
           flatMapUntilEquivalence,
         ),
       );
@@ -621,79 +610,53 @@ describe("Option", () => {
     });
   });
 
-  describe("transposeMap", () => {
-    it("should commute with Result#transposeMap", () => {
-      expect.assertions(100);
-
-      fc.assert(
-        fc.property(
-          option(result(fc.anything(), fc.anything())),
-          transposeMapIdentity,
-        ),
-      );
-    });
-  });
-
   describe("transposeMapOkay", () => {
-    it("should commute with Result#transposeMapOkay", () => {
+    it("should be inverted by Result#transposeMapOkay", () => {
       expect.assertions(100);
 
       fc.assert(
         fc.property(
           option(result(fc.anything(), fc.anything())),
-          transposeMapOkayIdentity,
+          transposeMapOkayInverse,
         ),
       );
     });
   });
 
   describe("transposeMapFail", () => {
-    it("should commute with Result#transposeMapFail", () => {
+    it("should be inverted by Result#transposeMapFail", () => {
       expect.assertions(100);
 
       fc.assert(
         fc.property(
           option(result(fc.anything(), fc.anything())),
-          transposeMapFailIdentity,
-        ),
-      );
-    });
-  });
-
-  describe("transpose", () => {
-    it("should commute with Result#transpose", () => {
-      expect.assertions(100);
-
-      fc.assert(
-        fc.property(
-          option(result(fc.anything(), fc.anything())),
-          transposeIdentity,
+          transposeMapFailInverse,
         ),
       );
     });
   });
 
   describe("transposeOkay", () => {
-    it("should commute with Result#transposeOkay", () => {
+    it("should be inverted by Result#transposeOkay", () => {
       expect.assertions(100);
 
       fc.assert(
         fc.property(
           option(result(fc.anything(), fc.anything())),
-          transposeOkayIdentity,
+          transposeOkayInverse,
         ),
       );
     });
   });
 
   describe("transposeFail", () => {
-    it("should commute with Result#transposeFail", () => {
+    it("should be inverted by Result#transposeFail", () => {
       expect.assertions(100);
 
       fc.assert(
         fc.property(
           option(result(fc.anything(), fc.anything())),
-          transposeFailIdentity,
+          transposeFailInverse,
         ),
       );
     });
@@ -713,7 +676,7 @@ describe("Option", () => {
     });
   });
 
-  describe("mapExtractSome", () => {
+  describe("extractMapSome", () => {
     it("should agree with extractSome", () => {
       expect.assertions(100);
 
@@ -721,28 +684,28 @@ describe("Option", () => {
         fc.property(
           option(fc.anything()),
           fc.anything(),
-          mapExtractSomeDefinition,
+          extractMapSomeDefinition,
         ),
       );
     });
   });
 
   describe("toResultOkay", () => {
-    it("should commute with toOptionOkay", () => {
+    it("should be inverted by toOptionOkay", () => {
       expect.assertions(100);
 
       fc.assert(
-        fc.property(option(fc.anything()), fc.anything(), toResultOkayIdentity),
+        fc.property(option(fc.anything()), fc.anything(), toResultOkayInverse),
       );
     });
   });
 
   describe("toResultFail", () => {
-    it("should commute with toOptionFail", () => {
+    it("should be inverted by toOptionFail", () => {
       expect.assertions(100);
 
       fc.assert(
-        fc.property(option(fc.anything()), fc.anything(), toResultFailIdentity),
+        fc.property(option(fc.anything()), fc.anything(), toResultFailInverse),
       );
     });
   });

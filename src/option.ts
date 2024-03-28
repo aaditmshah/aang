@@ -41,7 +41,7 @@ abstract class OptionTrait
     return this.isSome && that.isSome ? this : None.instance;
   }
 
-  public or<A, B>(this: Option<A>, that: Option<B>): Option<A | B> {
+  public or<A>(this: Option<A>, that: Option<A>): Option<A> {
     return this.isSome ? this : that;
   }
 
@@ -125,15 +125,6 @@ abstract class OptionTrait
       : this.value.map(Some.of, Some.of);
   }
 
-  public transposeMap<E, A, B>(
-    this: Option<A>,
-    transpose: (value: A) => Result<E, B>,
-  ): Result<Option<E>, Option<B>> {
-    return this.isNone
-      ? new Okay(None.instance)
-      : transpose(this.value).map(Some.of, Some.of);
-  }
-
   public transposeMapOkay<E, A, B>(
     this: Option<A>,
     transpose: (value: A) => Result<E, B>,
@@ -152,14 +143,6 @@ abstract class OptionTrait
       : transpose(this.value).mapFail(Some.of);
   }
 
-  public transpose<E, A>(
-    this: Option<Result<E, A>>,
-  ): Result<Option<E>, Option<A>> {
-    return this.isNone
-      ? new Okay(None.instance)
-      : this.value.map(Some.of, Some.of);
-  }
-
   public transposeOkay<E, A>(this: Option<Result<E, A>>): Result<E, Option<A>> {
     return this.isNone ? new Okay(None.instance) : this.value.mapOkay(Some.of);
   }
@@ -172,7 +155,7 @@ abstract class OptionTrait
     return this.isSome ? this.value : defaultValue;
   }
 
-  public mapExtractSome<A>(this: Option<A>, getDefaultValue: () => A): A {
+  public extractMapSome<A>(this: Option<A>, getDefaultValue: () => A): A {
     return this.isSome ? this.value : getDefaultValue();
   }
 

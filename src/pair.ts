@@ -16,6 +16,20 @@ export class Pair<out A, out B> {
     return new Pair(fstMorphism(this.fst), sndMorphism(this.snd));
   }
 
+  public mapFst<A, B, C>(
+    this: Pair<A, C>,
+    morphism: (fst: A) => B,
+  ): Pair<B, C> {
+    return new Pair(morphism(this.fst), this.snd);
+  }
+
+  public mapSnd<A, B, C>(
+    this: Pair<A, B>,
+    morphism: (snd: B) => C,
+  ): Pair<A, C> {
+    return new Pair(this.fst, morphism(this.snd));
+  }
+
   public associateLeft<A, B, C>(
     this: Pair<A, Pair<B, C>>,
   ): Pair<Pair<A, B>, C> {

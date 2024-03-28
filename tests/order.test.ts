@@ -11,7 +11,7 @@ import type { PartialOrder, Setoid, TotalOrder } from "../src/order.js";
 import type { Ordering } from "../src/ordering.js";
 import { Text } from "../src/text.js";
 
-import { option } from "./arbitraries.js";
+import { option, result } from "./arbitraries.js";
 
 const testSetoid = <A extends Setoid<A>>(
   name: string,
@@ -340,3 +340,4 @@ testTotalOrder("Integer", fc.bigUint(9n).map(Integer.of));
 testTotalOrder("Bool", fc.boolean().map(Bool.of));
 testTotalOrder("DateTime", datetime);
 testTotalOrder("Option<Double>", option(double));
+testTotalOrder("Result<Double, DateTime>", result(double, datetime));
