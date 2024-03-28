@@ -399,6 +399,30 @@ const distributeInverse = <E, F, A, B>(
   expect(m.distribute().distribute()).toStrictEqual(m);
 };
 
+const extractOkayFromOkay = <A>(a: A, x: A): void => {
+  expect(new Okay(a).extractOkay(x)).toStrictEqual(a);
+};
+
+const extractOkayFromFail = <E, A>(x: E, y: A): void => {
+  expect(new Fail(x).extractOkay(y)).toStrictEqual(y);
+};
+
+const extractFailFromFail = <E>(x: E, y: E): void => {
+  expect(new Fail(x).extractFail(y)).toStrictEqual(x);
+};
+
+const extractFailFromOkay = <E, A>(a: A, x: E): void => {
+  expect(new Okay(a).extractFail(x)).toStrictEqual(x);
+};
+
+const extractMapOkayDefinition = <E, A>(m: Result<E, A>, a: A): void => {
+  expect(m.extractMapOkay(() => a)).toStrictEqual(m.extractOkay(a));
+};
+
+const extractMapFailDefinition = <E, A>(m: Result<E, A>, x: E): void => {
+  expect(m.extractMapFail(() => x)).toStrictEqual(m.extractFail(x));
+};
+
 describe("Result", () => {
   describe("toString", () => {
     it("should convert Okay to a string", () => {
@@ -1227,6 +1251,62 @@ describe("Result", () => {
             result(fc.anything(), fc.anything()),
           ),
           distributeInverse,
+        ),
+      );
+    });
+  });
+
+  describe("extractOkay", () => {
+    it("should extract the value from Okay", () => {
+      expect.assertions(100);
+
+      fc.assert(fc.property(fc.anything(), fc.anything(), extractOkayFromOkay));
+    });
+
+    it("should return the default value for Fail", () => {
+      expect.assertions(100);
+
+      fc.assert(fc.property(fc.anything(), fc.anything(), extractOkayFromFail));
+    });
+  });
+
+  describe("extractFail", () => {
+    it("should extract the value from Fail", () => {
+      expect.assertions(100);
+
+      fc.assert(fc.property(fc.anything(), fc.anything(), extractFailFromFail));
+    });
+
+    it("should return the default value for Okay", () => {
+      expect.assertions(100);
+
+      fc.assert(fc.property(fc.anything(), fc.anything(), extractFailFromOkay));
+    });
+  });
+
+  describe("extractMapOkay", () => {
+    it("should agree with extractOkay", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.anything(),
+          extractMapOkayDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("extractMapFail", () => {
+    it("should agree with extractFail", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.anything(),
+          extractMapFailDefinition,
         ),
       );
     });

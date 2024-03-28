@@ -453,6 +453,28 @@ abstract class ResultTrait {
       : this.value.map(Fail.of, Fail.of);
   }
 
+  public extractOkay<E, A>(this: Result<E, A>, defaultValue: A): A {
+    return this.isOkay ? this.value : defaultValue;
+  }
+
+  public extractFail<E, A>(this: Result<E, A>, defaultValue: E): E {
+    return this.isFail ? this.value : defaultValue;
+  }
+
+  public extractMapOkay<E, A>(
+    this: Result<E, A>,
+    getOkayValue: (value: E) => A,
+  ): A {
+    return this.isOkay ? this.value : getOkayValue(this.value);
+  }
+
+  public extractMapFail<E, A>(
+    this: Result<E, A>,
+    getFailValue: (value: A) => E,
+  ): E {
+    return this.isFail ? this.value : getFailValue(this.value);
+  }
+
   public toOptionOkay<E, A>(this: Result<E, A>): Option<A> {
     return this.isOkay ? new Some(this.value) : None.instance;
   }
