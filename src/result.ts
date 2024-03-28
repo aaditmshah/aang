@@ -134,9 +134,9 @@ abstract class ResultTrait {
     okayArrow: (value: A) => Result<Result<E, F>, Result<A, B>>,
     failArrow: (value: E) => Result<Result<E, F>, Result<A, B>>,
   ): Result<F, B> {
-    let result = this.flatMap(okayArrow, failArrow).exchange();
+    let result = this.flatMap(okayArrow, failArrow).distribute();
     while (result.isFail)
-      result = result.value.flatMap(okayArrow, failArrow).exchange();
+      result = result.value.flatMap(okayArrow, failArrow).distribute();
     return result.value;
   }
 
@@ -435,17 +435,17 @@ abstract class ResultTrait {
     return this.isFail ? new Fail(this) : this.value.mapFail(Okay.of);
   }
 
-  public exchangeMap<E, F, G, A, B, C>(
+  public distributeMap<E, F, G, A, B, C>(
     this: Result<E, A>,
-    exchangeOkay: (value: A) => Result<B, C>,
-    exchangeFail: (value: E) => Result<F, G>,
+    okayMorphism: (value: A) => Result<B, C>,
+    failMorphism: (value: E) => Result<F, G>,
   ): Result<Result<F, B>, Result<G, C>> {
     return this.isOkay
-      ? exchangeOkay(this.value).map(Okay.of, Okay.of)
-      : exchangeFail(this.value).map(Fail.of, Fail.of);
+      ? okayMorphism(this.value).map(Okay.of, Okay.of)
+      : failMorphism(this.value).map(Fail.of, Fail.of);
   }
 
-  public exchange<E, F, A, B>(
+  public distribute<E, F, A, B>(
     this: Result<Result<E, F>, Result<A, B>>,
   ): Result<Result<E, A>, Result<F, B>> {
     return this.isOkay

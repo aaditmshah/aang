@@ -387,16 +387,16 @@ const associateLeftInverse = <A, B, C>(m: Result<Result<A, B>, C>): void => {
   expect(m.associateRight().associateLeft()).toStrictEqual(m);
 };
 
-const exchangeMapDefinition = <E, F, A, B>(
+const distributeMapDefinition = <E, F, A, B>(
   m: Result<Result<E, F>, Result<A, B>>,
 ): void => {
-  expect(m.exchangeMap(id, id)).toStrictEqual(m.exchange());
+  expect(m.distributeMap(id, id)).toStrictEqual(m.distribute());
 };
 
-const exchangeInverse = <E, F, A, B>(
+const distributeInverse = <E, F, A, B>(
   m: Result<Result<E, F>, Result<A, B>>,
 ): void => {
-  expect(m.exchange().exchange()).toStrictEqual(m);
+  expect(m.distribute().distribute()).toStrictEqual(m);
 };
 
 describe("Result", () => {
@@ -1200,8 +1200,8 @@ describe("Result", () => {
     });
   });
 
-  describe("exchangeMap", () => {
-    it("should agree with exchange", () => {
+  describe("distributeMap", () => {
+    it("should agree with distribute", () => {
       expect.assertions(100);
 
       fc.assert(
@@ -1210,13 +1210,13 @@ describe("Result", () => {
             result(fc.anything(), fc.anything()),
             result(fc.anything(), fc.anything()),
           ),
-          exchangeMapDefinition,
+          distributeMapDefinition,
         ),
       );
     });
   });
 
-  describe("exchange", () => {
+  describe("distribute", () => {
     it("should be its own inverse", () => {
       expect.assertions(100);
 
@@ -1226,7 +1226,7 @@ describe("Result", () => {
             result(fc.anything(), fc.anything()),
             result(fc.anything(), fc.anything()),
           ),
-          exchangeInverse,
+          distributeInverse,
         ),
       );
     });
