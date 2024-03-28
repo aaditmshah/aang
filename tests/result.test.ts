@@ -301,6 +301,18 @@ const unzipFailDefinition = <E, F, A>(m: Result<Pair<E, F>, A>): void => {
   expect(m.unzipFail()).toStrictEqual(m.unzipWith(Pair.of, id));
 };
 
+const collectFstDefinition = <A, B, C>(
+  m: Result<Pair<A, C>, Pair<B, C>>,
+): void => {
+  expect(m.collectFst()).toStrictEqual(m.collectMapFst(id, id));
+};
+
+const collectSndDefinition = <A, B, C>(
+  m: Result<Pair<A, B>, Pair<A, C>>,
+): void => {
+  expect(m.collectSnd()).toStrictEqual(m.collectMapSnd(id, id));
+};
+
 const exchangeMapFailDefinition = <E, F, A, B>(
   m: Result<E, A>,
   f: (a: A) => Result<F, B>,
@@ -967,6 +979,38 @@ describe("Result", () => {
         fc.property(
           result(fc.anything(), pair(fc.anything(), fc.anything())),
           unzipFailDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("collectFst", () => {
+    it("should agree with collectMapFst", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(
+            pair(fc.anything(), fc.anything()),
+            pair(fc.anything(), fc.anything()),
+          ),
+          collectFstDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("collectSnd", () => {
+    it("should agree with collectMapSnd", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(
+            pair(fc.anything(), fc.anything()),
+            pair(fc.anything(), fc.anything()),
+          ),
+          collectSndDefinition,
         ),
       );
     });

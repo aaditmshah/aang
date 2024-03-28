@@ -311,6 +311,42 @@ abstract class ResultTrait {
     return this.isOkay ? Pair.of(this) : this.value.map(Fail.of, Fail.of);
   }
 
+  public collectMapFst<E, T, A, B, C>(
+    this: Result<E, T>,
+    okayMorphism: (value: T) => Pair<B, C>,
+    failMorphism: (value: E) => Pair<A, C>,
+  ): Pair<Result<A, B>, C> {
+    return this.isOkay
+      ? okayMorphism(this.value).mapFst(Okay.of)
+      : failMorphism(this.value).mapFst(Fail.of);
+  }
+
+  public collectFst<A, B, C>(
+    this: Result<Pair<A, C>, Pair<B, C>>,
+  ): Pair<Result<A, B>, C> {
+    return this.isOkay
+      ? this.value.mapFst(Okay.of)
+      : this.value.mapFst(Fail.of);
+  }
+
+  public collectMapSnd<E, T, A, B, C>(
+    this: Result<E, T>,
+    okayMorphism: (value: T) => Pair<A, C>,
+    failMorphism: (value: E) => Pair<A, B>,
+  ): Pair<A, Result<B, C>> {
+    return this.isOkay
+      ? okayMorphism(this.value).mapSnd(Okay.of)
+      : failMorphism(this.value).mapSnd(Fail.of);
+  }
+
+  public collectSnd<A, B, C>(
+    this: Result<Pair<A, B>, Pair<A, C>>,
+  ): Pair<A, Result<B, C>> {
+    return this.isOkay
+      ? this.value.mapSnd(Okay.of)
+      : this.value.mapSnd(Fail.of);
+  }
+
   public collectMapOkay<E, F, A, B, C>(
     this: Result<E, A>,
     okayMorphism: (value: A) => Result<F, C>,
