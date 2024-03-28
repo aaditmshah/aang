@@ -162,7 +162,7 @@ abstract class ResultTrait implements TotalOrder<Result<never, never>> {
 
   public commute<A>(this: Okay<A>): Fail<A>;
   public commute<A>(this: Fail<A>): Okay<A>;
-  public commute<A, B>(this: Result<A, B>): Result<B, B>;
+  public commute<A, B>(this: Result<A, B>): Result<B, A>;
   public commute<A, B>(this: Result<A, B>): Result<B, A> {
     return this.isOkay ? new Fail(this.value) : new Okay(this.value);
   }
