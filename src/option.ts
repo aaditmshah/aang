@@ -115,13 +115,13 @@ abstract class OptionTrait
     unzip: (value: A) => Pair<B, C>,
   ): Pair<Option<B>, Option<C>> {
     return this.isNone
-      ? Pair.of(None.instance)
+      ? Pair.from(None.instance)
       : unzip(this.value).map(Some.of, Some.of);
   }
 
   public unzip<A, B>(this: Option<Pair<A, B>>): Pair<Option<A>, Option<B>> {
     return this.isNone
-      ? Pair.of(None.instance)
+      ? Pair.from(None.instance)
       : this.value.map(Some.of, Some.of);
   }
 

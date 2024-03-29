@@ -277,14 +277,14 @@ const unzipWithOkayDefinition = <A, B, C, E>(
   m: Result<A, E>,
   f: (a: A) => Pair<B, C>,
 ): void => {
-  expect(m.unzipWithOkay(f)).toStrictEqual(m.unzipWith(f, Pair.of));
+  expect(m.unzipWithOkay(f)).toStrictEqual(m.unzipWith(f, Pair.from));
 };
 
 const unzipWithFailDefinition = <A, E, F, G>(
   m: Result<A, E>,
   g: (x: E) => Pair<F, G>,
 ): void => {
-  expect(m.unzipWithFail(g)).toStrictEqual(m.unzipWith(Pair.of, g));
+  expect(m.unzipWithFail(g)).toStrictEqual(m.unzipWith(Pair.from, g));
 };
 
 const unzipDefinition = <A, B, E, F>(
@@ -294,11 +294,11 @@ const unzipDefinition = <A, B, E, F>(
 };
 
 const unzipOkayDefinition = <A, B, E>(m: Result<Pair<A, B>, E>): void => {
-  expect(m.unzipOkay()).toStrictEqual(m.unzipWith(id, Pair.of));
+  expect(m.unzipOkay()).toStrictEqual(m.unzipWith(id, Pair.from));
 };
 
 const unzipFailDefinition = <A, E, F>(m: Result<A, Pair<E, F>>): void => {
-  expect(m.unzipFail()).toStrictEqual(m.unzipWith(Pair.of, id));
+  expect(m.unzipFail()).toStrictEqual(m.unzipWith(Pair.from, id));
 };
 
 const collectFstDefinition = <A, B, C>(

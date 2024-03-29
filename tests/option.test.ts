@@ -154,7 +154,7 @@ const isNoneOrDefinition = <A>(m: Option<A>, p: (a: A) => boolean): void => {
 };
 
 const unzipWithNone = <A, B, C>(f: (a: A) => Pair<B, C>): void => {
-  expect(None.instance.unzipWith(f)).toStrictEqual(Pair.of(None.instance));
+  expect(None.instance.unzipWith(f)).toStrictEqual(Pair.from(None.instance));
 };
 
 const unzipWithSome = <A, B, C>(a: A, f: (a: A) => Pair<B, C>): void => {

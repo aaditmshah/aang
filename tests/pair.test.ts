@@ -18,8 +18,8 @@ const mapSndIdentity = <A, B>(u: Pair<A, B>): void => {
   expect(u.mapSnd(id)).toStrictEqual(u);
 };
 
-const ofParametricity = <A, B>(a: A, f: (a: A) => B): void => {
-  expect(Pair.of(a).map(f, f)).toStrictEqual(Pair.of(f(a)));
+const fromParametricity = <A, B>(a: A, f: (a: A) => B): void => {
+  expect(Pair.from(a).map(f, f)).toStrictEqual(Pair.from(f(a)));
 };
 
 const associateLeftInverse = <A, B, C>(u: Pair<Pair<A, B>, C>): void => {
@@ -59,12 +59,12 @@ describe("Pair", () => {
     });
   });
 
-  describe("of", () => {
+  describe("from", () => {
     it("should be parametric", () => {
       expect.assertions(100);
 
       fc.assert(
-        fc.property(fc.anything(), fc.func(fc.anything()), ofParametricity),
+        fc.property(fc.anything(), fc.func(fc.anything()), fromParametricity),
       );
     });
   });

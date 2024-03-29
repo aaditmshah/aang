@@ -280,7 +280,7 @@ abstract class ResultTrait implements TotalOrder<Result<never, never>> {
     unzip: (value: X) => Pair<A, B>,
   ): Pair<Result<A, E>, Result<B, E>> {
     return this.isFail
-      ? Pair.of(this)
+      ? Pair.from(this)
       : unzip(this.value).map(Okay.of, Okay.of);
   }
 
@@ -289,7 +289,7 @@ abstract class ResultTrait implements TotalOrder<Result<never, never>> {
     unzip: (value: Y) => Pair<E, F>,
   ): Pair<Result<A, E>, Result<A, F>> {
     return this.isOkay
-      ? Pair.of(this)
+      ? Pair.from(this)
       : unzip(this.value).map(Fail.of, Fail.of);
   }
 
@@ -304,13 +304,13 @@ abstract class ResultTrait implements TotalOrder<Result<never, never>> {
   public unzipOkay<A, B, E>(
     this: Result<Pair<A, B>, E>,
   ): Pair<Result<A, E>, Result<B, E>> {
-    return this.isFail ? Pair.of(this) : this.value.map(Okay.of, Okay.of);
+    return this.isFail ? Pair.from(this) : this.value.map(Okay.of, Okay.of);
   }
 
   public unzipFail<A, E, F>(
     this: Result<A, Pair<E, F>>,
   ): Pair<Result<A, E>, Result<A, F>> {
-    return this.isOkay ? Pair.of(this) : this.value.map(Fail.of, Fail.of);
+    return this.isOkay ? Pair.from(this) : this.value.map(Fail.of, Fail.of);
   }
 
   public collectMapFst<X, Y, A, B, C>(

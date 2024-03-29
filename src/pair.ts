@@ -4,7 +4,7 @@ export class Pair<out A, out B> {
     public readonly snd: B,
   ) {}
 
-  public static of<A>(value: A): Pair<A, A> {
+  public static from<A>(value: A): Pair<A, A> {
     return new Pair(value, value);
   }
 
