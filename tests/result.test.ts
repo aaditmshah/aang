@@ -27,127 +27,127 @@ const toStringFail = <E>(x: E): void => {
   }
 };
 
-const mapIdentity = <E, A>(u: Result<E, A>): void => {
+const mapIdentity = <A, E>(u: Result<A, E>): void => {
   expect(u.map(id, id)).toStrictEqual(u);
 };
 
-const mapOkayIdentity = <E, A>(u: Result<E, A>): void => {
+const mapOkayIdentity = <A, E>(u: Result<A, E>): void => {
   expect(u.mapOkay(id)).toStrictEqual(u);
 };
 
-const mapFailIdentity = <E, A>(u: Result<E, A>): void => {
+const mapFailIdentity = <A, E>(u: Result<A, E>): void => {
   expect(u.mapFail(id)).toStrictEqual(u);
 };
 
-const replaceDefinition = <E, F, A, B>(u: Result<E, A>, f: F, b: B): void => {
-  expect(u.replace(f, b)).toStrictEqual(
+const replaceDefinition = <A, B, E, F>(u: Result<A, E>, b: B, f: F): void => {
+  expect(u.replace(b, f)).toStrictEqual(
     u.map(
-      () => f,
       () => b,
+      () => f,
     ),
   );
 };
 
-const replaceOkayDefinition = <E, A, B>(u: Result<E, A>, b: B): void => {
+const replaceOkayDefinition = <A, B, E>(u: Result<A, E>, b: B): void => {
   expect(u.replaceOkay(b)).toStrictEqual(u.mapOkay(() => b));
 };
 
-const replaceFailDefinition = <E, F, A>(u: Result<E, A>, f: F): void => {
+const replaceFailDefinition = <A, E, F>(u: Result<A, E>, f: F): void => {
   expect(u.replaceFail(f)).toStrictEqual(u.mapFail(() => f));
 };
 
-const andLeftIdentity = <E, A>(v: Result<E, A>): void => {
+const andLeftIdentity = <A, E>(v: Result<A, E>): void => {
   expect(new Okay(undefined).and(v)).toStrictEqual(
     v.mapOkay((y) => new Pair(undefined, y)),
   );
 };
 
-const andRightIdentity = <E, A>(u: Result<E, A>): void => {
+const andRightIdentity = <A, E>(u: Result<A, E>): void => {
   expect(u.and(new Okay(undefined))).toStrictEqual(
     u.mapOkay((x) => new Pair(x, undefined)),
   );
 };
 
-const andAssociativity = <E, A, B, C>(
-  u: Result<E, A>,
-  v: Result<E, B>,
-  w: Result<E, C>,
+const andAssociativity = <A, B, C, E>(
+  u: Result<A, E>,
+  v: Result<B, E>,
+  w: Result<C, E>,
 ): void => {
   expect(u.and(v.and(w)).mapOkay((x) => x.associateLeft())).toStrictEqual(
     u.and(v).and(w),
   );
 };
 
-const andLeftAnnihilation = <E, A>(v: Result<E, A>): void => {
+const andLeftAnnihilation = <A, E>(v: Result<A, E>): void => {
   expect(new Fail(undefined).and(v)).toStrictEqual(new Fail(undefined));
 };
 
-const andThenDefinition = <E, A, B>(u: Result<E, A>, v: Result<E, B>): void => {
+const andThenDefinition = <A, B, E>(u: Result<A, E>, v: Result<B, E>): void => {
   expect(u.andThen(v)).toStrictEqual(u.and(v).mapOkay((x) => x.snd));
 };
 
-const andWhenDefinition = <E, A, B>(u: Result<E, A>, v: Result<E, B>): void => {
+const andWhenDefinition = <A, B, E>(u: Result<A, E>, v: Result<B, E>): void => {
   expect(u.andWhen(v)).toStrictEqual(u.and(v).mapOkay((x) => x.fst));
 };
 
-const orLeftIdentity = <E, A>(v: Result<E, A>): void => {
+const orLeftIdentity = <A, E>(v: Result<A, E>): void => {
   expect(new Fail(undefined).or(v)).toStrictEqual(
     v.mapFail((y) => new Pair(undefined, y)),
   );
 };
 
-const orRightIdentity = <E, A>(u: Result<E, A>): void => {
+const orRightIdentity = <A, E>(u: Result<A, E>): void => {
   expect(u.or(new Fail(undefined))).toStrictEqual(
     u.mapFail((x) => new Pair(x, undefined)),
   );
 };
 
-const orAssociativity = <E, F, G, A>(
-  u: Result<E, A>,
-  v: Result<F, A>,
-  w: Result<G, A>,
+const orAssociativity = <A, E, F, G>(
+  u: Result<A, E>,
+  v: Result<A, F>,
+  w: Result<A, G>,
 ): void => {
   expect(u.or(v.or(w)).mapFail((x) => x.associateLeft())).toStrictEqual(
     u.or(v).or(w),
   );
 };
 
-const orLeftAnnihilation = <E, A>(v: Result<E, A>): void => {
+const orLeftAnnihilation = <A, E>(v: Result<A, E>): void => {
   expect(new Okay(undefined).or(v)).toStrictEqual(new Okay(undefined));
 };
 
-const orElseDefinition = <E, F, A>(u: Result<E, A>, v: Result<F, A>): void => {
+const orElseDefinition = <A, E, F>(u: Result<A, E>, v: Result<A, F>): void => {
   expect(u.orElse(v)).toStrictEqual(u.or(v).mapFail((x) => x.snd));
 };
 
-const orErstDefinition = <E, F, A>(u: Result<E, A>, v: Result<F, A>): void => {
+const orErstDefinition = <A, E, F>(u: Result<A, E>, v: Result<A, F>): void => {
   expect(u.orErst(v)).toStrictEqual(u.or(v).mapFail((x) => x.fst));
 };
 
-const flatMapLeftIdentityOkay = <E, A, B>(
+const flatMapLeftIdentityOkay = <A, B, E>(
   a: A,
-  k: (a: A) => Result<E, B>,
+  k: (a: A) => Result<B, E>,
 ): void => {
-  expect(new Okay(a).flatMap<E, E, A, B>(k, Fail.of)).toStrictEqual(k(a));
+  expect(new Okay(a).flatMap<A, B, E, E>(k, Fail.of)).toStrictEqual(k(a));
 };
 
-const flatMapLeftIdentityFail = <E, F, A>(
+const flatMapLeftIdentityFail = <A, E, F>(
   x: E,
-  k: (x: E) => Result<F, A>,
+  k: (x: E) => Result<A, F>,
 ): void => {
-  expect(new Fail(x).flatMap<E, F, A, A>(Okay.of, k)).toStrictEqual(k(x));
+  expect(new Fail(x).flatMap<A, A, E, F>(Okay.of, k)).toStrictEqual(k(x));
 };
 
-const flatMapRightIdentity = <E, A>(m: Result<E, A>): void => {
+const flatMapRightIdentity = <A, E>(m: Result<A, E>): void => {
   expect(m.flatMap(Okay.of, Fail.of)).toStrictEqual(m);
 };
 
-const flatMapAssociativity = <E, F, G, A, B, C>(
-  m: Result<E, A>,
-  k: (a: A) => Result<F, B>,
-  c: (x: E) => Result<F, B>,
-  h: (b: B) => Result<G, C>,
-  g: (f: F) => Result<G, C>,
+const flatMapAssociativity = <A, B, C, E, F, G>(
+  m: Result<A, E>,
+  k: (a: A) => Result<B, F>,
+  c: (x: E) => Result<B, F>,
+  h: (b: B) => Result<C, G>,
+  g: (f: F) => Result<C, G>,
 ): void => {
   expect(
     m.flatMap(
@@ -157,147 +157,147 @@ const flatMapAssociativity = <E, F, G, A, B, C>(
   ).toStrictEqual(m.flatMap(k, c).flatMap(h, g));
 };
 
-const flatMapOkayDefinition = <E, A, B>(
-  m: Result<E, A>,
-  k: (a: A) => Result<E, B>,
+const flatMapOkayDefinition = <A, B, E>(
+  m: Result<A, E>,
+  k: (a: A) => Result<B, E>,
 ): void => {
   expect(m.flatMapOkay(k)).toStrictEqual(m.flatMap(k, Fail.of));
 };
 
-const flatMapFailDefnition = <E, F, A>(
-  m: Result<E, A>,
-  k: (x: E) => Result<F, A>,
+const flatMapFailDefnition = <A, E, F>(
+  m: Result<A, E>,
+  k: (x: E) => Result<A, F>,
 ): void => {
   expect(m.flatMapFail(k)).toStrictEqual(m.flatMap(Okay.of, k));
 };
 
-const flattenDefinition = <E, A>(
-  m: Result<Result<E, A>, Result<E, A>>,
+const flattenDefinition = <A, E>(
+  m: Result<Result<A, E>, Result<A, E>>,
 ): void => {
   expect(m.flatten()).toStrictEqual(m.flatMap(id, id));
 };
 
-const flattenOkayDefinition = <E, A>(m: Result<E, Result<E, A>>): void => {
+const flattenOkayDefinition = <A, E>(m: Result<Result<A, E>, E>): void => {
   expect(m.flattenOkay()).toStrictEqual(m.flatMapOkay(id));
 };
 
-const flattenFailDefinition = <E, A>(m: Result<Result<E, A>, A>): void => {
+const flattenFailDefinition = <A, E>(m: Result<A, Result<A, E>>): void => {
   expect(m.flattenFail()).toStrictEqual(m.flatMapFail(id));
 };
 
-const flatMapUntilEquivalence = <E, F, A, B>(
-  m: Result<E, A>,
-  k: (a: A) => Result<Result<E, F>, Result<A, B>>,
-  c: (x: E) => Result<Result<E, F>, Result<A, B>>,
+const flatMapUntilEquivalence = <A, B, E, F>(
+  m: Result<A, E>,
+  k: (a: A) => Result<Result<B, A>, Result<F, E>>,
+  c: (x: E) => Result<Result<B, A>, Result<F, E>>,
 ): void => {
-  const f = (x: Result<A, B>): Result<F, B> =>
+  const f = (x: Result<B, A>): Result<B, F> =>
     x.isOkay ? x : k(x.value).flatMap(f, g);
-  const g = (y: Result<E, F>): Result<F, B> =>
+  const g = (y: Result<F, E>): Result<B, F> =>
     y.isOkay ? new Fail(y.value) : c(y.value).flatMap(f, g);
   expect(m.flatMapUntil(k, c)).toStrictEqual(m.flatMap(k, c).flatMap(f, g));
 };
 
-const flatMapOkayUntilEquivalence = <E, A, B>(
-  m: Result<E, A>,
-  k: (a: A) => Result<E, Result<A, B>>,
+const flatMapOkayUntilEquivalence = <A, B, E>(
+  m: Result<A, E>,
+  k: (a: A) => Result<Result<B, A>, E>,
 ): void => {
-  const f = (x: Result<A, B>): Result<E, B> =>
+  const f = (x: Result<B, A>): Result<B, E> =>
     x.isOkay ? x : k(x.value).flatMapOkay(f);
   expect(m.flatMapOkayUntil(k)).toStrictEqual(m.flatMapOkay(k).flatMapOkay(f));
 };
 
-const flatMapFailUntilEquivalence = <E, F, A>(
-  m: Result<E, A>,
-  c: (x: E) => Result<Result<E, F>, A>,
+const flatMapFailUntilEquivalence = <A, E, F>(
+  m: Result<A, E>,
+  c: (x: E) => Result<A, Result<F, E>>,
 ): void => {
-  const g = (y: Result<E, F>): Result<F, A> =>
+  const g = (y: Result<F, E>): Result<A, F> =>
     y.isOkay ? new Fail(y.value) : c(y.value).flatMapFail(g);
   expect(m.flatMapFailUntil(c)).toStrictEqual(m.flatMapFail(c).flatMapFail(g));
 };
 
-const commuteInverse = <E, A>(m: Result<E, A>): void => {
+const commuteInverse = <A, E>(m: Result<A, E>): void => {
   expect(m.commute().commute()).toStrictEqual(m);
 };
 
-const isOkayAndDefinition = <E, A>(
-  m: Result<E, A>,
+const isOkayAndDefinition = <A, E>(
+  m: Result<A, E>,
   p: (a: A) => boolean,
 ): void => {
   expect(m.isOkayAnd(p)).toStrictEqual(m.toOptionOkay().isSomeAnd(p));
 };
 
-const isFailAndDefinition = <E, A>(
-  m: Result<E, A>,
+const isFailAndDefinition = <A, E>(
+  m: Result<A, E>,
   p: (x: E) => boolean,
 ): void => {
   expect(m.isFailAnd(p)).toStrictEqual(m.toOptionFail().isSomeAnd(p));
 };
 
-const isOkayOrDefinition = <E, A>(
-  m: Result<E, A>,
+const isOkayOrDefinition = <A, E>(
+  m: Result<A, E>,
   p: (x: E) => boolean,
 ): void => {
   expect(m.isOkayOr(p)).toStrictEqual(m.toOptionFail().isNoneOr(p));
 };
 
-const isFailOrDefinition = <E, A>(
-  m: Result<E, A>,
+const isFailOrDefinition = <A, E>(
+  m: Result<A, E>,
   p: (a: A) => boolean,
 ): void => {
   expect(m.isFailOr(p)).toStrictEqual(m.toOptionOkay().isNoneOr(p));
 };
 
-const transposeMapOkayDefinition = <E, A, B>(
-  m: Result<E, A>,
+const transposeMapOkayDefinition = <A, B, E>(
+  m: Result<A, E>,
   f: (a: A) => Option<B>,
 ): void => {
   expect(m.transposeMapOkay(f)).toStrictEqual(m.transposeMap(f, Some.of));
 };
 
-const transposeMapFailDefinition = <E, F, A>(
-  m: Result<E, A>,
+const transposeMapFailDefinition = <A, E, F>(
+  m: Result<A, E>,
   g: (x: E) => Option<F>,
 ): void => {
   expect(m.transposeMapFail(g)).toStrictEqual(m.transposeMap(Some.of, g));
 };
 
-const transposeDefinition = <E, A>(m: Result<Option<E>, Option<A>>): void => {
+const transposeDefinition = <A, E>(m: Result<Option<A>, Option<E>>): void => {
   expect(m.transpose()).toStrictEqual(m.transposeMap(id, id));
 };
 
-const transposeOkayDefinition = <E, A>(m: Result<E, Option<A>>): void => {
+const transposeOkayDefinition = <A, E>(m: Result<Option<A>, E>): void => {
   expect(m.transposeOkay()).toStrictEqual(m.transposeMap(id, Some.of));
 };
 
-const transposeFailDefinition = <E, A>(m: Result<Option<E>, A>): void => {
+const transposeFailDefinition = <A, E>(m: Result<A, Option<E>>): void => {
   expect(m.transposeFail()).toStrictEqual(m.transposeMap(Some.of, id));
 };
 
-const unzipWithOkayDefinition = <E, A, B, C>(
-  m: Result<E, A>,
+const unzipWithOkayDefinition = <A, B, C, E>(
+  m: Result<A, E>,
   f: (a: A) => Pair<B, C>,
 ): void => {
   expect(m.unzipWithOkay(f)).toStrictEqual(m.unzipWith(f, Pair.of));
 };
 
-const unzipWithFailDefinition = <E, F, G, A>(
-  m: Result<E, A>,
+const unzipWithFailDefinition = <A, E, F, G>(
+  m: Result<A, E>,
   g: (x: E) => Pair<F, G>,
 ): void => {
   expect(m.unzipWithFail(g)).toStrictEqual(m.unzipWith(Pair.of, g));
 };
 
-const unzipDefinition = <E, F, A, B>(
-  m: Result<Pair<E, F>, Pair<A, B>>,
+const unzipDefinition = <A, B, E, F>(
+  m: Result<Pair<A, B>, Pair<E, F>>,
 ): void => {
   expect(m.unzip()).toStrictEqual(m.unzipWith(id, id));
 };
 
-const unzipOkayDefinition = <E, A, B>(m: Result<E, Pair<A, B>>): void => {
+const unzipOkayDefinition = <A, B, E>(m: Result<Pair<A, B>, E>): void => {
   expect(m.unzipOkay()).toStrictEqual(m.unzipWith(id, Pair.of));
 };
 
-const unzipFailDefinition = <E, F, A>(m: Result<Pair<E, F>, A>): void => {
+const unzipFailDefinition = <A, E, F>(m: Result<A, Pair<E, F>>): void => {
   expect(m.unzipFail()).toStrictEqual(m.unzipWith(Pair.of, id));
 };
 
@@ -313,88 +313,88 @@ const collectSndDefinition = <A, B, C>(
   expect(m.collectSnd()).toStrictEqual(m.collectMapSnd(id, id));
 };
 
-const exchangeMapFailDefinition = <E, F, A, B>(
-  m: Result<E, A>,
-  f: (a: A) => Result<F, B>,
+const exchangeMapFailDefinition = <A, B, E, F>(
+  m: Result<A, E>,
+  f: (a: A) => Result<B, F>,
 ): void => {
   expect(m.exchangeMapFail(f)).toStrictEqual(m.collectMapOkay(f, Okay.of));
 };
 
-const associateMapRightDefinition = <T, A, B, C>(
-  m: Result<T, C>,
-  g: (x: T) => Result<A, B>,
+const associateMapLeftDefinition = <Y, A, B, C>(
+  m: Result<A, Y>,
+  g: (x: Y) => Result<B, C>,
 ): void => {
-  expect(m.associateMapRight(g)).toStrictEqual(m.collectMapOkay(Okay.of, g));
+  expect(m.associateMapLeft(g)).toStrictEqual(m.collectMapOkay(Okay.of, g));
 };
 
-const collectOkayDefinition = <E, A, B>(
-  m: Result<Result<E, A>, Result<E, B>>,
+const collectOkayDefinition = <A, B, E>(
+  m: Result<Result<A, E>, Result<B, E>>,
 ): void => {
   expect(m.collectOkay()).toStrictEqual(m.collectMapOkay(id, id));
 };
 
-const exchangeFailDefinition = <E, F, A>(m: Result<E, Result<F, A>>): void => {
+const exchangeFailDefinition = <A, E, F>(m: Result<Result<A, E>, F>): void => {
   expect(m.exchangeFail()).toStrictEqual(m.collectMapOkay(id, Okay.of));
 };
 
-const exchangeFailInverse = <E, F, A>(m: Result<E, Result<F, A>>): void => {
+const exchangeFailInverse = <A, E, F>(m: Result<Result<A, E>, F>): void => {
   expect(m.exchangeFail().exchangeFail()).toStrictEqual(m);
 };
 
-const associateRightDefinition = <A, B, C>(
-  m: Result<Result<A, B>, C>,
-): void => {
-  expect(m.associateRight()).toStrictEqual(m.collectMapOkay(Okay.of, id));
-};
-
-const associateRightInverse = <A, B, C>(m: Result<A, Result<B, C>>): void => {
-  expect(m.associateLeft().associateRight()).toStrictEqual(m);
-};
-
-const exchangeMapOkayDefinition = <E, F, A, B>(
-  m: Result<E, A>,
-  g: (x: E) => Result<F, B>,
-): void => {
-  expect(m.exchangeMapOkay(g)).toStrictEqual(m.collectMapFail(Fail.of, g));
-};
-
-const associateMapLeftDefinition = <A, B, C, T>(
-  m: Result<A, T>,
-  f: (x: T) => Result<B, C>,
-): void => {
-  expect(m.associateMapLeft(f)).toStrictEqual(m.collectMapFail(f, Fail.of));
-};
-
-const collectFailDefinition = <E, F, A>(
-  m: Result<Result<E, A>, Result<F, A>>,
-): void => {
-  expect(m.collectFail()).toStrictEqual(m.collectMapFail(id, id));
-};
-
-const exchangeOkayDefinition = <E, A, B>(m: Result<Result<E, A>, B>): void => {
-  expect(m.exchangeOkay()).toStrictEqual(m.collectMapFail(Fail.of, id));
-};
-
-const exchangeOkayInverse = <E, A, B>(m: Result<Result<E, A>, B>): void => {
-  expect(m.exchangeOkay().exchangeOkay()).toStrictEqual(m);
-};
-
 const associateLeftDefinition = <A, B, C>(m: Result<A, Result<B, C>>): void => {
-  expect(m.associateLeft()).toStrictEqual(m.collectMapFail(id, Fail.of));
+  expect(m.associateLeft()).toStrictEqual(m.collectMapOkay(Okay.of, id));
 };
 
 const associateLeftInverse = <A, B, C>(m: Result<Result<A, B>, C>): void => {
   expect(m.associateRight().associateLeft()).toStrictEqual(m);
 };
 
-const distributeMapDefinition = <E, F, A, B>(
-  m: Result<Result<E, F>, Result<A, B>>,
+const exchangeMapOkayDefinition = <A, B, E, F>(
+  m: Result<A, E>,
+  g: (x: E) => Result<B, F>,
+): void => {
+  expect(m.exchangeMapOkay(g)).toStrictEqual(m.collectMapFail(Fail.of, g));
+};
+
+const associateMapRightDefinition = <X, A, B, C>(
+  m: Result<X, C>,
+  f: (x: X) => Result<A, B>,
+): void => {
+  expect(m.associateMapRight(f)).toStrictEqual(m.collectMapFail(f, Fail.of));
+};
+
+const collectFailDefinition = <A, E, F>(
+  m: Result<Result<A, E>, Result<A, F>>,
+): void => {
+  expect(m.collectFail()).toStrictEqual(m.collectMapFail(id, id));
+};
+
+const exchangeOkayDefinition = <A, B, E>(m: Result<A, Result<B, E>>): void => {
+  expect(m.exchangeOkay()).toStrictEqual(m.collectMapFail(Fail.of, id));
+};
+
+const exchangeOkayInverse = <A, B, E>(m: Result<A, Result<B, E>>): void => {
+  expect(m.exchangeOkay().exchangeOkay()).toStrictEqual(m);
+};
+
+const associateRightDefinition = <A, B, C>(
+  m: Result<Result<A, B>, C>,
+): void => {
+  expect(m.associateRight()).toStrictEqual(m.collectMapFail(id, Fail.of));
+};
+
+const associateRightInverse = <A, B, C>(m: Result<A, Result<B, C>>): void => {
+  expect(m.associateLeft().associateRight()).toStrictEqual(m);
+};
+
+const distributeMapDefinition = <A, B, E, F>(
+  m: Result<Result<A, B>, Result<E, F>>,
 ): void => {
   expect(m.distributeMap(id, id)).toStrictEqual(m.distribute());
 };
 
-const distributeInverse = <E, F, A, B>(
-  m: Result<Result<E, F>, Result<A, B>>,
+const distributeInverse = <A, B, E, F>(
+  m: Result<Result<A, B>, Result<E, F>>,
 ): void => {
   expect(m.distribute().distribute()).toStrictEqual(m);
 };
@@ -403,7 +403,7 @@ const extractOkayFromOkay = <A>(a: A, x: A): void => {
   expect(new Okay(a).extractOkay(x)).toStrictEqual(a);
 };
 
-const extractOkayFromFail = <E, A>(x: E, y: A): void => {
+const extractOkayFromFail = <A, E>(x: E, y: A): void => {
   expect(new Fail(x).extractOkay(y)).toStrictEqual(y);
 };
 
@@ -411,24 +411,24 @@ const extractFailFromFail = <E>(x: E, y: E): void => {
   expect(new Fail(x).extractFail(y)).toStrictEqual(x);
 };
 
-const extractFailFromOkay = <E, A>(a: A, x: E): void => {
+const extractFailFromOkay = <A, E>(a: A, x: E): void => {
   expect(new Okay(a).extractFail(x)).toStrictEqual(x);
 };
 
-const extractMapOkayDefinition = <E, A>(m: Result<E, A>, a: A): void => {
+const extractMapOkayDefinition = <A, E>(m: Result<A, E>, a: A): void => {
   expect(m.extractMapOkay(() => a)).toStrictEqual(m.extractOkay(a));
 };
 
-const extractMapFailDefinition = <E, A>(m: Result<E, A>, x: E): void => {
+const extractMapFailDefinition = <A, E>(m: Result<A, E>, x: E): void => {
   expect(m.extractMapFail(() => x)).toStrictEqual(m.extractFail(x));
 };
 
-const valuesDefinition = <E, A>(m: Result<E, A>): void => {
+const valuesDefinition = <A, E>(m: Result<A, E>): void => {
   expect([...m]).toStrictEqual([...m.okayValues(), ...m.failValues()]);
 };
 
-const effectMapDefinition = <E, A, B>(
-  m: Result<E, A>,
+const effectMapDefinition = <A, B, E>(
+  m: Result<A, E>,
   f: (a: A) => B,
 ): void => {
   expect(
@@ -444,11 +444,11 @@ const effectMapDefinition = <E, A, B>(
   );
 };
 
-const fromGeneratorEquivalence = <E, A, B>(
-  m: Result<E, A>,
+const fromGeneratorEquivalence = <A, B, E>(
+  m: Result<A, E>,
   p: (a: A) => boolean,
-  f: (a: A) => Result<E, A>,
-  g: (a: A) => Result<E, B>,
+  f: (a: A) => Result<A, E>,
+  g: (a: A) => Result<B, E>,
 ): void => {
   expect(
     Okay.fromGenerator(function* () {
@@ -464,7 +464,7 @@ const fromGeneratorEquivalence = <E, A, B>(
   );
 };
 
-const fromGeneratorThrow = <E, A>(m: Result<E, A>, n: Result<E, A>): void => {
+const fromGeneratorThrow = <A, E>(m: Result<A, E>, n: Result<A, E>): void => {
   expect(
     Okay.fromGenerator(function* () {
       try {
@@ -478,11 +478,11 @@ const fromGeneratorThrow = <E, A>(m: Result<E, A>, n: Result<E, A>): void => {
   ).toStrictEqual(m.orElse(n));
 };
 
-const fromGeneratorCatch = <E, A>(m: Result<E, A>, x: E): void => {
+const fromGeneratorCatch = <A, E>(m: Result<A, E>, x: E): void => {
   expect(
     Okay.fromGenerator(function* () {
       if (m.isOkay) throw x;
-      const a: A = yield* m.effect<E, A>();
+      const a: A = yield* m.effect<A, E>();
       return a;
     }),
   ).toStrictEqual(m.isOkay ? new Fail(x) : m);
@@ -1119,7 +1119,7 @@ describe("Result", () => {
     });
   });
 
-  describe("associateMapRight", () => {
+  describe("associateMapLeft", () => {
     it("should agree with collectMapOkay", () => {
       expect.assertions(100);
 
@@ -1127,7 +1127,7 @@ describe("Result", () => {
         fc.property(
           result(fc.anything(), fc.anything()),
           fc.func(result(fc.anything(), fc.anything())),
-          associateMapRightDefinition,
+          associateMapLeftDefinition,
         ),
       );
     });
@@ -1173,25 +1173,25 @@ describe("Result", () => {
     });
   });
 
-  describe("associateRight", () => {
+  describe("associateLeft", () => {
     it("should agree with collectMapOkay", () => {
       expect.assertions(100);
 
       fc.assert(
         fc.property(
           result(fc.anything(), result(fc.anything(), fc.anything())),
-          associateRightDefinition,
+          associateLeftDefinition,
         ),
       );
     });
 
-    it("should be the inverse of associateLeft", () => {
+    it("should be the inverse of associateRight", () => {
       expect.assertions(100);
 
       fc.assert(
         fc.property(
           result(result(fc.anything(), fc.anything()), fc.anything()),
-          associateRightInverse,
+          associateLeftInverse,
         ),
       );
     });
@@ -1211,7 +1211,7 @@ describe("Result", () => {
     });
   });
 
-  describe("associateMapLeft", () => {
+  describe("associateMapRight", () => {
     it("should agree with collectMapFail", () => {
       expect.assertions(100);
 
@@ -1219,7 +1219,7 @@ describe("Result", () => {
         fc.property(
           result(fc.anything(), fc.anything()),
           fc.func(result(fc.anything(), fc.anything())),
-          associateMapLeftDefinition,
+          associateMapRightDefinition,
         ),
       );
     });
@@ -1265,25 +1265,25 @@ describe("Result", () => {
     });
   });
 
-  describe("associateLeft", () => {
+  describe("associateRight", () => {
     it("should agree with collectMapFail", () => {
       expect.assertions(100);
 
       fc.assert(
         fc.property(
           result(result(fc.anything(), fc.anything()), fc.anything()),
-          associateLeftDefinition,
+          associateRightDefinition,
         ),
       );
     });
 
-    it("should be the inverse of associateRight", () => {
+    it("should be the inverse of associateLeft", () => {
       expect.assertions(100);
 
       fc.assert(
         fc.property(
           result(fc.anything(), result(fc.anything(), fc.anything())),
-          associateLeftInverse,
+          associateRightInverse,
         ),
       );
     });

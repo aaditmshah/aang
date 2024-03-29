@@ -4,159 +4,159 @@ import type { PartialOrder, Setoid, TotalOrder } from "./order.js";
 import type { Ordering } from "./ordering.js";
 import { Pair } from "./pair.js";
 
-export type Result<E, A> = Okay<A> | Fail<E>;
+export type Result<A, E> = Okay<A> | Fail<E>;
 
 abstract class ResultTrait implements TotalOrder<Result<never, never>> {
   public abstract readonly isOkay: boolean;
 
   public abstract readonly isFail: boolean;
 
-  public toString<E, A>(this: Result<E, A>): string {
+  public toString<A, E>(this: Result<A, E>): string {
     return this.isOkay
       ? `Okay(${String(this.value)})`
       : `Fail(${String(this.value)})`;
   }
 
-  public map<E, F, A, B>(
-    this: Result<E, A>,
+  public map<A, B, E, F>(
+    this: Result<A, E>,
     okayMorphism: (value: A) => B,
     failMorphism: (value: E) => F,
-  ): Result<F, B> {
+  ): Result<B, F> {
     return this.isOkay
       ? new Okay(okayMorphism(this.value))
       : new Fail(failMorphism(this.value));
   }
 
-  public mapOkay<E, A, B>(
-    this: Result<E, A>,
+  public mapOkay<A, B, E>(
+    this: Result<A, E>,
     morphism: (value: A) => B,
-  ): Result<E, B> {
+  ): Result<B, E> {
     return this.isOkay ? new Okay(morphism(this.value)) : this;
   }
 
-  public mapFail<E, F, A>(
-    this: Result<E, A>,
+  public mapFail<A, E, F>(
+    this: Result<A, E>,
     morphism: (value: E) => F,
-  ): Result<F, A> {
+  ): Result<A, F> {
     return this.isFail ? new Fail(morphism(this.value)) : this;
   }
 
-  public replace<E, F, A, B>(
-    this: Result<E, A>,
+  public replace<A, B, E, F>(
+    this: Result<A, E>,
     okayValue: B,
     failValue: F,
-  ): Result<F, B> {
+  ): Result<B, F> {
     return this.isOkay ? new Okay(okayValue) : new Fail(failValue);
   }
 
-  public replaceOkay<E, A, B>(this: Result<E, A>, value: B): Result<E, B> {
+  public replaceOkay<A, B, E>(this: Result<A, E>, value: B): Result<B, E> {
     return this.isOkay ? new Okay(value) : this;
   }
 
-  public replaceFail<E, F, A>(this: Result<E, A>, value: F): Result<F, A> {
+  public replaceFail<A, E, F>(this: Result<A, E>, value: F): Result<A, F> {
     return this.isFail ? new Fail(value) : this;
   }
 
-  public and<E, A, B>(
-    this: Result<E, A>,
-    that: Result<E, B>,
-  ): Result<E, Pair<A, B>> {
+  public and<A, B, E>(
+    this: Result<A, E>,
+    that: Result<B, E>,
+  ): Result<Pair<A, B>, E> {
     if (this.isFail) return this;
     if (that.isFail) return that;
     return new Okay(new Pair(this.value, that.value));
   }
 
-  public andThen<E, A, B>(
-    this: Result<E, A>,
-    that: Result<E, B>,
-  ): Result<E, B> {
+  public andThen<A, B, E>(
+    this: Result<A, E>,
+    that: Result<B, E>,
+  ): Result<B, E> {
     return this.isOkay ? that : this;
   }
 
-  public andWhen<E, A, B>(
-    this: Result<E, A>,
-    that: Result<E, B>,
-  ): Result<E, A> {
+  public andWhen<A, B, E>(
+    this: Result<A, E>,
+    that: Result<B, E>,
+  ): Result<A, E> {
     return this.isOkay && that.isFail ? that : this;
   }
 
-  public or<E, F, A>(
-    this: Result<E, A>,
-    that: Result<F, A>,
-  ): Result<Pair<E, F>, A> {
+  public or<A, E, F>(
+    this: Result<A, E>,
+    that: Result<A, F>,
+  ): Result<A, Pair<E, F>> {
     if (this.isOkay) return this;
     if (that.isOkay) return that;
     return new Fail(new Pair(this.value, that.value));
   }
 
-  public orElse<E, F, A>(this: Result<E, A>, that: Result<F, A>): Result<F, A> {
+  public orElse<A, E, F>(this: Result<A, E>, that: Result<A, F>): Result<A, F> {
     return this.isOkay ? this : that;
   }
 
-  public orErst<E, F, A>(this: Result<E, A>, that: Result<F, A>): Result<E, A> {
+  public orErst<A, E, F>(this: Result<A, E>, that: Result<A, F>): Result<A, E> {
     return this.isOkay || that.isFail ? this : that;
   }
 
-  public flatMap<E, F, A, B>(
-    this: Result<E, A>,
-    okayArrow: (value: A) => Result<F, B>,
-    failArrow: (value: E) => Result<F, B>,
-  ): Result<F, B> {
+  public flatMap<A, B, E, F>(
+    this: Result<A, E>,
+    okayArrow: (value: A) => Result<B, F>,
+    failArrow: (value: E) => Result<B, F>,
+  ): Result<B, F> {
     return this.isOkay ? okayArrow(this.value) : failArrow(this.value);
   }
 
-  public flatMapOkay<E, A, B>(
-    this: Result<E, A>,
-    arrow: (value: A) => Result<E, B>,
-  ): Result<E, B> {
+  public flatMapOkay<A, B, E>(
+    this: Result<A, E>,
+    arrow: (value: A) => Result<B, E>,
+  ): Result<B, E> {
     return this.isOkay ? arrow(this.value) : this;
   }
 
-  public flatMapFail<E, F, A>(
-    this: Result<E, A>,
-    arrow: (value: E) => Result<F, A>,
-  ): Result<F, A> {
+  public flatMapFail<A, E, F>(
+    this: Result<A, E>,
+    arrow: (value: E) => Result<A, F>,
+  ): Result<A, F> {
     return this.isFail ? arrow(this.value) : this;
   }
 
-  public flatten<E, A>(this: Result<Result<E, A>, Result<E, A>>): Result<E, A> {
+  public flatten<A, E>(this: Result<Result<A, E>, Result<A, E>>): Result<A, E> {
     return this.value;
   }
 
-  public flattenOkay<E, A>(this: Result<E, Result<E, A>>): Result<E, A> {
+  public flattenOkay<A, E>(this: Result<Result<A, E>, E>): Result<A, E> {
     return this.isOkay ? this.value : this;
   }
 
-  public flattenFail<E, A>(this: Result<Result<E, A>, A>): Result<E, A> {
+  public flattenFail<A, E>(this: Result<A, Result<A, E>>): Result<A, E> {
     return this.isFail ? this.value : this;
   }
 
-  public flatMapUntil<E, F, A, B>(
-    this: Result<E, A>,
-    okayArrow: (value: A) => Result<Result<E, F>, Result<A, B>>,
-    failArrow: (value: E) => Result<Result<E, F>, Result<A, B>>,
-  ): Result<F, B> {
+  public flatMapUntil<A, B, E, F>(
+    this: Result<A, E>,
+    okayArrow: (value: A) => Result<Result<B, A>, Result<F, E>>,
+    failArrow: (value: E) => Result<Result<B, A>, Result<F, E>>,
+  ): Result<B, F> {
     let result = this.flatMap(okayArrow, failArrow).distribute();
     while (result.isFail)
       result = result.value.flatMap(okayArrow, failArrow).distribute();
     return result.value;
   }
 
-  public flatMapOkayUntil<E, A, B>(
-    this: Result<E, A>,
-    arrow: (value: A) => Result<E, Result<A, B>>,
-  ): Result<E, B> {
+  public flatMapOkayUntil<A, B, E>(
+    this: Result<A, E>,
+    arrow: (value: A) => Result<Result<B, A>, E>,
+  ): Result<B, E> {
     let result = this.flatMapOkay(arrow).exchangeFail();
     while (result.isFail) result = arrow(result.value).exchangeFail();
     return result.value;
   }
 
-  public flatMapFailUntil<E, F, A>(
-    this: Result<E, A>,
-    arrow: (value: E) => Result<Result<E, F>, A>,
-  ): Result<F, A> {
-    let result = this.flatMapFail(arrow).associateRight();
-    while (result.isFail) result = arrow(result.value).associateRight();
+  public flatMapFailUntil<A, E, F>(
+    this: Result<A, E>,
+    arrow: (value: E) => Result<A, Result<F, E>>,
+  ): Result<A, F> {
+    let result = this.flatMapFail(arrow).associateLeft();
+    while (result.isFail) result = arrow(result.value).associateLeft();
     return result.value;
   }
 
@@ -167,156 +167,156 @@ abstract class ResultTrait implements TotalOrder<Result<never, never>> {
     return this.isOkay ? new Fail(this.value) : new Okay(this.value);
   }
 
-  public isOkayAnd<E, A, B extends A>(
-    this: Result<E, A>,
+  public isOkayAnd<A, B extends A, E>(
+    this: Result<A, E>,
     predicate: (value: A) => value is B,
   ): this is Okay<B>;
-  public isOkayAnd<E, A>(
-    this: Result<E, A>,
+  public isOkayAnd<A, E>(
+    this: Result<A, E>,
     predicate: (value: A) => boolean,
   ): this is Okay<A>;
-  public isOkayAnd<E, A>(
-    this: Result<E, A>,
+  public isOkayAnd<A, E>(
+    this: Result<A, E>,
     predicate: (value: A) => boolean,
   ): this is Okay<A> {
     return this.isOkay && predicate(this.value);
   }
 
-  public isFailAnd<E, F extends E, A>(
-    this: Result<E, A>,
+  public isFailAnd<A, E, F extends E>(
+    this: Result<A, E>,
     predicate: (value: E) => value is F,
   ): this is Fail<F>;
-  public isFailAnd<E, A>(
-    this: Result<E, A>,
+  public isFailAnd<A, E>(
+    this: Result<A, E>,
     predicate: (value: E) => boolean,
   ): this is Fail<E>;
-  public isFailAnd<E, A>(
-    this: Result<E, A>,
+  public isFailAnd<A, E>(
+    this: Result<A, E>,
     predicate: (value: E) => boolean,
   ): this is Fail<E> {
     return this.isFail && predicate(this.value);
   }
 
-  public isOkayOr<E, F extends E, A>(
-    this: Result<E, A>,
+  public isOkayOr<A, E, F extends E>(
+    this: Result<A, E>,
     predicate: (value: E) => value is F,
-  ): this is Result<F, A>;
-  public isOkayOr<E, A>(
-    this: Result<E, A>,
+  ): this is Result<A, F>;
+  public isOkayOr<A, E>(
+    this: Result<A, E>,
     predicate: (value: E) => boolean,
   ): boolean;
-  public isOkayOr<E, A>(
-    this: Result<E, A>,
+  public isOkayOr<A, E>(
+    this: Result<A, E>,
     predicate: (value: E) => boolean,
   ): boolean {
     return this.isOkay || predicate(this.value);
   }
 
-  public isFailOr<E, A, B extends A>(
-    this: Result<E, A>,
+  public isFailOr<A, B extends A, E>(
+    this: Result<A, E>,
     predicate: (value: A) => value is B,
-  ): this is Result<E, B>;
-  public isFailOr<E, A>(
-    this: Result<E, A>,
+  ): this is Result<B, E>;
+  public isFailOr<A, E>(
+    this: Result<A, E>,
     predicate: (value: A) => boolean,
   ): boolean;
-  public isFailOr<E, A>(
-    this: Result<E, A>,
+  public isFailOr<A, E>(
+    this: Result<A, E>,
     predicate: (value: A) => boolean,
   ): boolean {
     return this.isFail || predicate(this.value);
   }
 
-  public transposeMap<E, F, A, B>(
-    this: Result<E, A>,
+  public transposeMap<A, B, E, F>(
+    this: Result<A, E>,
     transposeOkay: (value: A) => Option<B>,
     transposeFail: (value: E) => Option<F>,
-  ): Option<Result<F, B>> {
+  ): Option<Result<B, F>> {
     return this.isOkay
       ? transposeOkay(this.value).map(Okay.of)
       : transposeFail(this.value).map(Fail.of);
   }
 
-  public transposeMapOkay<E, A, B>(
-    this: Result<E, A>,
+  public transposeMapOkay<A, B, E>(
+    this: Result<A, E>,
     transpose: (value: A) => Option<B>,
-  ): Option<Result<E, B>> {
+  ): Option<Result<B, E>> {
     return this.isFail ? new Some(this) : transpose(this.value).map(Okay.of);
   }
 
-  public transposeMapFail<E, F, A>(
-    this: Result<E, A>,
+  public transposeMapFail<A, E, F>(
+    this: Result<A, E>,
     transpose: (value: E) => Option<F>,
-  ): Option<Result<F, A>> {
+  ): Option<Result<A, F>> {
     return this.isOkay ? new Some(this) : transpose(this.value).map(Fail.of);
   }
 
-  public transpose<E, A>(
-    this: Result<Option<E>, Option<A>>,
-  ): Option<Result<E, A>> {
+  public transpose<A, E>(
+    this: Result<Option<A>, Option<E>>,
+  ): Option<Result<A, E>> {
     return this.isOkay ? this.value.map(Okay.of) : this.value.map(Fail.of);
   }
 
-  public transposeOkay<E, A>(this: Result<E, Option<A>>): Option<Result<E, A>> {
+  public transposeOkay<A, E>(this: Result<Option<A>, E>): Option<Result<A, E>> {
     return this.isFail ? new Some(this) : this.value.map(Okay.of);
   }
 
-  public transposeFail<E, A>(this: Result<Option<E>, A>): Option<Result<E, A>> {
+  public transposeFail<A, E>(this: Result<A, Option<E>>): Option<Result<A, E>> {
     return this.isOkay ? new Some(this) : this.value.map(Fail.of);
   }
 
-  public unzipWith<E, F, G, A, B, C>(
-    this: Result<E, A>,
-    unzipOkay: (value: A) => Pair<B, C>,
-    unzipFail: (value: E) => Pair<F, G>,
-  ): Pair<Result<F, B>, Result<G, C>> {
+  public unzipWith<X, Y, A, B, E, F>(
+    this: Result<X, Y>,
+    unzipOkay: (value: X) => Pair<A, B>,
+    unzipFail: (value: Y) => Pair<E, F>,
+  ): Pair<Result<A, E>, Result<B, F>> {
     return this.isOkay
       ? unzipOkay(this.value).map(Okay.of, Okay.of)
       : unzipFail(this.value).map(Fail.of, Fail.of);
   }
 
-  public unzipWithOkay<E, A, B, C>(
-    this: Result<E, A>,
-    unzip: (value: A) => Pair<B, C>,
-  ): Pair<Result<E, B>, Result<E, C>> {
+  public unzipWithOkay<X, A, B, E>(
+    this: Result<X, E>,
+    unzip: (value: X) => Pair<A, B>,
+  ): Pair<Result<A, E>, Result<B, E>> {
     return this.isFail
       ? Pair.of(this)
       : unzip(this.value).map(Okay.of, Okay.of);
   }
 
-  public unzipWithFail<E, F, G, A>(
-    this: Result<E, A>,
-    unzip: (value: E) => Pair<F, G>,
-  ): Pair<Result<F, A>, Result<G, A>> {
+  public unzipWithFail<Y, A, E, F>(
+    this: Result<A, Y>,
+    unzip: (value: Y) => Pair<E, F>,
+  ): Pair<Result<A, E>, Result<A, F>> {
     return this.isOkay
       ? Pair.of(this)
       : unzip(this.value).map(Fail.of, Fail.of);
   }
 
-  public unzip<E, F, A, B>(
-    this: Result<Pair<E, F>, Pair<A, B>>,
-  ): Pair<Result<E, A>, Result<F, B>> {
+  public unzip<A, B, E, F>(
+    this: Result<Pair<A, B>, Pair<E, F>>,
+  ): Pair<Result<A, E>, Result<B, F>> {
     return this.isOkay
       ? this.value.map(Okay.of, Okay.of)
       : this.value.map(Fail.of, Fail.of);
   }
 
-  public unzipOkay<E, A, B>(
-    this: Result<E, Pair<A, B>>,
-  ): Pair<Result<E, A>, Result<E, B>> {
+  public unzipOkay<A, B, E>(
+    this: Result<Pair<A, B>, E>,
+  ): Pair<Result<A, E>, Result<B, E>> {
     return this.isFail ? Pair.of(this) : this.value.map(Okay.of, Okay.of);
   }
 
-  public unzipFail<E, F, A>(
-    this: Result<Pair<E, F>, A>,
-  ): Pair<Result<E, A>, Result<F, A>> {
+  public unzipFail<A, E, F>(
+    this: Result<A, Pair<E, F>>,
+  ): Pair<Result<A, E>, Result<A, F>> {
     return this.isOkay ? Pair.of(this) : this.value.map(Fail.of, Fail.of);
   }
 
-  public collectMapFst<E, T, A, B, C>(
-    this: Result<E, T>,
-    okayMorphism: (value: T) => Pair<B, C>,
-    failMorphism: (value: E) => Pair<A, C>,
+  public collectMapFst<X, Y, A, B, C>(
+    this: Result<X, Y>,
+    okayMorphism: (value: X) => Pair<A, C>,
+    failMorphism: (value: Y) => Pair<B, C>,
   ): Pair<Result<A, B>, C> {
     return this.isOkay
       ? okayMorphism(this.value).mapFst(Okay.of)
@@ -331,10 +331,10 @@ abstract class ResultTrait implements TotalOrder<Result<never, never>> {
       : this.value.mapFst(Fail.of);
   }
 
-  public collectMapSnd<E, T, A, B, C>(
-    this: Result<E, T>,
-    okayMorphism: (value: T) => Pair<A, C>,
-    failMorphism: (value: E) => Pair<A, B>,
+  public collectMapSnd<X, Y, A, B, C>(
+    this: Result<X, Y>,
+    okayMorphism: (value: X) => Pair<A, B>,
+    failMorphism: (value: Y) => Pair<A, C>,
   ): Pair<A, Result<B, C>> {
     return this.isOkay
       ? okayMorphism(this.value).mapSnd(Okay.of)
@@ -349,199 +349,199 @@ abstract class ResultTrait implements TotalOrder<Result<never, never>> {
       : this.value.mapSnd(Fail.of);
   }
 
-  public collectMapOkay<E, F, A, B, C>(
-    this: Result<E, A>,
-    okayMorphism: (value: A) => Result<F, C>,
-    failMorphism: (value: E) => Result<F, B>,
-  ): Result<F, Result<B, C>> {
+  public collectMapOkay<X, Y, A, B, E>(
+    this: Result<X, Y>,
+    okayMorphism: (value: X) => Result<A, E>,
+    failMorphism: (value: Y) => Result<B, E>,
+  ): Result<Result<A, B>, E> {
     return this.isOkay
       ? okayMorphism(this.value).mapOkay(Okay.of)
       : failMorphism(this.value).mapOkay(Fail.of);
   }
 
-  public exchangeMapFail<E, F, A, B>(
-    this: Result<E, A>,
-    exchange: (value: A) => Result<F, B>,
-  ): Result<F, Result<E, B>> {
+  public exchangeMapFail<X, A, E, F>(
+    this: Result<X, F>,
+    exchange: (value: X) => Result<A, E>,
+  ): Result<Result<A, F>, E> {
     return this.isFail ? new Okay(this) : exchange(this.value).mapOkay(Okay.of);
   }
 
-  public associateMapRight<T, A, B, C>(
-    this: Result<T, C>,
-    morphism: (value: T) => Result<A, B>,
-  ): Result<A, Result<B, C>> {
+  public associateMapLeft<Y, A, B, C>(
+    this: Result<A, Y>,
+    morphism: (value: Y) => Result<B, C>,
+  ): Result<Result<A, B>, C> {
     return this.isOkay ? new Okay(this) : morphism(this.value).mapOkay(Fail.of);
   }
 
-  public collectOkay<E, A, B>(
-    this: Result<Result<E, A>, Result<E, B>>,
-  ): Result<E, Result<A, B>> {
+  public collectOkay<A, B, E>(
+    this: Result<Result<A, E>, Result<B, E>>,
+  ): Result<Result<A, B>, E> {
     return this.isOkay
       ? this.value.mapOkay(Okay.of)
       : this.value.mapOkay(Fail.of);
   }
 
-  public exchangeFail<E, F, A>(
-    this: Result<E, Result<F, A>>,
-  ): Result<F, Result<E, A>> {
+  public exchangeFail<A, E, F>(
+    this: Result<Result<A, E>, F>,
+  ): Result<Result<A, F>, E> {
     return this.isFail ? new Okay(this) : this.value.mapOkay(Okay.of);
-  }
-
-  public associateRight<A, B, C>(
-    this: Result<Result<A, B>, C>,
-  ): Result<A, Result<B, C>> {
-    return this.isOkay ? new Okay(this) : this.value.mapOkay(Fail.of);
-  }
-
-  public collectMapFail<E, F, G, A, B>(
-    this: Result<E, A>,
-    okayMorphism: (value: A) => Result<G, B>,
-    failMorphism: (value: E) => Result<F, B>,
-  ): Result<Result<F, G>, B> {
-    return this.isOkay
-      ? okayMorphism(this.value).mapFail(Okay.of)
-      : failMorphism(this.value).mapFail(Fail.of);
-  }
-
-  public exchangeMapOkay<E, F, A, B>(
-    this: Result<E, A>,
-    exchange: (value: E) => Result<F, B>,
-  ): Result<Result<F, A>, B> {
-    return this.isOkay ? new Fail(this) : exchange(this.value).mapFail(Fail.of);
-  }
-
-  public associateMapLeft<A, B, C, T>(
-    this: Result<A, T>,
-    morphism: (value: T) => Result<B, C>,
-  ): Result<Result<A, B>, C> {
-    return this.isFail ? new Fail(this) : morphism(this.value).mapFail(Okay.of);
-  }
-
-  public collectFail<E, F, A>(
-    this: Result<Result<E, A>, Result<F, A>>,
-  ): Result<Result<E, F>, A> {
-    return this.isOkay
-      ? this.value.mapFail(Okay.of)
-      : this.value.mapFail(Fail.of);
-  }
-
-  public exchangeOkay<E, A, B>(
-    this: Result<Result<E, A>, B>,
-  ): Result<Result<E, B>, A> {
-    return this.isOkay ? new Fail(this) : this.value.mapFail(Fail.of);
   }
 
   public associateLeft<A, B, C>(
     this: Result<A, Result<B, C>>,
   ): Result<Result<A, B>, C> {
+    return this.isOkay ? new Okay(this) : this.value.mapOkay(Fail.of);
+  }
+
+  public collectMapFail<X, Y, A, E, F>(
+    this: Result<X, Y>,
+    okayMorphism: (value: X) => Result<A, E>,
+    failMorphism: (value: Y) => Result<A, F>,
+  ): Result<A, Result<E, F>> {
+    return this.isOkay
+      ? okayMorphism(this.value).mapFail(Okay.of)
+      : failMorphism(this.value).mapFail(Fail.of);
+  }
+
+  public exchangeMapOkay<Y, A, B, E>(
+    this: Result<A, Y>,
+    exchange: (value: Y) => Result<B, E>,
+  ): Result<B, Result<A, E>> {
+    return this.isOkay ? new Fail(this) : exchange(this.value).mapFail(Fail.of);
+  }
+
+  public associateMapRight<X, A, B, C>(
+    this: Result<X, C>,
+    morphism: (value: X) => Result<A, B>,
+  ): Result<A, Result<B, C>> {
+    return this.isFail ? new Fail(this) : morphism(this.value).mapFail(Okay.of);
+  }
+
+  public collectFail<A, E, F>(
+    this: Result<Result<A, E>, Result<A, F>>,
+  ): Result<A, Result<E, F>> {
+    return this.isOkay
+      ? this.value.mapFail(Okay.of)
+      : this.value.mapFail(Fail.of);
+  }
+
+  public exchangeOkay<A, B, E>(
+    this: Result<A, Result<B, E>>,
+  ): Result<B, Result<A, E>> {
+    return this.isOkay ? new Fail(this) : this.value.mapFail(Fail.of);
+  }
+
+  public associateRight<A, B, C>(
+    this: Result<Result<A, B>, C>,
+  ): Result<A, Result<B, C>> {
     return this.isFail ? new Fail(this) : this.value.mapFail(Okay.of);
   }
 
-  public distributeMap<E, F, G, A, B, C>(
-    this: Result<E, A>,
-    okayMorphism: (value: A) => Result<B, C>,
-    failMorphism: (value: E) => Result<F, G>,
-  ): Result<Result<F, B>, Result<G, C>> {
+  public distributeMap<X, Y, A, B, E, F>(
+    this: Result<X, Y>,
+    okayMorphism: (value: X) => Result<A, B>,
+    failMorphism: (value: Y) => Result<E, F>,
+  ): Result<Result<A, E>, Result<B, F>> {
     return this.isOkay
       ? okayMorphism(this.value).map(Okay.of, Okay.of)
       : failMorphism(this.value).map(Fail.of, Fail.of);
   }
 
-  public distribute<E, F, A, B>(
-    this: Result<Result<E, F>, Result<A, B>>,
-  ): Result<Result<E, A>, Result<F, B>> {
+  public distribute<A, B, E, F>(
+    this: Result<Result<A, B>, Result<E, F>>,
+  ): Result<Result<A, E>, Result<B, F>> {
     return this.isOkay
       ? this.value.map(Okay.of, Okay.of)
       : this.value.map(Fail.of, Fail.of);
   }
 
-  public extractOkay<E, A>(this: Result<E, A>, defaultValue: A): A {
+  public extractOkay<A, E>(this: Result<A, E>, defaultValue: A): A {
     return this.isOkay ? this.value : defaultValue;
   }
 
-  public extractFail<E, A>(this: Result<E, A>, defaultValue: E): E {
+  public extractFail<A, E>(this: Result<A, E>, defaultValue: E): E {
     return this.isFail ? this.value : defaultValue;
   }
 
-  public extractMapOkay<E, A>(
-    this: Result<E, A>,
+  public extractMapOkay<A, E>(
+    this: Result<A, E>,
     getOkayValue: (value: E) => A,
   ): A {
     return this.isOkay ? this.value : getOkayValue(this.value);
   }
 
-  public extractMapFail<E, A>(
-    this: Result<E, A>,
+  public extractMapFail<A, E>(
+    this: Result<A, E>,
     getFailValue: (value: A) => E,
   ): E {
     return this.isFail ? this.value : getFailValue(this.value);
   }
 
-  public toOptionOkay<E, A>(this: Result<E, A>): Option<A> {
+  public toOptionOkay<A, E>(this: Result<A, E>): Option<A> {
     return this.isOkay ? new Some(this.value) : None.instance;
   }
 
-  public toOptionFail<E, A>(this: Result<E, A>): Option<E> {
+  public toOptionFail<A, E>(this: Result<A, E>): Option<E> {
     return this.isFail ? new Some(this.value) : None.instance;
   }
 
-  public isSame<E extends Setoid<E>, A extends Setoid<A>>(
-    this: Result<E, A>,
-    that: Result<E, A>,
+  public isSame<A extends Setoid<A>, E extends Setoid<E>>(
+    this: Result<A, E>,
+    that: Result<A, E>,
   ): boolean {
     return this.isOkay
       ? that.isOkay && this.value.isSame(that.value)
       : that.isFail && this.value.isSame(that.value);
   }
 
-  public isNotSame<E extends Setoid<E>, A extends Setoid<A>>(
-    this: Result<E, A>,
-    that: Result<E, A>,
+  public isNotSame<A extends Setoid<A>, E extends Setoid<E>>(
+    this: Result<A, E>,
+    that: Result<A, E>,
   ): boolean {
     return this.isOkay
       ? that.isFail || this.value.isNotSame(that.value)
       : that.isOkay || this.value.isNotSame(that.value);
   }
 
-  public isLess<E extends PartialOrder<E>, A extends PartialOrder<A>>(
-    this: Result<E, A>,
-    that: Result<E, A>,
+  public isLess<A extends PartialOrder<A>, E extends PartialOrder<E>>(
+    this: Result<A, E>,
+    that: Result<A, E>,
   ): boolean {
     return this.isOkay
       ? that.isOkay && this.value.isLess(that.value)
       : that.isOkay || this.value.isLess(that.value);
   }
 
-  public isNotLess<E extends PartialOrder<E>, A extends PartialOrder<A>>(
-    this: Result<E, A>,
-    that: Result<E, A>,
+  public isNotLess<A extends PartialOrder<A>, E extends PartialOrder<E>>(
+    this: Result<A, E>,
+    that: Result<A, E>,
   ): boolean {
     return this.isOkay
       ? that.isFail || this.value.isNotLess(that.value)
       : that.isFail && this.value.isNotLess(that.value);
   }
 
-  public isMore<E extends PartialOrder<E>, A extends PartialOrder<A>>(
-    this: Result<E, A>,
-    that: Result<E, A>,
+  public isMore<A extends PartialOrder<A>, E extends PartialOrder<E>>(
+    this: Result<A, E>,
+    that: Result<A, E>,
   ): boolean {
     return this.isOkay
       ? that.isFail || this.value.isMore(that.value)
       : that.isFail && this.value.isMore(that.value);
   }
 
-  public isNotMore<E extends PartialOrder<E>, A extends PartialOrder<A>>(
-    this: Result<E, A>,
-    that: Result<E, A>,
+  public isNotMore<A extends PartialOrder<A>, E extends PartialOrder<E>>(
+    this: Result<A, E>,
+    that: Result<A, E>,
   ): boolean {
     return this.isOkay
       ? that.isOkay && this.value.isNotMore(that.value)
       : that.isOkay || this.value.isNotMore(that.value);
   }
 
-  public compare<E extends PartialOrder<E>, A extends PartialOrder<A>>(
-    this: Result<E, A>,
-    that: Result<E, A>,
+  public compare<A extends PartialOrder<A>, E extends PartialOrder<E>>(
+    this: Result<A, E>,
+    that: Result<A, E>,
   ): Option<Ordering> {
     return this.isFail
       ? that.isOkay
@@ -552,10 +552,10 @@ abstract class ResultTrait implements TotalOrder<Result<never, never>> {
         : this.value.compare(that.value);
   }
 
-  public max<E extends TotalOrder<E>, A extends TotalOrder<A>>(
-    this: Result<E, A>,
-    that: Result<E, A>,
-  ): Result<E, A> {
+  public max<A extends TotalOrder<A>, E extends TotalOrder<E>>(
+    this: Result<A, E>,
+    that: Result<A, E>,
+  ): Result<A, E> {
     return this.isOkay
       ? that.isFail
         ? this
@@ -565,10 +565,10 @@ abstract class ResultTrait implements TotalOrder<Result<never, never>> {
         : new Fail(this.value.max(that.value));
   }
 
-  public min<E extends TotalOrder<E>, A extends TotalOrder<A>>(
-    this: Result<E, A>,
-    that: Result<E, A>,
-  ): Result<E, A> {
+  public min<A extends TotalOrder<A>, E extends TotalOrder<E>>(
+    this: Result<A, E>,
+    that: Result<A, E>,
+  ): Result<A, E> {
     return this.isOkay
       ? that.isFail
         ? that
@@ -578,37 +578,37 @@ abstract class ResultTrait implements TotalOrder<Result<never, never>> {
         : new Fail(this.value.min(that.value));
   }
 
-  public clamp<E extends TotalOrder<E>, A extends TotalOrder<A>>(
-    this: Result<E, A>,
-    lower: Result<E, A>,
-    upper: Result<E, A>,
-  ): Result<E, A> {
+  public clamp<A extends TotalOrder<A>, E extends TotalOrder<E>>(
+    this: Result<A, E>,
+    lower: Result<A, E>,
+    upper: Result<A, E>,
+  ): Result<A, E> {
     return this.max(lower).min(upper);
   }
 
-  public *okayValues<E, A>(this: Result<E, A>): Generator<A, void, undefined> {
+  public *okayValues<A, E>(this: Result<A, E>): Generator<A, void, undefined> {
     if (this.isOkay) yield this.value;
   }
 
-  public *failValues<E, A>(this: Result<E, A>): Generator<E, void, undefined> {
+  public *failValues<A, E>(this: Result<A, E>): Generator<E, void, undefined> {
     if (this.isFail) yield this.value;
   }
 
-  public *[Symbol.iterator]<E, A>(
-    this: Result<E, A>,
-  ): Generator<E | A, void, undefined> {
+  public *[Symbol.iterator]<A, E>(
+    this: Result<A, E>,
+  ): Generator<A | E, void, undefined> {
     yield this.value;
   }
 
-  public *effectMap<E, A, B>(
-    this: Result<E, A>,
+  public *effectMap<A, B, E>(
+    this: Result<A, E>,
     morphism: (value: A) => B,
-  ): Generator<Result<E, A>, B, A> {
+  ): Generator<Result<A, E>, B, A> {
     const value = yield this;
     return morphism(value);
   }
 
-  public *effect<E, A>(this: Result<E, A>): Generator<Result<E, A>, A, A> {
+  public *effect<A, E>(this: Result<A, E>): Generator<Result<A, E>, A, A> {
     const value = yield this;
     return value;
   }
@@ -627,10 +627,10 @@ export class Okay<out A> extends ResultTrait {
     return new Okay(value);
   }
 
-  // TODO: <A, B>(getGenerator: () => Generator<Result<unknown, A>, B, A>) => Result<unknown, B>
+  // TODO: <A, B>(getGenerator: () => Generator<Result<A, unknown>, B, A>) => Result<B, unknown>
   public static fromGenerator<A>(
     getGenerator: () => Generator<Result<unknown, unknown>, A, unknown>,
-  ): Result<unknown, A> {
+  ): Result<A, unknown> {
     const generator = getGenerator();
 
     let iteratorResult: IteratorResult<Result<unknown, unknown>, A>;

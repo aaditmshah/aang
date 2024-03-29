@@ -58,7 +58,7 @@ abstract class OptionTrait
 
   public flatMapUntil<A, B>(
     this: Option<A>,
-    arrow: (value: A) => Option<Result<A, B>>,
+    arrow: (value: A) => Option<Result<B, A>>,
   ): Option<B> {
     let result = this.flatMap(arrow).transposeOkay();
     while (result.isFail) result = arrow(result.value).transposeOkay();
@@ -125,29 +125,29 @@ abstract class OptionTrait
       : this.value.map(Some.of, Some.of);
   }
 
-  public transposeMapOkay<E, A, B>(
+  public transposeMapOkay<A, B, E>(
     this: Option<A>,
-    transpose: (value: A) => Result<E, B>,
-  ): Result<E, Option<B>> {
+    transpose: (value: A) => Result<B, E>,
+  ): Result<Option<B>, E> {
     return this.isNone
       ? new Okay(None.instance)
       : transpose(this.value).mapOkay(Some.of);
   }
 
-  public transposeMapFail<E, F, A>(
+  public transposeMapFail<A, E, F>(
     this: Option<E>,
-    transpose: (value: E) => Result<F, A>,
-  ): Result<Option<F>, A> {
+    transpose: (value: E) => Result<A, F>,
+  ): Result<A, Option<F>> {
     return this.isNone
       ? new Fail(None.instance)
       : transpose(this.value).mapFail(Some.of);
   }
 
-  public transposeOkay<E, A>(this: Option<Result<E, A>>): Result<E, Option<A>> {
+  public transposeOkay<A, E>(this: Option<Result<A, E>>): Result<Option<A>, E> {
     return this.isNone ? new Okay(None.instance) : this.value.mapOkay(Some.of);
   }
 
-  public transposeFail<E, A>(this: Option<Result<E, A>>): Result<Option<E>, A> {
+  public transposeFail<A, E>(this: Option<Result<A, E>>): Result<A, Option<E>> {
     return this.isNone ? new Fail(None.instance) : this.value.mapFail(Some.of);
   }
 
@@ -159,11 +159,11 @@ abstract class OptionTrait
     return this.isSome ? this.value : getDefaultValue();
   }
 
-  public toResultOkay<E, A>(this: Option<A>, defaultValue: E): Result<E, A> {
+  public toResultOkay<A, E>(this: Option<A>, defaultValue: E): Result<A, E> {
     return this.isSome ? new Okay(this.value) : new Fail(defaultValue);
   }
 
-  public toResultFail<E, A>(this: Option<E>, defaultValue: A): Result<E, A> {
+  public toResultFail<A, E>(this: Option<E>, defaultValue: A): Result<A, E> {
     return this.isSome ? new Fail(this.value) : new Okay(defaultValue);
   }
 

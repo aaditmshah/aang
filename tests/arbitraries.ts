@@ -21,10 +21,10 @@ export const okay = <A>(a: fc.Arbitrary<A>): fc.Arbitrary<Okay<A>> =>
 export const fail = <E>(b: fc.Arbitrary<E>): fc.Arbitrary<Fail<E>> =>
   b.map(Fail.of);
 
-export const result = <E, A>(
+export const result = <A, E>(
   a: fc.Arbitrary<A>,
   b: fc.Arbitrary<E>,
-): fc.Arbitrary<Result<E, A>> => fc.oneof(okay(a), fail(b));
+): fc.Arbitrary<Result<A, E>> => fc.oneof(okay(a), fail(b));
 
 export const pair = <A, B>(
   a: fc.Arbitrary<A>,

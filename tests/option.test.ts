@@ -122,9 +122,9 @@ const flattenDefinition = <A>(u: Option<Option<A>>): void => {
 
 const flatMapUntilEquivalence = <A, B>(
   m: Option<A>,
-  k: (a: A) => Option<Result<A, B>>,
+  k: (a: A) => Option<Result<B, A>>,
 ): void => {
-  const f = (x: Result<A, B>): Option<B> =>
+  const f = (x: Result<B, A>): Option<B> =>
     x.isOkay ? new Some(x.value) : k(x.value).flatMap(f);
   expect(m.flatMapUntil(k)).toStrictEqual(m.flatMap(k).flatMap(f));
 };
@@ -165,19 +165,19 @@ const unzipDefinition = <A, B>(u: Option<Pair<A, B>>): void => {
   expect(u.unzip()).toStrictEqual(u.unzipWith(id));
 };
 
-const transposeMapOkayInverse = <E, A>(m: Option<Result<E, A>>): void => {
+const transposeMapOkayInverse = <A, E>(m: Option<Result<A, E>>): void => {
   expect(m.transposeMapOkay(id).transposeMapOkay(id)).toStrictEqual(m);
 };
 
-const transposeMapFailInverse = <E, A>(m: Option<Result<E, A>>): void => {
+const transposeMapFailInverse = <A, E>(m: Option<Result<A, E>>): void => {
   expect(m.transposeMapFail(id).transposeMapFail(id)).toStrictEqual(m);
 };
 
-const transposeOkayInverse = <E, A>(m: Option<Result<E, A>>): void => {
+const transposeOkayInverse = <A, E>(m: Option<Result<A, E>>): void => {
   expect(m.transposeOkay().transposeOkay()).toStrictEqual(m);
 };
 
-const transposeFailInverse = <E, A>(m: Option<Result<E, A>>): void => {
+const transposeFailInverse = <A, E>(m: Option<Result<A, E>>): void => {
   expect(m.transposeFail().transposeFail()).toStrictEqual(m);
 };
 
