@@ -599,6 +599,19 @@ abstract class ResultTrait implements TotalOrder<Result<never, never>> {
   ): Generator<E | A, void, undefined> {
     yield this.value;
   }
+
+  public *effectMap<E, A, B>(
+    this: Result<E, A>,
+    morphism: (value: A) => B,
+  ): Generator<Result<E, A>, B, A> {
+    const value = yield this;
+    return morphism(value);
+  }
+
+  public *effect<E, A>(this: Result<E, A>): Generator<Result<E, A>, A, A> {
+    const value = yield this;
+    return value;
+  }
 }
 
 export class Okay<out A> extends ResultTrait {
@@ -612,6 +625,34 @@ export class Okay<out A> extends ResultTrait {
 
   public static of<A>(value: A): Okay<A> {
     return new Okay(value);
+  }
+
+  // TODO: <A, B>(getGenerator: () => Generator<Result<unknown, A>, B, A>) => Result<unknown, B>
+  public static fromGenerator<A>(
+    getGenerator: () => Generator<Result<unknown, unknown>, A, unknown>,
+  ): Result<unknown, A> {
+    const generator = getGenerator();
+
+    let iteratorResult: IteratorResult<Result<unknown, unknown>, A>;
+
+    try {
+      iteratorResult = generator.next();
+    } catch (error) {
+      return new Fail(error);
+    }
+
+    while (!iteratorResult.done) {
+      const result = iteratorResult.value;
+      try {
+        iteratorResult = result.isOkay
+          ? generator.next(result.value)
+          : generator.throw(result.value);
+      } catch (error) {
+        return new Fail(error);
+      }
+    }
+
+    return new Okay(iteratorResult.value);
   }
 }
 

@@ -9,7 +9,7 @@ import type { Result } from "../src/result.js";
 import { Fail, Okay } from "../src/result.js";
 
 import { option, pair, result } from "./arbitraries.js";
-import { collatz } from "./utils.js";
+import { collatz, hotpo, isPowerOfTwo } from "./utils.js";
 
 const toStringOkay = <A>(a: A): void => {
   try {
@@ -425,6 +425,67 @@ const extractMapFailDefinition = <E, A>(m: Result<E, A>, x: E): void => {
 
 const valuesDefinition = <E, A>(m: Result<E, A>): void => {
   expect([...m]).toStrictEqual([...m.okayValues(), ...m.failValues()]);
+};
+
+const effectMapDefinition = <E, A, B>(
+  m: Result<E, A>,
+  f: (a: A) => B,
+): void => {
+  expect(
+    Okay.fromGenerator(function* () {
+      const b: B = yield* m.effectMap(f);
+      return b;
+    }),
+  ).toStrictEqual(
+    Okay.fromGenerator(function* () {
+      const b: B = f(yield* m.effect());
+      return b;
+    }),
+  );
+};
+
+const fromGeneratorEquivalence = <E, A, B>(
+  m: Result<E, A>,
+  p: (a: A) => boolean,
+  f: (a: A) => Result<E, A>,
+  g: (a: A) => Result<E, B>,
+): void => {
+  expect(
+    Okay.fromGenerator(function* () {
+      let a: A = yield* m.effect();
+      while (!p(a)) a = yield* f(a).effect();
+      const b: B = yield* g(a).effect();
+      return b;
+    }),
+  ).toStrictEqual(
+    m.flatMapOkayUntil((a) =>
+      p(a) ? g(a).mapOkay(Okay.of) : f(a).mapOkay(Fail.of),
+    ),
+  );
+};
+
+const fromGeneratorThrow = <E, A>(m: Result<E, A>, n: Result<E, A>): void => {
+  expect(
+    Okay.fromGenerator(function* () {
+      try {
+        const a: A = yield* m.effect();
+        return a;
+      } catch {
+        const a: A = yield* n.effect();
+        return a;
+      }
+    }),
+  ).toStrictEqual(m.orElse(n));
+};
+
+const fromGeneratorCatch = <E, A>(m: Result<E, A>, x: E): void => {
+  expect(
+    Okay.fromGenerator(function* () {
+      if (m.isOkay) throw x;
+      const a: A = yield* m.effect<E, A>();
+      return a;
+    }),
+  ).toStrictEqual(m.isOkay ? new Fail(x) : m);
 };
 
 describe("Result", () => {
@@ -1322,6 +1383,62 @@ describe("Result", () => {
 
       fc.assert(
         fc.property(result(fc.anything(), fc.anything()), valuesDefinition),
+      );
+    });
+  });
+
+  describe("effectMap", () => {
+    it("should agree with effect", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.func(fc.anything()),
+          effectMapDefinition,
+        ),
+      );
+    });
+  });
+});
+
+describe("Okay", () => {
+  describe("fromGenerator", () => {
+    it("should be equivalent to multiple flatMap calls", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.integer({ min: 1 }), fc.anything()),
+          fc.constant(isPowerOfTwo),
+          fc.constant((n: number) => new Okay(hotpo(n))),
+          fc.func(result(fc.anything(), fc.anything())),
+          fromGeneratorEquivalence,
+        ),
+      );
+    });
+
+    it("should throw the value when the generator yields Fail", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          result(fc.anything(), fc.anything()),
+          fromGeneratorThrow,
+        ),
+      );
+    });
+
+    it("should return Fail when the generator throws an Exception", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.anything(),
+          fromGeneratorCatch,
+        ),
       );
     });
   });
