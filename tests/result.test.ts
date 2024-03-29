@@ -423,6 +423,10 @@ const extractMapFailDefinition = <E, A>(m: Result<E, A>, x: E): void => {
   expect(m.extractMapFail(() => x)).toStrictEqual(m.extractFail(x));
 };
 
+const valuesDefinition = <E, A>(m: Result<E, A>): void => {
+  expect([...m]).toStrictEqual([...m.okayValues(), ...m.failValues()]);
+};
+
 describe("Result", () => {
   describe("toString", () => {
     it("should convert Okay to a string", () => {
@@ -1308,6 +1312,16 @@ describe("Result", () => {
           fc.anything(),
           extractMapFailDefinition,
         ),
+      );
+    });
+  });
+
+  describe("[Symbol.iterator]", () => {
+    it("should agree with okayValues and failValues", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(result(fc.anything(), fc.anything()), valuesDefinition),
       );
     });
   });

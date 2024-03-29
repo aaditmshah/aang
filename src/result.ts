@@ -585,6 +585,20 @@ abstract class ResultTrait implements TotalOrder<Result<never, never>> {
   ): Result<E, A> {
     return this.max(lower).min(upper);
   }
+
+  public *okayValues<E, A>(this: Result<E, A>): Generator<A, void, undefined> {
+    if (this.isOkay) yield this.value;
+  }
+
+  public *failValues<E, A>(this: Result<E, A>): Generator<E, void, undefined> {
+    if (this.isFail) yield this.value;
+  }
+
+  public *[Symbol.iterator]<E, A>(
+    this: Result<E, A>,
+  ): Generator<E | A, void, undefined> {
+    yield this.value;
+  }
 }
 
 export class Okay<out A> extends ResultTrait {
