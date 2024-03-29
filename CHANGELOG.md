@@ -1,3 +1,38 @@
+# [v2.0.0-alpha.25](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.24...v2.0.0-alpha.25) (2024-03-29)
+
+## ✨ New Features
+
+- [`e857c85`](https://github.com/aaditmshah/aang/commit/e857c85) Add the &#x60;toString&#x60; method to &#x60;ResultTrait&#x60; class
+- [`79d87ea`](https://github.com/aaditmshah/aang/commit/79d87ea) Add &#x60;replace&#x60;, &#x60;replaceOkay&#x60;, and &#x60;replaceFail&#x60;
+- [`9233942`](https://github.com/aaditmshah/aang/commit/9233942) Add the &#x60;and&#x60; and &#x60;or&#x60; methods to &#x60;ResultTrait&#x60;
+- [`dba5090`](https://github.com/aaditmshah/aang/commit/dba5090) Add the &#x60;flatMap&#x60; &amp; &#x60;flatten&#x60; methods to &#x60;Result&#x60;
+- [`845b0a2`](https://github.com/aaditmshah/aang/commit/845b0a2) Add the &#x60;flatMapUntil&#x60; methods to &#x60;ResultTrait&#x60;
+- [`89620d7`](https://github.com/aaditmshah/aang/commit/89620d7) Add &#x60;commute&#x60;, &#x60;associateLeft&#x60; &amp; &#x60;associateRight&#x60;
+- [`17bdc50`](https://github.com/aaditmshah/aang/commit/17bdc50) Add &#x60;exchangeMap&#x60;, &#x60;exchange&#x60;, and its variants
+- [`761a349`](https://github.com/aaditmshah/aang/commit/761a349) Add &#x60;isOkayAnd&#x60; and similar methods to &#x60;Result&#x60;
+- [`9d66bab`](https://github.com/aaditmshah/aang/commit/9d66bab) Add &#x60;unzipWith&#x60;, &#x60;unzip&#x60;, and all its variants
+- [`7bcf51a`](https://github.com/aaditmshah/aang/commit/7bcf51a) Add the &#x60;collectOkay&#x60; and &#x60;collectFail&#x60; methods
+- [`8c13eea`](https://github.com/aaditmshah/aang/commit/8c13eea) Add &#x60;associateMapLeft&#x60; and &#x60;associateMapRight&#x60;
+- [`f32a332`](https://github.com/aaditmshah/aang/commit/f32a332) Add the &#x60;mapFst&#x60; and &#x60;mapSnd&#x60; methods to &#x60;Pair&#x60;
+- [`414195a`](https://github.com/aaditmshah/aang/commit/414195a) Add &#x60;collectFst&#x60;, &#x60;collectSnd&#x60;, and its variants
+- [`db124cb`](https://github.com/aaditmshah/aang/commit/db124cb) Add &#x60;extractOkay&#x60;, &#x60;extractFail&#x60;, and variants
+- [`b142b90`](https://github.com/aaditmshah/aang/commit/b142b90) Add a &#x60;TotalOrder&#x60; implementation to &#x60;Result&#x60;
+- [`2fa8da4`](https://github.com/aaditmshah/aang/commit/2fa8da4) Add &#x60;okayValues&#x60;, &#x60;failValues&#x60;, &amp; default iterator
+- [`718e763`](https://github.com/aaditmshah/aang/commit/718e763) Add &#x60;fromGenerator&#x60;, &#x60;effect&#x60;, and &#x60;effectMap&#x60;
+
+## 🐛 Bug Fixes
+
+- [`3ea1ea4`](https://github.com/aaditmshah/aang/commit/3ea1ea4) Fix the return type of the &#x60;commute&#x60; method
+
+## 💥 Breaking Changes
+
+- [`3fc5d8e`](https://github.com/aaditmshah/aang/commit/3fc5d8e) Remove the &#x60;transpose&#x60; and &#x60;transposeMap&#x60; methods
+- [`7a54525`](https://github.com/aaditmshah/aang/commit/7a54525) Remove union type from &#x60;and&#x60;, &#x60;or&#x60;, and variants
+- [`303ae16`](https://github.com/aaditmshah/aang/commit/303ae16) Rename &#x60;exchangeOkay&#x60; to &#x60;exchangeFail&#x60; &amp; vice versa
+- [`086ffea`](https://github.com/aaditmshah/aang/commit/086ffea) Rename &#x60;exchange(Map)&#x60; to &#x60;distribute(Map)&#x60;
+- [`a1f735f`](https://github.com/aaditmshah/aang/commit/a1f735f) Rename &#x60;mapExtractSome&#x60; to &#x60;extractMapSome&#x60;
+- [`eca1d64`](https://github.com/aaditmshah/aang/commit/eca1d64) Swap the order of generics of the &#x60;Result&#x60; type
+
 # [v2.0.0-alpha.24](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.23...v2.0.0-alpha.24) (2024-03-15)
 
 ## ✨ New Features
