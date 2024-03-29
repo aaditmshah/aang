@@ -171,12 +171,6 @@ const flatMapFailDefnition = <A, E, F>(
   expect(m.flatMapFail(k)).toStrictEqual(m.flatMap(Okay.of, k));
 };
 
-const flattenDefinition = <A, E>(
-  m: Result<Result<A, E>, Result<A, E>>,
-): void => {
-  expect(m.flatten()).toStrictEqual(m.flatMap(id, id));
-};
-
 const flattenOkayDefinition = <A, E>(m: Result<Result<A, E>, E>): void => {
   expect(m.flattenOkay()).toStrictEqual(m.flatMapOkay(id));
 };
@@ -780,22 +774,6 @@ describe("Result", () => {
           result(fc.anything(), fc.anything()),
           fc.func(result(fc.anything(), fc.anything())),
           flatMapFailDefnition,
-        ),
-      );
-    });
-  });
-
-  describe("flatten", () => {
-    it("should agree with flatMap", () => {
-      expect.assertions(100);
-
-      fc.assert(
-        fc.property(
-          result(
-            result(fc.anything(), fc.anything()),
-            result(fc.anything(), fc.anything()),
-          ),
-          flattenDefinition,
         ),
       );
     });

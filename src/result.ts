@@ -119,10 +119,6 @@ abstract class ResultTrait implements TotalOrder<Result<never, never>> {
     return this.isFail ? arrow(this.value) : this;
   }
 
-  public flatten<A, E>(this: Result<Result<A, E>, Result<A, E>>): Result<A, E> {
-    return this.value;
-  }
-
   public flattenOkay<A, E>(this: Result<Result<A, E>, E>): Result<A, E> {
     return this.isOkay ? this.value : this;
   }
