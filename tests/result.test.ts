@@ -418,7 +418,7 @@ const extractMapFailDefinition = <A, E>(m: Result<A, E>, x: E): void => {
 };
 
 const valuesDefinition = <A, E>(m: Result<A, E>): void => {
-  expect([...m]).toStrictEqual([...m.okayValues(), ...m.failValues()]);
+  expect([...m.values()]).toStrictEqual([...m.okayValues(), ...m.failValues()]);
 };
 
 const effectMapDefinition = <A, B, E>(
@@ -1355,7 +1355,7 @@ describe("Result", () => {
     });
   });
 
-  describe("[Symbol.iterator]", () => {
+  describe("values", () => {
     it("should agree with okayValues and failValues", () => {
       expect.assertions(100);
 

@@ -590,9 +590,7 @@ abstract class ResultTrait implements TotalOrder<Result<never, never>> {
     if (this.isFail) yield this.value;
   }
 
-  public *[Symbol.iterator]<A, E>(
-    this: Result<A, E>,
-  ): Generator<A | E, void, undefined> {
+  public *values<A, E>(this: Result<A, E>): Generator<A | E, void, undefined> {
     yield this.value;
   }
 

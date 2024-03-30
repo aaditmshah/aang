@@ -201,12 +201,12 @@ const toResultFailInverse = <E, A>(m: Option<E>, x: A): void => {
   expect(m.toResultFail(x).toOptionFail()).toStrictEqual(m);
 };
 
-const iterateSome = <A>(a: A): void => {
-  expect([...new Some(a)]).toStrictEqual([a]);
+const valuesSome = <A>(a: A): void => {
+  expect([...new Some(a).values()]).toStrictEqual([a]);
 };
 
-const iterateNone = (m: None): void => {
-  expect([...m]).toStrictEqual([]);
+const valuesNone = (m: None): void => {
+  expect([...m.values()]).toStrictEqual([]);
 };
 
 const effectMapDefinition = <A, B>(m: Option<A>, f: (a: A) => B): void => {
@@ -710,17 +710,17 @@ describe("Option", () => {
     });
   });
 
-  describe("[Symbol.iterator]", () => {
+  describe("values", () => {
     it("should iterate over the value of Some", () => {
       expect.assertions(100);
 
-      fc.assert(fc.property(fc.anything(), iterateSome));
+      fc.assert(fc.property(fc.anything(), valuesSome));
     });
 
     it("should not iterate over None", () => {
       expect.assertions(100);
 
-      fc.assert(fc.property(none, iterateNone));
+      fc.assert(fc.property(none, valuesNone));
     });
   });
 

@@ -256,7 +256,7 @@ abstract class OptionTrait
     return this.max(lower).min(upper);
   }
 
-  public *[Symbol.iterator]<A>(this: Option<A>): Generator<A, void, undefined> {
+  public *values<A>(this: Option<A>): Generator<A, void, undefined> {
     if (this.isSome) yield this.value;
   }
 
