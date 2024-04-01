@@ -24,6 +24,10 @@ const toStringNone = (u: None): void => {
   expect(u.toString()).toStrictEqual("None");
 };
 
+const foldEquivalence = <A, B>(u: Option<A>, f: (a: A) => B, b: B): void => {
+  expect(u.fold(f, b)).toStrictEqual(u.isSome ? f(u.value) : b);
+};
+
 const mapIdentity = <A>(u: Option<A>): void => {
   expect(u.map(id)).toStrictEqual(u);
 };
@@ -322,6 +326,21 @@ describe("Option", () => {
       expect.assertions(100);
 
       fc.assert(fc.property(none, toStringNone));
+    });
+  });
+
+  describe("fold", () => {
+    it("should fold the Option", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          option(fc.anything()),
+          fc.func(fc.anything()),
+          fc.anything(),
+          foldEquivalence,
+        ),
+      );
     });
   });
 

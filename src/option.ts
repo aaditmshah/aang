@@ -19,6 +19,14 @@ abstract class OptionTrait
     return this.isSome ? `Some(${String(this.value)})` : "None";
   }
 
+  public fold<A, B>(
+    this: Option<A>,
+    morphism: (value: A) => B,
+    defaultValue: B,
+  ): B {
+    return this.isSome ? morphism(this.value) : defaultValue;
+  }
+
   public map<A, B>(this: Option<A>, morphism: (value: A) => B): Option<B> {
     return this.isSome ? new Some(morphism(this.value)) : None.instance;
   }

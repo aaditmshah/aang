@@ -20,6 +20,10 @@ const toStringDefinition = <A, B>(m: Pair<A, B>): void => {
   }
 };
 
+const foldEquivalence = <A, B, C>(a: A, b: B, f: (a: A, b: B) => C): void => {
+  expect(new Pair(a, b).fold(f)).toStrictEqual(f(a, b));
+};
+
 const mapIdentity = <A, B>(u: Pair<A, B>): void => {
   expect(u.map(id, id)).toStrictEqual(u);
 };
@@ -55,6 +59,21 @@ describe("Pair", () => {
 
       fc.assert(
         fc.property(pair(fc.anything(), fc.anything()), toStringDefinition),
+      );
+    });
+  });
+
+  describe("fold", () => {
+    it("should fold the Pair", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          fc.anything(),
+          fc.anything(),
+          fc.func(fc.anything()),
+          foldEquivalence,
+        ),
       );
     });
   });

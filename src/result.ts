@@ -17,6 +17,14 @@ abstract class ResultTrait implements TotalOrder<Result<never, never>> {
       : `Fail(${String(this.value)})`;
   }
 
+  public fold<A, E, T>(
+    this: Result<A, E>,
+    okayMorphism: (value: A) => T,
+    failMorphism: (value: E) => T,
+  ): T {
+    return this.isOkay ? okayMorphism(this.value) : failMorphism(this.value);
+  }
+
   public map<A, B, E, F>(
     this: Result<A, E>,
     okayMorphism: (value: A) => B,

@@ -27,6 +27,14 @@ const toStringFail = <E>(x: E): void => {
   }
 };
 
+const foldEquivalence = <A, E, T>(
+  u: Result<A, E>,
+  f: (a: A) => T,
+  g: (x: E) => T,
+): void => {
+  expect(u.fold(f, g)).toStrictEqual(u.isOkay ? f(u.value) : g(u.value));
+};
+
 const mapIdentity = <A, E>(u: Result<A, E>): void => {
   expect(u.map(id, id)).toStrictEqual(u);
 };
@@ -494,6 +502,21 @@ describe("Result", () => {
       expect.assertions(100);
 
       fc.assert(fc.property(fc.anything(), toStringFail));
+    });
+  });
+
+  describe("fold", () => {
+    it("should fold the Result", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          result(fc.anything(), fc.anything()),
+          fc.func(fc.anything()),
+          fc.func(fc.anything()),
+          foldEquivalence,
+        ),
+      );
     });
   });
 

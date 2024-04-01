@@ -16,6 +16,10 @@ export class Pair<out A, out B> {
     return `Pair(${String(this.fst)}, ${String(this.snd)})`;
   }
 
+  public fold<A, B, C>(this: Pair<A, B>, morphism: (a: A, b: B) => C): C {
+    return morphism(this.fst, this.snd);
+  }
+
   public map<A, B, C, D>(
     this: Pair<A, B>,
     fstMorphism: (fst: A) => C,
