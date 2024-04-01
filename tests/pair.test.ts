@@ -6,7 +6,7 @@ import type { Option } from "../src/option.js";
 import { Some } from "../src/option.js";
 import { Pair } from "../src/pair.js";
 import type { Result } from "../src/result.js";
-import { Okay } from "../src/result.js";
+import { Fail, Okay } from "../src/result.js";
 
 import { option, pair, result } from "./arbitraries.js";
 
@@ -135,6 +135,34 @@ const andFstResultDefinition = <A, B, E>(u: Pair<Result<A, E>, B>): void => {
 
 const andSndResultDefinition = <A, B, E>(u: Pair<A, Result<B, E>>): void => {
   expect(u.andSndResult()).toStrictEqual(u.andMapResult(Okay.of, id));
+};
+
+const orMapFstResultDefinition = <X, A, E, F>(
+  u: Pair<X, F>,
+  f: (x: X) => Result<A, E>,
+): void => {
+  expect(u.orMapFstResult(f)).toStrictEqual(u.orMapResult(f, Fail.of));
+};
+
+const orMapSndResultDefinition = <Y, A, E, F>(
+  u: Pair<E, Y>,
+  g: (y: Y) => Result<A, F>,
+): void => {
+  expect(u.orMapSndResult(g)).toStrictEqual(u.orMapResult(Fail.of, g));
+};
+
+const orResultDefinition = <A, E, F>(
+  u: Pair<Result<A, E>, Result<A, F>>,
+): void => {
+  expect(u.orResult()).toStrictEqual(u.orMapResult(id, id));
+};
+
+const orFstResultDefinition = <A, E, F>(u: Pair<Result<A, E>, F>): void => {
+  expect(u.orFstResult()).toStrictEqual(u.orMapResult(id, Fail.of));
+};
+
+const orSndResultDefinition = <A, E, F>(u: Pair<E, Result<A, F>>): void => {
+  expect(u.orSndResult()).toStrictEqual(u.orMapResult(Fail.of, id));
 };
 
 const associateLeftInverse = <A, B, C>(u: Pair<Pair<A, B>, C>): void => {
@@ -412,6 +440,76 @@ describe("Pair", () => {
         fc.property(
           pair(fc.anything(), result(fc.anything(), fc.anything())),
           andSndResultDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("orMapFstResult", () => {
+    it("should agree with orMapResult", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), fc.anything()),
+          fc.func(result(fc.anything(), fc.anything())),
+          orMapFstResultDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("orMapSndResult", () => {
+    it("should agree with orMapResult", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), fc.anything()),
+          fc.func(result(fc.anything(), fc.anything())),
+          orMapSndResultDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("orResult", () => {
+    it("should agree with orMapResult", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(
+            result(fc.anything(), fc.anything()),
+            result(fc.anything(), fc.anything()),
+          ),
+          orResultDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("orFstResult", () => {
+    it("should agree with orMapResult", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(result(fc.anything(), fc.anything()), fc.anything()),
+          orFstResultDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("orSndResult", () => {
+    it("should agree with orMapResult", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), result(fc.anything(), fc.anything())),
+          orSndResultDefinition,
         ),
       );
     });

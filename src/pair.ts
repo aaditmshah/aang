@@ -1,7 +1,7 @@
 import type { Option } from "./option.js";
 import { Some } from "./option.js";
 import type { Result } from "./result.js";
-import { Okay } from "./result.js";
+import { Fail, Okay } from "./result.js";
 
 export class Pair<out A, out B> {
   public constructor(
@@ -138,6 +138,46 @@ export class Pair<out A, out B> {
     this: Pair<A, Result<B, E>>,
   ): Result<Pair<A, B>, E> {
     return new Okay(this.fst).and(this.snd);
+  }
+
+  public orMapResult<X, Y, A, E, F>(
+    this: Pair<X, Y>,
+    fstMorphism: (value: X) => Result<A, E>,
+    sndMorphism: (value: Y) => Result<A, F>,
+  ): Result<A, Pair<E, F>> {
+    return fstMorphism(this.fst).or(sndMorphism(this.snd));
+  }
+
+  public orMapFstResult<X, A, E, F>(
+    this: Pair<X, F>,
+    morphism: (value: X) => Result<A, E>,
+  ): Result<A, Pair<E, F>> {
+    return morphism(this.fst).or(new Fail(this.snd));
+  }
+
+  public orMapSndResult<Y, A, E, F>(
+    this: Pair<E, Y>,
+    morphism: (value: Y) => Result<A, F>,
+  ): Result<A, Pair<E, F>> {
+    return new Fail(this.fst).or(morphism(this.snd));
+  }
+
+  public orResult<A, E, F>(
+    this: Pair<Result<A, E>, Result<A, F>>,
+  ): Result<A, Pair<E, F>> {
+    return this.fst.or(this.snd);
+  }
+
+  public orFstResult<A, E, F>(
+    this: Pair<Result<A, E>, F>,
+  ): Result<A, Pair<E, F>> {
+    return this.fst.or(new Fail(this.snd));
+  }
+
+  public orSndResult<A, E, F>(
+    this: Pair<E, Result<A, F>>,
+  ): Result<A, Pair<E, F>> {
+    return new Fail(this.fst).or(this.snd);
   }
 
   public associateLeft<A, B, C>(
