@@ -12,6 +12,10 @@ export class Pair<out A, out B> {
     return new Pair(value, value);
   }
 
+  public toString<A, B>(this: Pair<A, B>): string {
+    return `Pair(${String(this.fst)}, ${String(this.snd)})`;
+  }
+
   public map<A, B, C, D>(
     this: Pair<A, B>,
     fstMorphism: (fst: A) => C,

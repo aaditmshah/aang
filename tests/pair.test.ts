@@ -10,6 +10,16 @@ const fromDefinition = <A>(a: A): void => {
   expect(Pair.from(a)).toStrictEqual(Pair.of(a, a));
 };
 
+const toStringDefinition = <A, B>(m: Pair<A, B>): void => {
+  try {
+    expect(m.toString()).toStrictEqual(
+      `Pair(${String(m.fst)}, ${String(m.snd)})`,
+    );
+  } catch (error) {
+    expect(error).toBeInstanceOf(TypeError);
+  }
+};
+
 const mapIdentity = <A, B>(u: Pair<A, B>): void => {
   expect(u.map(id, id)).toStrictEqual(u);
 };
@@ -36,6 +46,16 @@ describe("Pair", () => {
       expect.assertions(100);
 
       fc.assert(fc.property(fc.anything(), fromDefinition));
+    });
+  });
+
+  describe("toString", () => {
+    it("should convert the Pair to a string", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(pair(fc.anything(), fc.anything()), toStringDefinition),
+      );
     });
   });
 
