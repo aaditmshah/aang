@@ -2,9 +2,11 @@ import { describe, expect, it } from "@jest/globals";
 import fc from "fast-check";
 
 import { id } from "../src/miscellaneous.js";
+import type { Option } from "../src/option.js";
+import { Some } from "../src/option.js";
 import { Pair } from "../src/pair.js";
 
-import { pair } from "./arbitraries.js";
+import { option, pair } from "./arbitraries.js";
 
 const fromDefinition = <A>(a: A): void => {
   expect(Pair.from(a)).toStrictEqual(Pair.of(a, a));
@@ -77,6 +79,32 @@ const andAssociativity = <A, B, C, D, E, F>(
 
 const commuteInverse = <A, B>(u: Pair<A, B>): void => {
   expect(u.commute().commute()).toStrictEqual(u);
+};
+
+const andMapFstOptionDefinition = <X, A, B>(
+  u: Pair<X, B>,
+  f: (x: X) => Option<A>,
+): void => {
+  expect(u.andMapFstOption(f)).toStrictEqual(u.andMapOption(f, Some.of));
+};
+
+const andMapSndOptionDefinition = <Y, A, B>(
+  u: Pair<A, Y>,
+  g: (y: Y) => Option<B>,
+): void => {
+  expect(u.andMapSndOption(g)).toStrictEqual(u.andMapOption(Some.of, g));
+};
+
+const andOptionDefinition = <A, B>(u: Pair<Option<A>, Option<B>>): void => {
+  expect(u.andOption()).toStrictEqual(u.andMapOption(id, id));
+};
+
+const andFstOptionDefinition = <A, B>(u: Pair<Option<A>, B>): void => {
+  expect(u.andFstOption()).toStrictEqual(u.andMapOption(id, Some.of));
+};
+
+const andSndOptionDefinition = <A, B>(u: Pair<A, Option<B>>): void => {
+  expect(u.andSndOption()).toStrictEqual(u.andMapOption(Some.of, id));
 };
 
 const associateLeftInverse = <A, B, C>(u: Pair<Pair<A, B>, C>): void => {
@@ -218,6 +246,73 @@ describe("Pair", () => {
 
       fc.assert(
         fc.property(pair(fc.anything(), fc.anything()), commuteInverse),
+      );
+    });
+  });
+
+  describe("andMapFstOption", () => {
+    it("should agree with andMapOption", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), fc.anything()),
+          fc.func(option(fc.anything())),
+          andMapFstOptionDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("andMapSndOption", () => {
+    it("should agree with andMapOption", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), fc.anything()),
+          fc.func(option(fc.anything())),
+          andMapSndOptionDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("andOption", () => {
+    it("should agree with andMapOption", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(option(fc.anything()), option(fc.anything())),
+          andOptionDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("andFstOption", () => {
+    it("should agree with andMapOption", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(option(fc.anything()), fc.anything()),
+          andFstOptionDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("andSndOption", () => {
+    it("should agree with andMapOption", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), option(fc.anything())),
+          andSndOptionDefinition,
+        ),
       );
     });
   });

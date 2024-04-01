@@ -1,3 +1,6 @@
+import type { Option } from "./option.js";
+import { Some } from "./option.js";
+
 export class Pair<out A, out B> {
   public constructor(
     public readonly fst: A,
@@ -59,6 +62,40 @@ export class Pair<out A, out B> {
 
   public commute<A, B>(this: Pair<A, B>): Pair<B, A> {
     return new Pair(this.snd, this.fst);
+  }
+
+  public andMapOption<X, Y, A, B>(
+    this: Pair<X, Y>,
+    fstMorphism: (value: X) => Option<A>,
+    sndMorphism: (value: Y) => Option<B>,
+  ): Option<Pair<A, B>> {
+    return fstMorphism(this.fst).and(sndMorphism(this.snd));
+  }
+
+  public andMapFstOption<X, A, B>(
+    this: Pair<X, B>,
+    morphism: (value: X) => Option<A>,
+  ): Option<Pair<A, B>> {
+    return morphism(this.fst).and(new Some(this.snd));
+  }
+
+  public andMapSndOption<Y, A, B>(
+    this: Pair<A, Y>,
+    morphism: (value: Y) => Option<B>,
+  ): Option<Pair<A, B>> {
+    return new Some(this.fst).and(morphism(this.snd));
+  }
+
+  public andOption<A, B>(this: Pair<Option<A>, Option<B>>): Option<Pair<A, B>> {
+    return this.fst.and(this.snd);
+  }
+
+  public andFstOption<A, B>(this: Pair<Option<A>, B>): Option<Pair<A, B>> {
+    return this.fst.and(new Some(this.snd));
+  }
+
+  public andSndOption<A, B>(this: Pair<A, Option<B>>): Option<Pair<A, B>> {
+    return new Some(this.fst).and(this.snd);
   }
 
   public associateLeft<A, B, C>(
