@@ -44,6 +44,37 @@ const replaceSndDefinition = <A, B, C>(u: Pair<A, B>, c: C): void => {
   expect(u.replaceSnd(c)).toStrictEqual(u.mapSnd(() => c));
 };
 
+const andLeftIdentity = <A, B>(v: Pair<A, B>): void => {
+  expect(new Pair(undefined, undefined).and(v)).toStrictEqual(
+    v.map(
+      (y) => new Pair(undefined, y),
+      (y) => new Pair(undefined, y),
+    ),
+  );
+};
+
+const andRightIdentity = <A, B>(u: Pair<A, B>): void => {
+  expect(u.and(new Pair(undefined, undefined))).toStrictEqual(
+    u.map(
+      (x) => new Pair(x, undefined),
+      (x) => new Pair(x, undefined),
+    ),
+  );
+};
+
+const andAssociativity = <A, B, C, D, E, F>(
+  u: Pair<A, B>,
+  v: Pair<C, D>,
+  w: Pair<E, F>,
+): void => {
+  expect(
+    u.and(v.and(w)).map(
+      (x) => x.associateLeft(),
+      (x) => x.associateLeft(),
+    ),
+  ).toStrictEqual(u.and(v).and(w));
+};
+
 const commuteInverse = <A, B>(u: Pair<A, B>): void => {
   expect(u.commute().commute()).toStrictEqual(u);
 };
@@ -145,6 +176,37 @@ describe("Pair", () => {
           pair(fc.anything(), fc.anything()),
           fc.anything(),
           replaceSndDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("and", () => {
+    it("should have a left identity", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(pair(fc.anything(), fc.anything()), andLeftIdentity),
+      );
+    });
+
+    it("should have a right identity", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(pair(fc.anything(), fc.anything()), andRightIdentity),
+      );
+    });
+
+    it("should be associative", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), fc.anything()),
+          pair(fc.anything(), fc.anything()),
+          pair(fc.anything(), fc.anything()),
+          andAssociativity,
         ),
       );
     });

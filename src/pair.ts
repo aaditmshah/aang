@@ -50,6 +50,13 @@ export class Pair<out A, out B> {
     return new Pair(this.fst, snd);
   }
 
+  public and<A, B, C, D>(
+    this: Pair<A, B>,
+    that: Pair<C, D>,
+  ): Pair<Pair<A, C>, Pair<B, D>> {
+    return new Pair(new Pair(this.fst, that.fst), new Pair(this.snd, that.snd));
+  }
+
   public commute<A, B>(this: Pair<A, B>): Pair<B, A> {
     return new Pair(this.snd, this.fst);
   }
