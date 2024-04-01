@@ -293,6 +293,44 @@ export class Pair<out A, out B> {
     return new Pair(this.fst.fst, new Pair(this.fst.snd, this.snd));
   }
 
+  public distributeMapOkay<Y, A, B, C>(
+    this: Pair<A, Y>,
+    morphism: (value: Y) => Result<B, C>,
+  ): Result<Pair<A, B>, Pair<A, C>> {
+    return morphism(this.snd).map(
+      (snd) => new Pair(this.fst, snd),
+      (snd) => new Pair(this.fst, snd),
+    );
+  }
+
+  public distributeOkay<A, B, C>(
+    this: Pair<A, Result<B, C>>,
+  ): Result<Pair<A, B>, Pair<A, C>> {
+    return this.snd.map(
+      (snd) => new Pair(this.fst, snd),
+      (snd) => new Pair(this.fst, snd),
+    );
+  }
+
+  public distributeMapFail<X, A, B, C>(
+    this: Pair<X, C>,
+    morphism: (value: X) => Result<A, B>,
+  ): Result<Pair<A, C>, Pair<B, C>> {
+    return morphism(this.fst).map(
+      (fst) => new Pair(fst, this.snd),
+      (fst) => new Pair(fst, this.snd),
+    );
+  }
+
+  public distributeFail<A, B, C>(
+    this: Pair<Result<A, B>, C>,
+  ): Result<Pair<A, C>, Pair<B, C>> {
+    return this.fst.map(
+      (fst) => new Pair(fst, this.snd),
+      (fst) => new Pair(fst, this.snd),
+    );
+  }
+
   public values<A, B>(this: Pair<A, B>): [A, B] {
     return [this.fst, this.snd];
   }

@@ -233,6 +233,26 @@ const associateRightInverse = <A, B, C>(u: Pair<A, Pair<B, C>>): void => {
   expect(u.associateLeft().associateRight()).toStrictEqual(u);
 };
 
+const distributeMapOkayDefinition = <A, B, C>(
+  u: Pair<A, Result<B, C>>,
+): void => {
+  expect(u.distributeMapOkay(id)).toStrictEqual(u.distributeOkay());
+};
+
+const distributeOkayInverse = <A, B, C>(u: Pair<A, Result<B, C>>): void => {
+  expect(u.distributeOkay().collectSnd()).toStrictEqual(u);
+};
+
+const distributeMapFailDefinition = <A, B, C>(
+  u: Pair<Result<A, B>, C>,
+): void => {
+  expect(u.distributeMapFail(id)).toStrictEqual(u.distributeFail());
+};
+
+const distributeFailInverse = <A, B, C>(u: Pair<Result<A, B>, C>): void => {
+  expect(u.distributeFail().collectFst()).toStrictEqual(u);
+};
+
 const valuesDefinition = <A, B>(a: A, b: B): void => {
   expect(new Pair(a, b).values()).toStrictEqual([a, b]);
 };
@@ -772,6 +792,58 @@ describe("Pair", () => {
         fc.property(
           pair(fc.anything(), pair(fc.anything(), fc.anything())),
           associateRightInverse,
+        ),
+      );
+    });
+  });
+
+  describe("distributeMapOkay", () => {
+    it("should agree with distributeOkay", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), result(fc.anything(), fc.anything())),
+          distributeMapOkayDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("distributeOkay", () => {
+    it("should be inverted by Result#collectSnd", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), result(fc.anything(), fc.anything())),
+          distributeOkayInverse,
+        ),
+      );
+    });
+  });
+
+  describe("distributeMapFail", () => {
+    it("should agree with distributeFail", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(result(fc.anything(), fc.anything()), fc.anything()),
+          distributeMapFailDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("distributeFail", () => {
+    it("should be inverted by Result#collectFst", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(result(fc.anything(), fc.anything()), fc.anything()),
+          distributeFailInverse,
         ),
       );
     });
