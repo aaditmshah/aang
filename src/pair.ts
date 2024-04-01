@@ -50,6 +50,10 @@ export class Pair<out A, out B> {
     return new Pair(this.fst, snd);
   }
 
+  public commute<A, B>(this: Pair<A, B>): Pair<B, A> {
+    return new Pair(this.snd, this.fst);
+  }
+
   public associateLeft<A, B, C>(
     this: Pair<A, Pair<B, C>>,
   ): Pair<Pair<A, B>, C> {

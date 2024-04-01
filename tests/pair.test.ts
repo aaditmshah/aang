@@ -44,6 +44,10 @@ const replaceSndDefinition = <A, B, C>(u: Pair<A, B>, c: C): void => {
   expect(u.replaceSnd(c)).toStrictEqual(u.mapSnd(() => c));
 };
 
+const commuteInverse = <A, B>(u: Pair<A, B>): void => {
+  expect(u.commute().commute()).toStrictEqual(u);
+};
+
 const associateLeftInverse = <A, B, C>(u: Pair<Pair<A, B>, C>): void => {
   expect(u.associateRight().associateLeft()).toStrictEqual(u);
 };
@@ -138,6 +142,16 @@ describe("Pair", () => {
           fc.anything(),
           replaceSndDefinition,
         ),
+      );
+    });
+  });
+
+  describe("commute", () => {
+    it("should be its own inverse", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(pair(fc.anything(), fc.anything()), commuteInverse),
       );
     });
   });
