@@ -193,8 +193,32 @@ const distributeSndDefinition = <A, B, C>(u: Pair<A, Pair<B, C>>): void => {
   expect(u.distributeSnd()).toStrictEqual(u.distributeMap(Pair.from, id));
 };
 
+const exchangeMapSndDefinition = <A, B, C>(u: Pair<Pair<A, B>, C>): void => {
+  expect(u.exchangeMapSnd(id)).toStrictEqual(u.exchangeSnd());
+};
+
+const associateMapLeftDefinition = <A, B, C>(u: Pair<A, Pair<B, C>>): void => {
+  expect(u.associateMapLeft(id)).toStrictEqual(u.associateLeft());
+};
+
+const exchangeSndInverse = <A, B, C>(u: Pair<Pair<A, B>, C>): void => {
+  expect(u.exchangeSnd().exchangeSnd()).toStrictEqual(u);
+};
+
 const associateLeftInverse = <A, B, C>(u: Pair<Pair<A, B>, C>): void => {
   expect(u.associateRight().associateLeft()).toStrictEqual(u);
+};
+
+const exchangeMapFstDefinition = <A, B, C>(u: Pair<A, Pair<B, C>>): void => {
+  expect(u.exchangeMapFst(id)).toStrictEqual(u.exchangeFst());
+};
+
+const associateMapRightDefinition = <A, B, C>(u: Pair<Pair<A, B>, C>): void => {
+  expect(u.associateMapRight(id)).toStrictEqual(u.associateRight());
+};
+
+const exchangeFstInverse = <A, B, C>(u: Pair<A, Pair<B, C>>): void => {
+  expect(u.exchangeFst().exchangeFst()).toStrictEqual(u);
 };
 
 const associateRightInverse = <A, B, C>(u: Pair<A, Pair<B, C>>): void => {
@@ -613,6 +637,45 @@ describe("Pair", () => {
     });
   });
 
+  describe("exchangeMapSnd", () => {
+    it("should agree with exchangeSnd", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(pair(fc.anything(), fc.anything()), fc.anything()),
+          exchangeMapSndDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("associateMapLeft", () => {
+    it("should agree with associateLeft", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), pair(fc.anything(), fc.anything())),
+          associateMapLeftDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("exchangeSnd", () => {
+    it("should be its own inverse", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(pair(fc.anything(), fc.anything()), fc.anything()),
+          exchangeSndInverse,
+        ),
+      );
+    });
+  });
+
   describe("associateLeft", () => {
     it("should be the inverse of associateRight", () => {
       expect.assertions(100);
@@ -621,6 +684,45 @@ describe("Pair", () => {
         fc.property(
           pair(pair(fc.anything(), fc.anything()), fc.anything()),
           associateLeftInverse,
+        ),
+      );
+    });
+  });
+
+  describe("exchangeMapFst", () => {
+    it("should agree with exchangeFst", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), pair(fc.anything(), fc.anything())),
+          exchangeMapFstDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("associateMapRight", () => {
+    it("should agree with associateRight", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(pair(fc.anything(), fc.anything()), fc.anything()),
+          associateMapRightDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("exchangeFst", () => {
+    it("should be its own inverse", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), pair(fc.anything(), fc.anything())),
+          exchangeFstInverse,
         ),
       );
     });

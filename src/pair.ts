@@ -233,10 +233,50 @@ export class Pair<out A, out B> {
     );
   }
 
+  public exchangeMapSnd<X, A, B, C>(
+    this: Pair<X, C>,
+    morphism: (value: X) => Pair<A, B>,
+  ): Pair<Pair<A, C>, B> {
+    const fst = morphism(this.fst);
+    return new Pair(new Pair(fst.fst, this.snd), fst.snd);
+  }
+
+  public associateMapLeft<Y, A, B, C>(
+    this: Pair<A, Y>,
+    morphism: (value: Y) => Pair<B, C>,
+  ): Pair<Pair<A, B>, C> {
+    const snd = morphism(this.snd);
+    return new Pair(new Pair(this.fst, snd.fst), snd.snd);
+  }
+
+  public exchangeSnd<A, B, C>(this: Pair<Pair<A, B>, C>): Pair<Pair<A, C>, B> {
+    return new Pair(new Pair(this.fst.fst, this.snd), this.fst.snd);
+  }
+
   public associateLeft<A, B, C>(
     this: Pair<A, Pair<B, C>>,
   ): Pair<Pair<A, B>, C> {
     return new Pair(new Pair(this.fst, this.snd.fst), this.snd.snd);
+  }
+
+  public exchangeMapFst<Y, A, B, C>(
+    this: Pair<A, Y>,
+    morphism: (value: Y) => Pair<B, C>,
+  ): Pair<B, Pair<A, C>> {
+    const snd = morphism(this.snd);
+    return new Pair(snd.fst, new Pair(this.fst, snd.snd));
+  }
+
+  public associateMapRight<X, A, B, C>(
+    this: Pair<X, C>,
+    morphism: (value: X) => Pair<A, B>,
+  ): Pair<A, Pair<B, C>> {
+    const fst = morphism(this.fst);
+    return new Pair(fst.fst, new Pair(fst.snd, this.snd));
+  }
+
+  public exchangeFst<A, B, C>(this: Pair<A, Pair<B, C>>): Pair<B, Pair<A, C>> {
+    return new Pair(this.snd.fst, new Pair(this.fst, this.snd.snd));
   }
 
   public associateRight<A, B, C>(
