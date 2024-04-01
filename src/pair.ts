@@ -1,5 +1,8 @@
 import type { Option } from "./option.js";
 import { Some } from "./option.js";
+import type { PartialOrder, Setoid, TotalOrder } from "./order.js";
+import type { Ordering } from "./ordering.js";
+import { isLess, isMore, isNotLess, isNotMore, isSame } from "./ordering.js";
 import type { Result } from "./result.js";
 import { Fail, Okay } from "./result.js";
 
@@ -329,6 +332,78 @@ export class Pair<out A, out B> {
       (fst) => new Pair(fst, this.snd),
       (fst) => new Pair(fst, this.snd),
     );
+  }
+
+  public isSame<A extends Setoid<A>, B extends Setoid<B>>(
+    this: Pair<A, B>,
+    that: Pair<A, B>,
+  ): boolean {
+    return this.fst.isSame(that.fst) && this.snd.isSame(that.snd);
+  }
+
+  public isNotSame<A extends Setoid<A>, B extends Setoid<B>>(
+    this: Pair<A, B>,
+    that: Pair<A, B>,
+  ): boolean {
+    return this.fst.isNotSame(that.fst) || this.snd.isNotSame(that.snd);
+  }
+
+  public isLess<A extends PartialOrder<A>, B extends PartialOrder<B>>(
+    this: Pair<A, B>,
+    that: Pair<A, B>,
+  ): boolean {
+    return this.compare(that).isSomeAnd(isLess);
+  }
+
+  public isNotLess<A extends PartialOrder<A>, B extends PartialOrder<B>>(
+    this: Pair<A, B>,
+    that: Pair<A, B>,
+  ): boolean {
+    return this.compare(that).isSomeAnd(isNotLess);
+  }
+
+  public isMore<A extends PartialOrder<A>, B extends PartialOrder<B>>(
+    this: Pair<A, B>,
+    that: Pair<A, B>,
+  ): boolean {
+    return this.compare(that).isSomeAnd(isMore);
+  }
+
+  public isNotMore<A extends PartialOrder<A>, B extends PartialOrder<B>>(
+    this: Pair<A, B>,
+    that: Pair<A, B>,
+  ): boolean {
+    return this.compare(that).isSomeAnd(isNotMore);
+  }
+
+  public compare<A extends PartialOrder<A>, B extends PartialOrder<B>>(
+    this: Pair<A, B>,
+    that: Pair<A, B>,
+  ): Option<Ordering> {
+    const option = this.fst.compare(that.fst);
+    return option.isSomeAnd(isSame) ? this.snd.compare(that.snd) : option;
+  }
+
+  public max<A extends TotalOrder<A>, B extends TotalOrder<B>>(
+    this: Pair<A, B>,
+    that: Pair<A, B>,
+  ): Pair<A, B> {
+    return this.isNotLess(that) ? this : that;
+  }
+
+  public min<A extends TotalOrder<A>, B extends TotalOrder<B>>(
+    this: Pair<A, B>,
+    that: Pair<A, B>,
+  ): Pair<A, B> {
+    return this.isNotMore(that) ? this : that;
+  }
+
+  public clamp<A extends TotalOrder<A>, B extends TotalOrder<B>>(
+    this: Pair<A, B>,
+    lower: Pair<A, B>,
+    upper: Pair<A, B>,
+  ): Pair<A, B> {
+    return this.max(lower).min(upper);
   }
 
   public values<A, B>(this: Pair<A, B>): [A, B] {
