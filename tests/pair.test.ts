@@ -5,8 +5,10 @@ import { id } from "../src/miscellaneous.js";
 import type { Option } from "../src/option.js";
 import { Some } from "../src/option.js";
 import { Pair } from "../src/pair.js";
+import type { Result } from "../src/result.js";
+import { Okay } from "../src/result.js";
 
-import { option, pair } from "./arbitraries.js";
+import { option, pair, result } from "./arbitraries.js";
 
 const fromDefinition = <A>(a: A): void => {
   expect(Pair.from(a)).toStrictEqual(Pair.of(a, a));
@@ -105,6 +107,34 @@ const andFstOptionDefinition = <A, B>(u: Pair<Option<A>, B>): void => {
 
 const andSndOptionDefinition = <A, B>(u: Pair<A, Option<B>>): void => {
   expect(u.andSndOption()).toStrictEqual(u.andMapOption(Some.of, id));
+};
+
+const andMapFstResultDefinition = <X, A, B, E>(
+  u: Pair<X, B>,
+  f: (x: X) => Result<A, E>,
+): void => {
+  expect(u.andMapFstResult(f)).toStrictEqual(u.andMapResult(f, Okay.of));
+};
+
+const andMapSndResultDefinition = <Y, A, B, E>(
+  u: Pair<A, Y>,
+  g: (y: Y) => Result<B, E>,
+): void => {
+  expect(u.andMapSndResult(g)).toStrictEqual(u.andMapResult(Okay.of, g));
+};
+
+const andResultDefinition = <A, B, E>(
+  u: Pair<Result<A, E>, Result<B, E>>,
+): void => {
+  expect(u.andResult()).toStrictEqual(u.andMapResult(id, id));
+};
+
+const andFstResultDefinition = <A, B, E>(u: Pair<Result<A, E>, B>): void => {
+  expect(u.andFstResult()).toStrictEqual(u.andMapResult(id, Okay.of));
+};
+
+const andSndResultDefinition = <A, B, E>(u: Pair<A, Result<B, E>>): void => {
+  expect(u.andSndResult()).toStrictEqual(u.andMapResult(Okay.of, id));
 };
 
 const associateLeftInverse = <A, B, C>(u: Pair<Pair<A, B>, C>): void => {
@@ -312,6 +342,76 @@ describe("Pair", () => {
         fc.property(
           pair(fc.anything(), option(fc.anything())),
           andSndOptionDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("andMapFstResult", () => {
+    it("should agree with andMapResult", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), fc.anything()),
+          fc.func(result(fc.anything(), fc.anything())),
+          andMapFstResultDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("andMapSndResult", () => {
+    it("should agree with andMapResult", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), fc.anything()),
+          fc.func(result(fc.anything(), fc.anything())),
+          andMapSndResultDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("andResult", () => {
+    it("should agree with andMapResult", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(
+            result(fc.anything(), fc.anything()),
+            result(fc.anything(), fc.anything()),
+          ),
+          andResultDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("andFstResult", () => {
+    it("should agree with andMapResult", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(result(fc.anything(), fc.anything()), fc.anything()),
+          andFstResultDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("andSndResult", () => {
+    it("should agree with andMapResult", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), result(fc.anything(), fc.anything())),
+          andSndResultDefinition,
         ),
       );
     });

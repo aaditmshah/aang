@@ -1,5 +1,7 @@
 import type { Option } from "./option.js";
 import { Some } from "./option.js";
+import type { Result } from "./result.js";
+import { Okay } from "./result.js";
 
 export class Pair<out A, out B> {
   public constructor(
@@ -96,6 +98,46 @@ export class Pair<out A, out B> {
 
   public andSndOption<A, B>(this: Pair<A, Option<B>>): Option<Pair<A, B>> {
     return new Some(this.fst).and(this.snd);
+  }
+
+  public andMapResult<X, Y, A, B, E>(
+    this: Pair<X, Y>,
+    fstMorphism: (value: X) => Result<A, E>,
+    sndMorphism: (value: Y) => Result<B, E>,
+  ): Result<Pair<A, B>, E> {
+    return fstMorphism(this.fst).and(sndMorphism(this.snd));
+  }
+
+  public andMapFstResult<X, A, B, E>(
+    this: Pair<X, B>,
+    morphism: (value: X) => Result<A, E>,
+  ): Result<Pair<A, B>, E> {
+    return morphism(this.fst).and(new Okay(this.snd));
+  }
+
+  public andMapSndResult<Y, A, B, E>(
+    this: Pair<A, Y>,
+    morphism: (value: Y) => Result<B, E>,
+  ): Result<Pair<A, B>, E> {
+    return new Okay(this.fst).and(morphism(this.snd));
+  }
+
+  public andResult<A, B, E>(
+    this: Pair<Result<A, E>, Result<B, E>>,
+  ): Result<Pair<A, B>, E> {
+    return this.fst.and(this.snd);
+  }
+
+  public andFstResult<A, B, E>(
+    this: Pair<Result<A, E>, B>,
+  ): Result<Pair<A, B>, E> {
+    return this.fst.and(new Okay(this.snd));
+  }
+
+  public andSndResult<A, B, E>(
+    this: Pair<A, Result<B, E>>,
+  ): Result<Pair<A, B>, E> {
+    return new Okay(this.fst).and(this.snd);
   }
 
   public associateLeft<A, B, C>(
