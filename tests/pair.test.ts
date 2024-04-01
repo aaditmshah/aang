@@ -56,6 +56,10 @@ const associateRightInverse = <A, B, C>(u: Pair<A, Pair<B, C>>): void => {
   expect(u.associateLeft().associateRight()).toStrictEqual(u);
 };
 
+const valuesDefinition = <A, B>(a: A, b: B): void => {
+  expect(new Pair(a, b).values()).toStrictEqual([a, b]);
+};
+
 describe("Pair", () => {
   describe("from", () => {
     it("should agree with Pair.of", () => {
@@ -179,6 +183,14 @@ describe("Pair", () => {
           associateRightInverse,
         ),
       );
+    });
+  });
+
+  describe("values", () => {
+    it("should return the values of the pair", () => {
+      expect.assertions(100);
+
+      fc.assert(fc.property(fc.anything(), fc.anything(), valuesDefinition));
     });
   });
 });

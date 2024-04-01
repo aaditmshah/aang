@@ -65,4 +65,8 @@ export class Pair<out A, out B> {
   ): Pair<A, Pair<B, C>> {
     return new Pair(this.fst.fst, new Pair(this.fst.snd, this.snd));
   }
+
+  public values<A, B>(this: Pair<A, B>): [A, B] {
+    return [this.fst, this.snd];
+  }
 }
