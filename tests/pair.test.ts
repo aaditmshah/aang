@@ -36,6 +36,14 @@ const mapSndIdentity = <A, B>(u: Pair<A, B>): void => {
   expect(u.mapSnd(id)).toStrictEqual(u);
 };
 
+const replaceFstDefinition = <A, B, C>(u: Pair<A, C>, b: B): void => {
+  expect(u.replaceFst(b)).toStrictEqual(u.mapFst(() => b));
+};
+
+const replaceSndDefinition = <A, B, C>(u: Pair<A, B>, c: C): void => {
+  expect(u.replaceSnd(c)).toStrictEqual(u.mapSnd(() => c));
+};
+
 const associateLeftInverse = <A, B, C>(u: Pair<Pair<A, B>, C>): void => {
   expect(u.associateRight().associateLeft()).toStrictEqual(u);
 };
@@ -102,6 +110,34 @@ describe("Pair", () => {
 
       fc.assert(
         fc.property(pair(fc.anything(), fc.anything()), mapSndIdentity),
+      );
+    });
+  });
+
+  describe("replaceFst", () => {
+    it("should agree with mapFst", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), fc.anything()),
+          fc.anything(),
+          replaceFstDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("replaceSnd", () => {
+    it("should agree with mapSnd", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), fc.anything()),
+          fc.anything(),
+          replaceSndDefinition,
+        ),
       );
     });
   });

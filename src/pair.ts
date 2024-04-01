@@ -42,6 +42,14 @@ export class Pair<out A, out B> {
     return new Pair(this.fst, morphism(this.snd));
   }
 
+  public replaceFst<A, B, C>(this: Pair<A, C>, fst: B): Pair<B, C> {
+    return new Pair(fst, this.snd);
+  }
+
+  public replaceSnd<A, B, C>(this: Pair<A, B>, snd: C): Pair<A, C> {
+    return new Pair(this.fst, snd);
+  }
+
   public associateLeft<A, B, C>(
     this: Pair<A, Pair<B, C>>,
   ): Pair<Pair<A, B>, C> {
