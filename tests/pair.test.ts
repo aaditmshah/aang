@@ -6,6 +6,10 @@ import { Pair } from "../src/pair.js";
 
 import { pair } from "./arbitraries.js";
 
+const fromDefinition = <A>(a: A): void => {
+  expect(Pair.from(a)).toStrictEqual(Pair.of(a, a));
+};
+
 const mapIdentity = <A, B>(u: Pair<A, B>): void => {
   expect(u.map(id, id)).toStrictEqual(u);
 };
@@ -18,10 +22,6 @@ const mapSndIdentity = <A, B>(u: Pair<A, B>): void => {
   expect(u.mapSnd(id)).toStrictEqual(u);
 };
 
-const fromParametricity = <A, B>(a: A, f: (a: A) => B): void => {
-  expect(Pair.from(a).map(f, f)).toStrictEqual(Pair.from(f(a)));
-};
-
 const associateLeftInverse = <A, B, C>(u: Pair<Pair<A, B>, C>): void => {
   expect(u.associateRight().associateLeft()).toStrictEqual(u);
 };
@@ -31,6 +31,14 @@ const associateRightInverse = <A, B, C>(u: Pair<A, Pair<B, C>>): void => {
 };
 
 describe("Pair", () => {
+  describe("from", () => {
+    it("should agree with Pair.of", () => {
+      expect.assertions(100);
+
+      fc.assert(fc.property(fc.anything(), fromDefinition));
+    });
+  });
+
   describe("map", () => {
     it("should preserve identity morphisms", () => {
       expect.assertions(100);
@@ -55,16 +63,6 @@ describe("Pair", () => {
 
       fc.assert(
         fc.property(pair(fc.anything(), fc.anything()), mapSndIdentity),
-      );
-    });
-  });
-
-  describe("from", () => {
-    it("should be parametric", () => {
-      expect.assertions(100);
-
-      fc.assert(
-        fc.property(fc.anything(), fc.func(fc.anything()), fromParametricity),
       );
     });
   });
