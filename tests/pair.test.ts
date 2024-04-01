@@ -79,6 +79,14 @@ const andAssociativity = <A, B, C, D, E, F>(
   ).toStrictEqual(u.and(v).and(w));
 };
 
+const andFstDefinition = <A, B, C>(u: Pair<A, C>, b: B): void => {
+  expect(u.andFst(b)).toStrictEqual(new Pair(u, b).exchangeSnd());
+};
+
+const andSndDefinition = <A, B, C>(u: Pair<A, B>, c: C): void => {
+  expect(u.andSnd(c)).toStrictEqual(new Pair(u, c).associateRight());
+};
+
 const commuteInverse = <A, B>(u: Pair<A, B>): void => {
   expect(u.commute().commute()).toStrictEqual(u);
 };
@@ -345,6 +353,34 @@ describe("Pair", () => {
           pair(fc.anything(), fc.anything()),
           pair(fc.anything(), fc.anything()),
           andAssociativity,
+        ),
+      );
+    });
+  });
+
+  describe("andFst", () => {
+    it("should agree with exchangeSnd", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), fc.anything()),
+          fc.anything(),
+          andFstDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("andSnd", () => {
+    it("should agree with associateRight", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), fc.anything()),
+          fc.anything(),
+          andSndDefinition,
         ),
       );
     });
