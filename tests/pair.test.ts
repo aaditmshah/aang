@@ -165,6 +165,34 @@ const orSndResultDefinition = <A, E, F>(u: Pair<E, Result<A, F>>): void => {
   expect(u.orSndResult()).toStrictEqual(u.orMapResult(Fail.of, id));
 };
 
+const distributeMapFstDefinition = <X, A, B, C>(
+  u: Pair<X, C>,
+  f: (x: X) => Pair<A, B>,
+): void => {
+  expect(u.distributeMapFst(f)).toStrictEqual(u.distributeMap(f, Pair.from));
+};
+
+const distributeMapSndDefinition = <Y, A, B, C>(
+  u: Pair<A, Y>,
+  g: (y: Y) => Pair<B, C>,
+): void => {
+  expect(u.distributeMapSnd(g)).toStrictEqual(u.distributeMap(Pair.from, g));
+};
+
+const distributeDefinition = <A, B, C, D>(
+  u: Pair<Pair<A, B>, Pair<C, D>>,
+): void => {
+  expect(u.distribute()).toStrictEqual(u.distributeMap(id, id));
+};
+
+const distributeFstDefinition = <A, B, C>(u: Pair<Pair<A, B>, C>): void => {
+  expect(u.distributeFst()).toStrictEqual(u.distributeMap(id, Pair.from));
+};
+
+const distributeSndDefinition = <A, B, C>(u: Pair<A, Pair<B, C>>): void => {
+  expect(u.distributeSnd()).toStrictEqual(u.distributeMap(Pair.from, id));
+};
+
 const associateLeftInverse = <A, B, C>(u: Pair<Pair<A, B>, C>): void => {
   expect(u.associateRight().associateLeft()).toStrictEqual(u);
 };
@@ -510,6 +538,76 @@ describe("Pair", () => {
         fc.property(
           pair(fc.anything(), result(fc.anything(), fc.anything())),
           orSndResultDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("distributeMapFst", () => {
+    it("should agree with distributeMap", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), fc.anything()),
+          fc.func(pair(fc.anything(), fc.anything())),
+          distributeMapFstDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("distributeMapSnd", () => {
+    it("should agree with distributeMap", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), fc.anything()),
+          fc.func(pair(fc.anything(), fc.anything())),
+          distributeMapSndDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("distribute", () => {
+    it("should agree with distributeMap", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(
+            pair(fc.anything(), fc.anything()),
+            pair(fc.anything(), fc.anything()),
+          ),
+          distributeDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("distributeFst", () => {
+    it("should agree with distributeMap", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(pair(fc.anything(), fc.anything()), fc.anything()),
+          distributeFstDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("distributeSnd", () => {
+    it("should agree with distributeMap", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), pair(fc.anything(), fc.anything())),
+          distributeSndDefinition,
         ),
       );
     });

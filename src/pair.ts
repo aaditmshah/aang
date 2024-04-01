@@ -180,6 +180,59 @@ export class Pair<out A, out B> {
     return new Fail(this.fst).or(this.snd);
   }
 
+  public distributeMap<X, Y, A, B, C, D>(
+    this: Pair<X, Y>,
+    fstMorphism: (value: X) => Pair<A, B>,
+    sndMorphism: (value: Y) => Pair<C, D>,
+  ): Pair<Pair<A, C>, Pair<B, D>> {
+    const fst = fstMorphism(this.fst);
+    const snd = sndMorphism(this.snd);
+    return new Pair(new Pair(fst.fst, snd.fst), new Pair(fst.snd, snd.snd));
+  }
+
+  public distributeMapFst<X, A, B, C>(
+    this: Pair<X, C>,
+    morphism: (value: X) => Pair<A, B>,
+  ): Pair<Pair<A, C>, Pair<B, C>> {
+    const fst = morphism(this.fst);
+    return new Pair(new Pair(fst.fst, this.snd), new Pair(fst.snd, this.snd));
+  }
+
+  public distributeMapSnd<Y, A, B, C>(
+    this: Pair<A, Y>,
+    morphism: (value: Y) => Pair<B, C>,
+  ): Pair<Pair<A, B>, Pair<A, C>> {
+    const snd = morphism(this.snd);
+    return new Pair(new Pair(this.fst, snd.fst), new Pair(this.fst, snd.snd));
+  }
+
+  public distribute<A, B, C, D>(
+    this: Pair<Pair<A, B>, Pair<C, D>>,
+  ): Pair<Pair<A, C>, Pair<B, D>> {
+    return new Pair(
+      new Pair(this.fst.fst, this.snd.fst),
+      new Pair(this.fst.snd, this.snd.snd),
+    );
+  }
+
+  public distributeFst<A, B, C>(
+    this: Pair<Pair<A, B>, C>,
+  ): Pair<Pair<A, C>, Pair<B, C>> {
+    return new Pair(
+      new Pair(this.fst.fst, this.snd),
+      new Pair(this.fst.snd, this.snd),
+    );
+  }
+
+  public distributeSnd<A, B, C>(
+    this: Pair<A, Pair<B, C>>,
+  ): Pair<Pair<A, B>, Pair<A, C>> {
+    return new Pair(
+      new Pair(this.fst, this.snd.fst),
+      new Pair(this.fst, this.snd.snd),
+    );
+  }
+
   public associateLeft<A, B, C>(
     this: Pair<A, Pair<B, C>>,
   ): Pair<Pair<A, B>, C> {
