@@ -11,6 +11,10 @@ export class Integer implements TotalOrder<Integer> {
     return new Integer(value);
   }
 
+  public toString(this: Integer): string {
+    return `Integer(${this.value})`;
+  }
+
   public isSame(this: Integer, that: Integer): boolean {
     return this.value === that.value;
   }
@@ -59,6 +63,10 @@ export class Sum extends Integer implements Semigroup<Sum> {
     return new Sum(value);
   }
 
+  public override toString(this: Sum): string {
+    return `Sum(${this.value})`;
+  }
+
   public append(this: Sum, that: Sum): Sum {
     return new Sum(this.value + that.value);
   }
@@ -67,6 +75,10 @@ export class Sum extends Integer implements Semigroup<Sum> {
 export class Product extends Integer implements Semigroup<Product> {
   public static override of(value: bigint): Product {
     return new Product(value);
+  }
+
+  public override toString(this: Product): string {
+    return `Product(${this.value})`;
   }
 
   public append(this: Product, that: Product): Product {

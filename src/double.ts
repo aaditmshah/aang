@@ -10,6 +10,10 @@ export class Double implements TotalOrder<Double> {
     return new Double(value);
   }
 
+  public toString(this: Double): string {
+    return `Double(${this.value})`;
+  }
+
   public isSame(this: Double, that: Double): boolean {
     return Object.is(this.value, that.value);
   }

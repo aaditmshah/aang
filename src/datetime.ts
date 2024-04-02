@@ -10,6 +10,10 @@ export class DateTime implements TotalOrder<DateTime> {
     return new DateTime(value);
   }
 
+  public toString(this: DateTime): string {
+    return `DateTime(${this.value.getTime()})`;
+  }
+
   public isSame(this: DateTime, that: DateTime): boolean {
     return Object.is(this.value.getTime(), that.value.getTime());
   }

@@ -11,6 +11,10 @@ export class Text implements Semigroup<Text>, TotalOrder<Text> {
     return new Text(value);
   }
 
+  public toString(this: Text): string {
+    return `Text(${JSON.stringify(this.value)})`;
+  }
+
   public append(this: Text, that: Text): Text {
     return new Text(`${this.value}${that.value}`);
   }

@@ -11,6 +11,10 @@ export class Bool implements TotalOrder<Bool> {
     return new Bool(value);
   }
 
+  public toString(this: Bool): string {
+    return `Bool(${this.value})`;
+  }
+
   public isSame(this: Bool, that: Bool): boolean {
     return this.value === that.value;
   }
@@ -59,6 +63,10 @@ export class Any extends Bool implements Semigroup<Any> {
     return new Any(value);
   }
 
+  public override toString(this: Any): string {
+    return `Any(${this.value})`;
+  }
+
   public append(this: Any, that: Any): Any {
     return new Any(this.value || that.value);
   }
@@ -67,6 +75,10 @@ export class Any extends Bool implements Semigroup<Any> {
 export class All extends Bool implements Semigroup<All> {
   public static override of(value: boolean): All {
     return new All(value);
+  }
+
+  public override toString(this: All): string {
+    return `All(${this.value})`;
   }
 
   public append(this: All, that: All): All {
