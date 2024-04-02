@@ -478,4 +478,34 @@ export class Pair<out A, out B> {
   public values<A, B>(this: Pair<A, B>): [A, B] {
     return [this.fst, this.snd];
   }
+
+  public *effectMap<A, B, C>(
+    this: Pair<A, C>,
+    morphism: (value: A) => B,
+  ): Generator<Pair<A, C>, B, A> {
+    const value = yield this;
+    return morphism(value);
+  }
+
+  public *effect<A, B>(this: Pair<A, B>): Generator<Pair<A, B>, A, A> {
+    const value = yield this;
+    return value;
+  }
+
+  public static fromGenerator<A, B extends Semigroup<B>>(
+    value: B,
+    getGenerator: () => Generator<Pair<unknown, B>, A, unknown>,
+  ): Pair<A, B> {
+    const generator = getGenerator();
+    let result = generator.next();
+    let snd = value;
+
+    while (!result.done) {
+      const pair = result.value;
+      snd = snd.append(pair.snd);
+      result = generator.next(pair.fst);
+    }
+
+    return new Pair(result.value, snd);
+  }
 }

@@ -11,7 +11,7 @@ import type { Semigroup } from "../src/semigroup.js";
 import { Text } from "../src/text.js";
 
 import { option, pair, result, text } from "./arbitraries.js";
-import { collatz } from "./utils.js";
+import { collatz, hotpo, isPowerOfTwo } from "./utils.js";
 
 const fromDefinition = <A>(a: A): void => {
   expect(Pair.from(a)).toStrictEqual(Pair.of(a, a));
@@ -390,6 +390,45 @@ const distributeFailInverse = <A, B, C>(u: Pair<Result<A, B>, C>): void => {
 
 const valuesDefinition = <A, B>(a: A, b: B): void => {
   expect(new Pair(a, b).values()).toStrictEqual([a, b]);
+};
+
+const effectMapDefinition = <A, B, C extends Semigroup<C>>(
+  c: C,
+  m: Pair<A, C>,
+  f: (a: A) => B,
+): void => {
+  expect(
+    Pair.fromGenerator(c, function* () {
+      const b: B = yield* m.effectMap(f);
+      return b;
+    }),
+  ).toStrictEqual(
+    Pair.fromGenerator(c, function* () {
+      const b: B = f(yield* m.effect());
+      return b;
+    }),
+  );
+};
+
+const fromGeneratorEquivalence = <A, B, C extends Semigroup<C>>(
+  c: C,
+  m: Pair<A, C>,
+  p: (a: A) => boolean,
+  f: (a: A) => Pair<A, C>,
+  g: (a: A) => Pair<B, C>,
+): void => {
+  expect(
+    Pair.fromGenerator(c, function* () {
+      let a: A = yield* m.effect();
+      while (!p(a)) a = yield* f(a).effect();
+      const b: B = yield* g(a).effect();
+      return b;
+    }),
+  ).toStrictEqual(
+    m.flatMapFstUntil((a) =>
+      p(a) ? g(a).mapFst(Okay.of) : f(a).mapFst(Fail.of),
+    ),
+  );
 };
 
 describe("Pair", () => {
@@ -1221,6 +1260,38 @@ describe("Pair", () => {
       expect.assertions(100);
 
       fc.assert(fc.property(fc.anything(), fc.anything(), valuesDefinition));
+    });
+  });
+
+  describe("effectMap", () => {
+    it("should agree with effect", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          fc.constant(new Text("")),
+          pair(fc.anything(), text),
+          fc.func(fc.anything()),
+          effectMapDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("fromGenerator", () => {
+    it("should be equivalent to multiple flatMapFst calls", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          fc.constant(new Text("")),
+          pair(fc.integer({ min: 1 }), text),
+          fc.constant(isPowerOfTwo),
+          fc.func(text).map((f) => (n: number) => new Pair(hotpo(n), f(n))),
+          fc.func(pair(fc.anything(), text)),
+          fromGeneratorEquivalence,
+        ),
+      );
     });
   });
 });
