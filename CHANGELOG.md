@@ -1,3 +1,35 @@
+# [v2.0.0-alpha.26](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.25...v2.0.0-alpha.26) (2024-04-02)
+
+## ✨ New Features
+
+- [`8162cbb`](https://github.com/aaditmshah/aang/commit/8162cbb) Add the static &#x60;of&#x60; method to the &#x60;Pair&#x60; class
+- [`1d7f3a5`](https://github.com/aaditmshah/aang/commit/1d7f3a5) Add the &#x60;toString&#x60; method to the &#x60;Pair&#x60; class
+- [`798151b`](https://github.com/aaditmshah/aang/commit/798151b) Add &#x60;fold&#x60; to &#x60;Option&#x60;, &#x60;Pair&#x60;, and &#x60;Result&#x60;
+- [`9c71117`](https://github.com/aaditmshah/aang/commit/9c71117) Add &#x60;uncurry2&#x60;, &#x60;uncurry3&#x60;, &amp; &#x60;uncurry4&#x60; functions
+- [`461dc16`](https://github.com/aaditmshah/aang/commit/461dc16) Add &#x60;replaceFst&#x60; &amp; &#x60;replaceSnd&#x60; to &#x60;Pair&#x60; class
+- [`c25217d`](https://github.com/aaditmshah/aang/commit/c25217d) Add the &#x60;commute&#x60; method to the &#x60;Pair&#x60; class
+- [`b61a806`](https://github.com/aaditmshah/aang/commit/b61a806) Add the &#x60;values&#x60; method to the &#x60;Pair&#x60; class
+- [`25f9465`](https://github.com/aaditmshah/aang/commit/25f9465) Add the &#x60;and&#x60; method to the &#x60;Pair&#x60; class
+- [`98dd258`](https://github.com/aaditmshah/aang/commit/98dd258) Add &#x60;andOption&#x60; and variants to the &#x60;Pair&#x60; class
+- [`d7cc8fb`](https://github.com/aaditmshah/aang/commit/d7cc8fb) Add &#x60;andResult&#x60; and variants to the &#x60;Pair&#x60; class
+- [`afda9d6`](https://github.com/aaditmshah/aang/commit/afda9d6) Add &#x60;orResult&#x60; and variants to the &#x60;Pair&#x60; class
+- [`39c53bb`](https://github.com/aaditmshah/aang/commit/39c53bb) Add &#x60;distribute&#x60; and variants to the &#x60;Pair&#x60; class
+- [`0ff8e9f`](https://github.com/aaditmshah/aang/commit/0ff8e9f) Add &#x60;exchange&#x60; &amp; &#x60;associate&#x60; methods, &amp; variants
+- [`c7472a4`](https://github.com/aaditmshah/aang/commit/c7472a4) Add the &#x60;andFst&#x60; and &#x60;andSnd&#x60; methods to &#x60;Pair&#x60;
+- [`283cf61`](https://github.com/aaditmshah/aang/commit/283cf61) Add &#x60;distributeOkay&#x60;, &#x60;distributeFail&#x60;, &amp; variants
+- [`d193e3c`](https://github.com/aaditmshah/aang/commit/d193e3c) Add the &#x60;TotalOrder&#x60; instance methods to &#x60;Pair&#x60;
+- [`13c1445`](https://github.com/aaditmshah/aang/commit/13c1445) Add the &#x60;flatMap&#x60; methods and variants to &#x60;Pair&#x60;
+- [`3300ee1`](https://github.com/aaditmshah/aang/commit/3300ee1) Add &#x60;extend&#x60; method and variants to &#x60;Pair&#x60; class
+- [`4fee378`](https://github.com/aaditmshah/aang/commit/4fee378) Add &#x60;fromGenerator&#x60;, &#x60;effect&#x60;, and &#x60;effectMap&#x60;
+- [`596858d`](https://github.com/aaditmshah/aang/commit/596858d) Add the &#x60;Pair.fst&#x60; and &#x60;Pair.snd&#x60; static methods
+- [`271a7bd`](https://github.com/aaditmshah/aang/commit/271a7bd) Add &#x60;toString&#x60; methods to all primitive data types
+
+## 💥 Breaking Changes
+
+- [`b6c1d58`](https://github.com/aaditmshah/aang/commit/b6c1d58) Rename the &#x60;Pair.of&#x60; method to &#x60;Pair.from&#x60;
+- [`7ef7139`](https://github.com/aaditmshah/aang/commit/7ef7139) Delete the &#x60;flatten&#x60; method of &#x60;ResultTrait&#x60;
+- [`1cf56a8`](https://github.com/aaditmshah/aang/commit/1cf56a8) Rename the &#x60;[Symbol.iterator]&#x60; method to &#x60;values&#x60;
+
 # [v2.0.0-alpha.25](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.24...v2.0.0-alpha.25) (2024-03-29)
 
 ## ✨ New Features
