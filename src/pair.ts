@@ -5,6 +5,7 @@ import type { Ordering } from "./ordering.js";
 import { isLess, isMore, isNotLess, isNotMore, isSame } from "./ordering.js";
 import type { Result } from "./result.js";
 import { Fail, Okay } from "./result.js";
+import type { Semigroup } from "./semigroup.js";
 
 export class Pair<out A, out B> {
   public constructor(
@@ -71,6 +72,52 @@ export class Pair<out A, out B> {
 
   public andSnd<A, B, C>(this: Pair<A, B>, snd: C): Pair<A, Pair<B, C>> {
     return new Pair(this.fst, new Pair(this.snd, snd));
+  }
+
+  public flatMapFst<A, B, C extends Semigroup<C>>(
+    this: Pair<A, C>,
+    arrow: (value: A) => Pair<B, C>,
+  ): Pair<B, C> {
+    return arrow(this.fst).mapSnd((snd) => this.snd.append(snd));
+  }
+
+  public flatMapSnd<A extends Semigroup<A>, B, C>(
+    this: Pair<A, B>,
+    arrow: (value: B) => Pair<A, C>,
+  ): Pair<A, C> {
+    return arrow(this.snd).mapFst((fst) => this.fst.append(fst));
+  }
+
+  public flattenFst<A, B extends Semigroup<B>>(
+    this: Pair<Pair<A, B>, B>,
+  ): Pair<A, B> {
+    return this.fst.mapSnd((snd) => this.snd.append(snd));
+  }
+
+  public flattenSnd<A extends Semigroup<A>, B>(
+    this: Pair<A, Pair<A, B>>,
+  ): Pair<A, B> {
+    return this.snd.mapFst((fst) => this.fst.append(fst));
+  }
+
+  public flatMapFstUntil<A, B, C extends Semigroup<C>>(
+    this: Pair<A, C>,
+    arrow: (value: A) => Pair<Result<B, A>, C>,
+  ): Pair<B, C> {
+    let result = this.flatMapFst(arrow).distributeFail();
+    while (result.isFail)
+      result = result.value.flatMapFst(arrow).distributeFail();
+    return result.value;
+  }
+
+  public flatMapSndUntil<A extends Semigroup<A>, B, C>(
+    this: Pair<A, B>,
+    arrow: (value: B) => Pair<A, Result<C, B>>,
+  ): Pair<A, C> {
+    let result = this.flatMapSnd(arrow).distributeOkay();
+    while (result.isFail)
+      result = result.value.flatMapSnd(arrow).distributeOkay();
+    return result.value;
   }
 
   public commute<A, B>(this: Pair<A, B>): Pair<B, A> {

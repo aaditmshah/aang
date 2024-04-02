@@ -7,8 +7,11 @@ import { Some } from "../src/option.js";
 import { Pair } from "../src/pair.js";
 import type { Result } from "../src/result.js";
 import { Fail, Okay } from "../src/result.js";
+import type { Semigroup } from "../src/semigroup.js";
+import { Text } from "../src/text.js";
 
-import { option, pair, result } from "./arbitraries.js";
+import { option, pair, result, text } from "./arbitraries.js";
+import { collatz } from "./utils.js";
 
 const fromDefinition = <A>(a: A): void => {
   expect(Pair.from(a)).toStrictEqual(Pair.of(a, a));
@@ -85,6 +88,88 @@ const andFstDefinition = <A, B, C>(u: Pair<A, C>, b: B): void => {
 
 const andSndDefinition = <A, B, C>(u: Pair<A, B>, c: C): void => {
   expect(u.andSnd(c)).toStrictEqual(new Pair(u, c).associateRight());
+};
+
+const flatMapFstLeftIdentity = <A, B, C extends Semigroup<C>>(
+  a: A,
+  c: C,
+  k: (a: A) => Pair<B, C>,
+): void => {
+  expect(new Pair(a, c).flatMapFst(k)).toStrictEqual(k(a));
+};
+
+const flatMapFstRightIdentity = <A, B extends Semigroup<B>>(
+  m: Pair<A, B>,
+  b: B,
+): void => {
+  expect(m.flatMapFst((a) => new Pair(a, b))).toStrictEqual(m);
+};
+
+const flatMapFstAssociativity = <A, B, C, D extends Semigroup<D>>(
+  m: Pair<A, D>,
+  k: (a: A) => Pair<B, D>,
+  h: (b: B) => Pair<C, D>,
+): void => {
+  expect(m.flatMapFst((a) => k(a).flatMapFst(h))).toStrictEqual(
+    m.flatMapFst(k).flatMapFst(h),
+  );
+};
+
+const flatMapSndLeftIdentity = <A extends Semigroup<A>, B, C>(
+  a: A,
+  b: B,
+  k: (b: B) => Pair<A, C>,
+): void => {
+  expect(new Pair(a, b).flatMapSnd(k)).toStrictEqual(k(b));
+};
+
+const flatMapSndRightIdentity = <A extends Semigroup<A>, B>(
+  m: Pair<A, B>,
+  a: A,
+): void => {
+  expect(m.flatMapSnd((b) => new Pair(a, b))).toStrictEqual(m);
+};
+
+const flatMapSndAssociativity = <A extends Semigroup<A>, B, C, D>(
+  m: Pair<A, B>,
+  k: (b: B) => Pair<A, C>,
+  h: (c: C) => Pair<A, D>,
+): void => {
+  expect(m.flatMapSnd((b) => k(b).flatMapSnd(h))).toStrictEqual(
+    m.flatMapSnd(k).flatMapSnd(h),
+  );
+};
+
+const flattenFstDefinition = <A, B extends Semigroup<B>>(
+  u: Pair<Pair<A, B>, B>,
+): void => {
+  expect(u.flattenFst()).toStrictEqual(u.flatMapFst(id));
+};
+
+const flattenSndDefinition = <A extends Semigroup<A>, B>(
+  u: Pair<A, Pair<A, B>>,
+): void => {
+  expect(u.flattenSnd()).toStrictEqual(u.flatMapSnd(id));
+};
+
+const flatMapFstUntilEquivalence = <A, B, C extends Semigroup<C>>(
+  m: Pair<A, C>,
+  c: C,
+  k: (a: A) => Pair<Result<B, A>, C>,
+): void => {
+  const f = (x: Result<B, A>): Pair<B, C> =>
+    x.isOkay ? new Pair(x.value, c) : k(x.value).flatMapFst(f);
+  expect(m.flatMapFstUntil(k)).toStrictEqual(m.flatMapFst(k).flatMapFst(f));
+};
+
+const flatMapSndUntilEquivalence = <A extends Semigroup<A>, B, C>(
+  m: Pair<A, B>,
+  a: A,
+  k: (b: B) => Pair<A, Result<C, B>>,
+): void => {
+  const g = (x: Result<C, B>): Pair<A, C> =>
+    x.isOkay ? new Pair(a, x.value) : k(x.value).flatMapSnd(g);
+  expect(m.flatMapSndUntil(k)).toStrictEqual(m.flatMapSnd(k).flatMapSnd(g));
 };
 
 const commuteInverse = <A, B>(u: Pair<A, B>): void => {
@@ -401,6 +486,142 @@ describe("Pair", () => {
           pair(fc.anything(), fc.anything()),
           fc.anything(),
           andSndDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("flatMapFst", () => {
+    it("should have a left identity", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          fc.anything(),
+          fc.constant(new Text("")),
+          fc.func(pair(fc.anything(), text)),
+          flatMapFstLeftIdentity,
+        ),
+      );
+    });
+
+    it("should have a right identity", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), text),
+          fc.constant(new Text("")),
+          flatMapFstRightIdentity,
+        ),
+      );
+    });
+
+    it("should be associative", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), text),
+          fc.func(pair(fc.anything(), text)),
+          fc.func(pair(fc.anything(), text)),
+          flatMapFstAssociativity,
+        ),
+      );
+    });
+  });
+
+  describe("flatMapSnd", () => {
+    it("should have a left identity", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          fc.constant(new Text("")),
+          fc.anything(),
+          fc.func(pair(text, fc.anything())),
+          flatMapSndLeftIdentity,
+        ),
+      );
+    });
+
+    it("should have a right identity", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(text, fc.anything()),
+          fc.constant(new Text("")),
+          flatMapSndRightIdentity,
+        ),
+      );
+    });
+
+    it("should be associative", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(text, fc.anything()),
+          fc.func(pair(text, fc.anything())),
+          fc.func(pair(text, fc.anything())),
+          flatMapSndAssociativity,
+        ),
+      );
+    });
+  });
+
+  describe("flattenFst", () => {
+    it("should agree with flatMapFst", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(pair(fc.anything(), text), text),
+          flattenFstDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("flattenSnd", () => {
+    it("should agree with flatMapSnd", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(text, pair(text, fc.anything())),
+          flattenSndDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("flatMapFstUntil", () => {
+    it("should be equivalent to multiple flatMapFst calls", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.integer({ min: 1 }), text),
+          fc.constant(new Text("")),
+          fc.func(text).map((f) => (n: number) => new Pair(collatz(n), f(n))),
+          flatMapFstUntilEquivalence,
+        ),
+      );
+    });
+  });
+
+  describe("flatMapSndUntil", () => {
+    it("should be equivalent to multiple flatMapSnd calls", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(text, fc.integer({ min: 1 })),
+          fc.constant(new Text("")),
+          fc.func(text).map((f) => (n: number) => new Pair(f(n), collatz(n))),
+          flatMapSndUntilEquivalence,
         ),
       );
     });
