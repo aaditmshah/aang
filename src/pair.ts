@@ -21,6 +21,14 @@ export class Pair<out A, out B> {
     return new Pair(value, value);
   }
 
+  public static fst<A>(value: A): Pair<A, void> {
+    return new Pair(value, undefined);
+  }
+
+  public static snd<B>(value: B): Pair<void, B> {
+    return new Pair(undefined, value);
+  }
+
   public toString<A, B>(this: Pair<A, B>): string {
     return `Pair(${String(this.fst)}, ${String(this.snd)})`;
   }

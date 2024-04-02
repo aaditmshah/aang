@@ -17,6 +17,14 @@ const fromDefinition = <A>(a: A): void => {
   expect(Pair.from(a)).toStrictEqual(Pair.of(a, a));
 };
 
+const fstDefinition = <A>(a: A): void => {
+  expect(Pair.fst(a)).toStrictEqual(new Pair(a, undefined));
+};
+
+const sndDefinition = <B>(b: B): void => {
+  expect(Pair.snd(b)).toStrictEqual(new Pair(undefined, b));
+};
+
 const toStringDefinition = <A, B>(m: Pair<A, B>): void => {
   try {
     expect(m.toString()).toStrictEqual(
@@ -437,6 +445,22 @@ describe("Pair", () => {
       expect.assertions(100);
 
       fc.assert(fc.property(fc.anything(), fromDefinition));
+    });
+  });
+
+  describe("fst", () => {
+    it("should return a pair of the value and undefined", () => {
+      expect.assertions(100);
+
+      fc.assert(fc.property(fc.anything(), fstDefinition));
+    });
+  });
+
+  describe("snd", () => {
+    it("should return a pair of undefined and the value", () => {
+      expect.assertions(100);
+
+      fc.assert(fc.property(fc.anything(), sndDefinition));
     });
   });
 
