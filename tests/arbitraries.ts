@@ -1,11 +1,44 @@
 import fc from "fast-check";
 
+import { All, Any, Bool } from "../src/bool.js";
+import { DateTime } from "../src/datetime.js";
+import { Double } from "../src/double.js";
+import { Integer, Product, Sum } from "../src/integer.js";
 import type { Option } from "../src/option.js";
 import { None, Some } from "../src/option.js";
 import type { Ordering } from "../src/ordering.js";
 import { Pair } from "../src/pair.js";
 import type { Result } from "../src/result.js";
 import { Fail, Okay } from "../src/result.js";
+import { Text } from "../src/text.js";
+
+export const bool: fc.Arbitrary<Bool> = fc.boolean().map(Bool.of);
+
+export const any: fc.Arbitrary<Any> = fc.boolean().map(Any.of);
+
+export const all: fc.Arbitrary<All> = fc.boolean().map(All.of);
+
+export const datetime: fc.Arbitrary<DateTime> = fc
+  .date({ min: new Date(0), max: new Date(9), noInvalidDate: false })
+  .map(DateTime.of);
+
+export const double: fc.Arbitrary<Double> = fc
+  .oneof(
+    fc.nat(9),
+    fc.constant(-0),
+    fc.constant(Number.NaN),
+    fc.constant(Number.POSITIVE_INFINITY),
+    fc.constant(Number.NEGATIVE_INFINITY),
+  )
+  .map(Double.of);
+
+export const integer: fc.Arbitrary<Integer> = fc.bigUint(9n).map(Integer.of);
+
+export const sum: fc.Arbitrary<Sum> = fc.bigUint().map(Sum.of);
+
+export const product: fc.Arbitrary<Product> = fc.bigUint().map(Product.of);
+
+export const text: fc.Arbitrary<Text> = fc.string().map(Text.of);
 
 export const some = <A>(a: fc.Arbitrary<A>): fc.Arbitrary<Some<A>> =>
   a.map(Some.of);

@@ -1,17 +1,21 @@
 import { describe, expect, it } from "@jest/globals";
 import fc from "fast-check";
 
-import { Bool } from "../src/bool.js";
-import { DateTime } from "../src/datetime.js";
-import { Double } from "../src/double.js";
-import { Integer } from "../src/integer.js";
 import type { Option } from "../src/option.js";
 import { None, Some } from "../src/option.js";
 import type { PartialOrder, Setoid, TotalOrder } from "../src/order.js";
 import type { Ordering } from "../src/ordering.js";
-import { Text } from "../src/text.js";
 
-import { option, pair, result } from "./arbitraries.js";
+import {
+  bool,
+  datetime,
+  double,
+  integer,
+  option,
+  pair,
+  result,
+  text,
+} from "./arbitraries.js";
 
 const testSetoid = <A extends Setoid<A>>(
   name: string,
@@ -315,29 +319,11 @@ class Unknown implements PartialOrder<Unknown> {
   }
 }
 
-const double = fc
-  .oneof(
-    fc.nat(9),
-    fc.constant(-0),
-    fc.constant(Number.NaN),
-    fc.constant(Number.POSITIVE_INFINITY),
-    fc.constant(Number.NEGATIVE_INFINITY),
-  )
-  .map(Double.of);
-
-const datetime = fc
-  .date({
-    min: new Date(0),
-    max: new Date(9),
-    noInvalidDate: false,
-  })
-  .map(DateTime.of);
-
 testPartialOrder("Unknown", fc.anything().map(Unknown.of));
-testTotalOrder("Text", fc.string().map(Text.of));
+testTotalOrder("Text", text);
 testTotalOrder("Double", double);
-testTotalOrder("Integer", fc.bigUint(9n).map(Integer.of));
-testTotalOrder("Bool", fc.boolean().map(Bool.of));
+testTotalOrder("Integer", integer);
+testTotalOrder("Bool", bool);
 testTotalOrder("DateTime", datetime);
 testTotalOrder("Option<Double>", option(double));
 testTotalOrder("Result<Double, DateTime>", result(double, datetime));
