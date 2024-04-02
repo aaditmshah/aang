@@ -120,6 +120,28 @@ export class Pair<out A, out B> {
     return result.value;
   }
 
+  public extendMapFst<A, B, C>(
+    this: Pair<A, C>,
+    arrow: (pair: Pair<A, C>) => B,
+  ): Pair<B, C> {
+    return new Pair(arrow(this), this.snd);
+  }
+
+  public extendMapSnd<A, B, C>(
+    this: Pair<A, B>,
+    arrow: (pair: Pair<A, B>) => C,
+  ): Pair<A, C> {
+    return new Pair(this.fst, arrow(this));
+  }
+
+  public extendFst<A, B>(this: Pair<A, B>): Pair<Pair<A, B>, B> {
+    return new Pair(this, this.snd);
+  }
+
+  public extendSnd<A, B>(this: Pair<A, B>): Pair<A, Pair<A, B>> {
+    return new Pair(this.fst, this);
+  }
+
   public commute<A, B>(this: Pair<A, B>): Pair<B, A> {
     return new Pair(this.snd, this.fst);
   }

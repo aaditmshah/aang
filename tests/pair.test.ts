@@ -172,6 +172,56 @@ const flatMapSndUntilEquivalence = <A extends Semigroup<A>, B, C>(
   expect(m.flatMapSndUntil(k)).toStrictEqual(m.flatMapSnd(k).flatMapSnd(g));
 };
 
+const extendMapFstLeftIdentity = <A, B, C>(
+  m: Pair<A, C>,
+  f: (m: Pair<A, C>) => B,
+): void => {
+  expect(m.extendMapFst(f).fst).toStrictEqual(f(m));
+};
+
+const extendMapFstRightIdentity = <A, B>(m: Pair<A, B>): void => {
+  expect(m.extendMapFst((m) => m.fst)).toStrictEqual(m);
+};
+
+const extendMapFstAssociativity = <A, B, C, D>(
+  m: Pair<A, D>,
+  f: (m: Pair<A, D>) => B,
+  g: (n: Pair<B, D>) => C,
+): void => {
+  expect(m.extendMapFst((m) => g(m.extendMapFst(f)))).toStrictEqual(
+    m.extendMapFst(f).extendMapFst(g),
+  );
+};
+
+const extendMapSndLeftIdentity = <A, B, C>(
+  m: Pair<A, B>,
+  f: (m: Pair<A, B>) => C,
+): void => {
+  expect(m.extendMapSnd(f).snd).toStrictEqual(f(m));
+};
+
+const extendMapSndRightIdentity = <A, B>(m: Pair<A, B>): void => {
+  expect(m.extendMapSnd((m) => m.snd)).toStrictEqual(m);
+};
+
+const extendMapSndAssociativity = <A, B, C, D>(
+  m: Pair<A, B>,
+  f: (m: Pair<A, B>) => C,
+  g: (n: Pair<A, C>) => D,
+): void => {
+  expect(m.extendMapSnd((m) => g(m.extendMapSnd(f)))).toStrictEqual(
+    m.extendMapSnd(f).extendMapSnd(g),
+  );
+};
+
+const extendFstDefinition = <A, B>(u: Pair<A, B>): void => {
+  expect(u.extendFst()).toStrictEqual(u.extendMapFst(id));
+};
+
+const extendSndDefinition = <A, B>(u: Pair<A, B>): void => {
+  expect(u.extendSnd()).toStrictEqual(u.extendMapSnd(id));
+};
+
 const commuteInverse = <A, B>(u: Pair<A, B>): void => {
   expect(u.commute().commute()).toStrictEqual(u);
 };
@@ -623,6 +673,102 @@ describe("Pair", () => {
           fc.func(text).map((f) => (n: number) => new Pair(f(n), collatz(n))),
           flatMapSndUntilEquivalence,
         ),
+      );
+    });
+  });
+
+  describe("extendMapFst", () => {
+    it("should have a left identity", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), fc.anything()),
+          fc.func(fc.anything()),
+          extendMapFstLeftIdentity,
+        ),
+      );
+    });
+
+    it("should have a right identity", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), fc.anything()),
+          extendMapFstRightIdentity,
+        ),
+      );
+    });
+
+    it("should be associative", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), fc.anything()),
+          fc.func(fc.anything()),
+          fc.func(fc.anything()),
+          extendMapFstAssociativity,
+        ),
+      );
+    });
+  });
+
+  describe("extendMapSnd", () => {
+    it("should have a left identity", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), fc.anything()),
+          fc.func(fc.anything()),
+          extendMapSndLeftIdentity,
+        ),
+      );
+    });
+
+    it("should have a right identity", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), fc.anything()),
+          extendMapSndRightIdentity,
+        ),
+      );
+    });
+
+    it("should be associative", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), fc.anything()),
+          fc.func(fc.anything()),
+          fc.func(fc.anything()),
+          extendMapSndAssociativity,
+        ),
+      );
+    });
+  });
+
+  describe("extendFst", () => {
+    it("should agree with extendMapFst", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(pair(fc.anything(), fc.anything()), extendFstDefinition),
+      );
+    });
+  });
+
+  describe("extendSnd", () => {
+    it("should agree with extendMapSnd", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(pair(fc.anything(), fc.anything()), extendSndDefinition),
       );
     });
   });
