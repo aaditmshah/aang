@@ -1,4 +1,3 @@
-import { NoneException } from "./exceptions.js";
 import type { PartialOrder, Setoid, TotalOrder } from "./order.js";
 import type { Ordering } from "./ordering.js";
 import { Pair } from "./pair.js";
@@ -265,19 +264,6 @@ abstract class OptionTrait {
   public *values<A>(this: Option<A>): Generator<A, void, undefined> {
     if (this.isSome) yield this.value;
   }
-
-  public *effectMap<A, B>(
-    this: Option<A>,
-    morphism: (value: A) => B,
-  ): Generator<Option<A>, B, A> {
-    const value = yield this;
-    return morphism(value);
-  }
-
-  public *effect<A>(this: Option<A>): Generator<Option<A>, A, A> {
-    const value = yield this;
-    return value;
-  }
 }
 
 export class Some<out A> extends OptionTrait {
@@ -306,36 +292,6 @@ export class Some<out A> extends OptionTrait {
     validate: (value: A) => boolean,
   ): Option<A> {
     return validate(value) ? new Some(value) : None.instance;
-  }
-
-  // TODO: <A, B>(getGenerator: () => Generator<Option<A>, B, A>) => Option<B>
-  public static fromGenerator<A>(
-    getGenerator: () => Generator<Option<unknown>, A, unknown>,
-  ): Option<A> {
-    const generator = getGenerator();
-
-    let result: IteratorResult<Option<unknown>, A>;
-
-    try {
-      result = generator.next();
-    } catch (error) {
-      if (error instanceof NoneException) return None.instance;
-      throw error;
-    }
-
-    while (!result.done) {
-      const option = result.value;
-      try {
-        result = option.isSome
-          ? generator.next(option.value)
-          : generator.throw(new NoneException());
-      } catch (error) {
-        if (error instanceof NoneException) return None.instance;
-        throw error;
-      }
-    }
-
-    return new Some(result.value);
   }
 }
 

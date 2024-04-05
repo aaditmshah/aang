@@ -23,10 +23,3 @@ export abstract class Exception extends Error {
     });
   }
 }
-
-export class NoneException extends Exception {
-  public constructor() {
-    super();
-    this.setName("NoneException");
-  }
-}
