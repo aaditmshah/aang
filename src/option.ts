@@ -8,9 +8,7 @@ import type { Semigroup } from "./semigroup.js";
 
 export type Option<A> = Some<A> | None;
 
-abstract class OptionTrait
-  implements Semigroup<Option<never>>, TotalOrder<Option<never>>
-{
+abstract class OptionTrait {
   public abstract readonly isSome: boolean;
 
   public abstract readonly isNone: boolean;

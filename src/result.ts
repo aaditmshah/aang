@@ -6,7 +6,7 @@ import { Pair } from "./pair.js";
 
 export type Result<A, E> = Okay<A> | Fail<E>;
 
-abstract class ResultTrait implements TotalOrder<Result<never, never>> {
+abstract class ResultTrait {
   public abstract readonly isOkay: boolean;
 
   public abstract readonly isFail: boolean;
