@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.27](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.26...v2.0.0-alpha.27) (2024-04-05)
+
+## 💥 Breaking Changes
+
+- [`1ad2cb6`](https://github.com/aaditmshah/aang/commit/1ad2cb6) Remove &#x60;Some.fromGenerator&#x60; and &#x60;NoneException&#x60;
+
 # [v2.0.0-alpha.26](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.25...v2.0.0-alpha.26) (2024-04-02)
 
 ## ✨ New Features
