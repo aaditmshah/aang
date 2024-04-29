@@ -74,12 +74,46 @@ export class Pair<out A, out B> {
     return new Pair(new Pair(this.fst, that.fst), new Pair(this.snd, that.snd));
   }
 
-  public andFst<A, B, C>(this: Pair<A, C>, snd: B): Pair<Pair<A, B>, C> {
-    return new Pair(new Pair(this.fst, snd), this.snd);
+  public andFst<A, B, C extends Semigroup<C>>(
+    this: Pair<A, C>,
+    that: Pair<B, C>,
+  ): Pair<Pair<A, B>, C> {
+    return new Pair(new Pair(this.fst, that.fst), this.snd.append(that.snd));
   }
 
-  public andSnd<A, B, C>(this: Pair<A, B>, snd: C): Pair<A, Pair<B, C>> {
-    return new Pair(this.fst, new Pair(this.snd, snd));
+  public andThenFst<A, B, C extends Semigroup<C>>(
+    this: Pair<A, C>,
+    that: Pair<B, C>,
+  ): Pair<B, C> {
+    return new Pair(that.fst, this.snd.append(that.snd));
+  }
+
+  public andWhenFst<A, B, C extends Semigroup<C>>(
+    this: Pair<A, C>,
+    that: Pair<B, C>,
+  ): Pair<A, C> {
+    return new Pair(this.fst, this.snd.append(that.snd));
+  }
+
+  public andSnd<A extends Semigroup<A>, B, C>(
+    this: Pair<A, B>,
+    that: Pair<A, C>,
+  ): Pair<A, Pair<B, C>> {
+    return new Pair(this.fst.append(that.fst), new Pair(this.snd, that.snd));
+  }
+
+  public andThenSnd<A extends Semigroup<A>, B, C>(
+    this: Pair<A, B>,
+    that: Pair<A, C>,
+  ): Pair<A, C> {
+    return new Pair(this.fst.append(that.fst), that.snd);
+  }
+
+  public andWhenSnd<A extends Semigroup<A>, B, C>(
+    this: Pair<A, B>,
+    that: Pair<A, C>,
+  ): Pair<A, B> {
+    return new Pair(this.fst.append(that.fst), this.snd);
   }
 
   public flatMapFst<A, B, C extends Semigroup<C>>(

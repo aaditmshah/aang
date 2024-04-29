@@ -90,12 +90,88 @@ const andAssociativity = <A, B, C, D, E, F>(
   ).toStrictEqual(u.and(v).and(w));
 };
 
-const andFstDefinition = <A, B, C>(u: Pair<A, C>, b: B): void => {
-  expect(u.andFst(b)).toStrictEqual(new Pair(u, b).exchangeSnd());
+const andFstLeftIdentity = <A, B extends Semigroup<B>>(
+  v: Pair<A, B>,
+  b: B,
+): void => {
+  expect(new Pair(undefined, b).andFst(v)).toStrictEqual(
+    v.mapFst((y) => new Pair(undefined, y)),
+  );
 };
 
-const andSndDefinition = <A, B, C>(u: Pair<A, B>, c: C): void => {
-  expect(u.andSnd(c)).toStrictEqual(new Pair(u, c).associateRight());
+const andFstRightIdentity = <A, B extends Semigroup<B>>(
+  u: Pair<A, B>,
+  b: B,
+): void => {
+  expect(u.andFst(new Pair(undefined, b))).toStrictEqual(
+    u.mapFst((x) => new Pair(x, undefined)),
+  );
+};
+
+const andFstAssociativity = <A, B, C, D extends Semigroup<D>>(
+  u: Pair<A, D>,
+  v: Pair<B, D>,
+  w: Pair<C, D>,
+): void => {
+  expect(u.andFst(v.andFst(w)).mapFst((x) => x.associateLeft())).toStrictEqual(
+    u.andFst(v).andFst(w),
+  );
+};
+
+const andThenFstDefinition = <A, B, C extends Semigroup<C>>(
+  u: Pair<A, C>,
+  v: Pair<B, C>,
+): void => {
+  expect(u.andThenFst(v)).toStrictEqual(u.andFst(v).mapFst((x) => x.snd));
+};
+
+const andWhenFstDefinition = <A, B, C extends Semigroup<C>>(
+  u: Pair<A, C>,
+  v: Pair<B, C>,
+): void => {
+  expect(u.andWhenFst(v)).toStrictEqual(u.andFst(v).mapFst((x) => x.fst));
+};
+
+const andSndLeftIdentity = <A extends Semigroup<A>, B>(
+  v: Pair<A, B>,
+  a: A,
+): void => {
+  expect(new Pair(a, undefined).andSnd(v)).toStrictEqual(
+    v.mapSnd((y) => new Pair(undefined, y)),
+  );
+};
+
+const andSndRightIdentity = <A extends Semigroup<A>, B>(
+  u: Pair<A, B>,
+  a: A,
+): void => {
+  expect(u.andSnd(new Pair(a, undefined))).toStrictEqual(
+    u.mapSnd((x) => new Pair(x, undefined)),
+  );
+};
+
+const andSndAssociativity = <A extends Semigroup<A>, B, C, D>(
+  u: Pair<A, B>,
+  v: Pair<A, C>,
+  w: Pair<A, D>,
+): void => {
+  expect(u.andSnd(v.andSnd(w)).mapSnd((x) => x.associateLeft())).toStrictEqual(
+    u.andSnd(v).andSnd(w),
+  );
+};
+
+const andThenSndDefinition = <A extends Semigroup<A>, B, C>(
+  u: Pair<A, B>,
+  v: Pair<A, C>,
+): void => {
+  expect(u.andThenSnd(v)).toStrictEqual(u.andSnd(v).mapSnd((x) => x.snd));
+};
+
+const andWhenSndDefinition = <A extends Semigroup<A>, B, C>(
+  u: Pair<A, B>,
+  v: Pair<A, C>,
+): void => {
+  expect(u.andWhenSnd(v)).toStrictEqual(u.andSnd(v).mapSnd((x) => x.fst));
 };
 
 const flatMapFstLeftIdentity = <A, B, C extends Semigroup<C>>(
@@ -577,28 +653,134 @@ describe("Pair", () => {
   });
 
   describe("andFst", () => {
-    it("should agree with exchangeSnd", () => {
+    it("should have a left identity", () => {
       expect.assertions(100);
 
       fc.assert(
         fc.property(
-          pair(fc.anything(), fc.anything()),
-          fc.anything(),
-          andFstDefinition,
+          pair(fc.anything(), text),
+          fc.constant(new Text("")),
+          andFstLeftIdentity,
+        ),
+      );
+    });
+
+    it("should have a right identity", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), text),
+          fc.constant(new Text("")),
+          andFstRightIdentity,
+        ),
+      );
+    });
+
+    it("should be associative", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), text),
+          pair(fc.anything(), text),
+          pair(fc.anything(), text),
+          andFstAssociativity,
+        ),
+      );
+    });
+  });
+
+  describe("andThenFst", () => {
+    it("should agree with andFst", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), text),
+          pair(fc.anything(), text),
+          andThenFstDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("andWhenFst", () => {
+    it("should agree with andFst", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(fc.anything(), text),
+          pair(fc.anything(), text),
+          andWhenFstDefinition,
         ),
       );
     });
   });
 
   describe("andSnd", () => {
-    it("should agree with associateRight", () => {
+    it("should have a left identity", () => {
       expect.assertions(100);
 
       fc.assert(
         fc.property(
-          pair(fc.anything(), fc.anything()),
-          fc.anything(),
-          andSndDefinition,
+          pair(text, fc.anything()),
+          fc.constant(new Text("")),
+          andSndLeftIdentity,
+        ),
+      );
+    });
+
+    it("should have a right identity", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(text, fc.anything()),
+          fc.constant(new Text("")),
+          andSndRightIdentity,
+        ),
+      );
+    });
+
+    it("should be associative", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(text, fc.anything()),
+          pair(text, fc.anything()),
+          pair(text, fc.anything()),
+          andSndAssociativity,
+        ),
+      );
+    });
+  });
+
+  describe("andThenSnd", () => {
+    it("should agree with andSnd", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(text, fc.anything()),
+          pair(text, fc.anything()),
+          andThenSndDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("andWhenSnd", () => {
+    it("should agree with andSnd", () => {
+      expect.assertions(100);
+
+      fc.assert(
+        fc.property(
+          pair(text, fc.anything()),
+          pair(text, fc.anything()),
+          andWhenSndDefinition,
         ),
       );
     });
