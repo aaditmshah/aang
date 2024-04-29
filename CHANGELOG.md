@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.28](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.27...v2.0.0-alpha.28) (2024-04-29)
+
+## 💥 Breaking Changes
+
+- [`f376a3b`](https://github.com/aaditmshah/aang/commit/f376a3b) Update the &#x60;andFst&#x60; and &#x60;andSnd&#x60; methods
+
 # [v2.0.0-alpha.27](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.26...v2.0.0-alpha.27) (2024-04-05)
 
 ## 💥 Breaking Changes
