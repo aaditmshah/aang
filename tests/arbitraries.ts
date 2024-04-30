@@ -10,6 +10,7 @@ import type { Ordering } from "../src/ordering.js";
 import { Pair } from "../src/pair.js";
 import type { Result } from "../src/result.js";
 import { Fail, Okay } from "../src/result.js";
+import { Task } from "../src/task.js";
 import { Text } from "../src/text.js";
 
 export const bool: fc.Arbitrary<Bool> = fc.boolean().map(Bool.of);
@@ -58,6 +59,28 @@ export const result = <A, E>(
   a: fc.Arbitrary<A>,
   b: fc.Arbitrary<E>,
 ): fc.Arbitrary<Result<A, E>> => fc.oneof(okay(a), fail(b));
+
+export const okayTask = <A>(a: fc.Arbitrary<A>): fc.Arbitrary<Task<A, never>> =>
+  a.map((a) =>
+    Task.of((k) => {
+      const x = setImmediate(() => k(new Okay(a)));
+      return () => clearImmediate(x);
+    }),
+  );
+
+export const failTask = <E>(b: fc.Arbitrary<E>): fc.Arbitrary<Task<never, E>> =>
+  b.map((b) =>
+    Task.of((k) => {
+      const x = setImmediate(() => k(new Fail(b)));
+      return () => clearImmediate(x);
+    }),
+  );
+
+export const task = <A, E>(
+  a: fc.Arbitrary<A>,
+  b: fc.Arbitrary<E>,
+): fc.Arbitrary<Task<A, E>> =>
+  fc.oneof(a.map(Task.okay), b.map(Task.fail), okayTask(a), failTask(b));
 
 export const pair = <A, B>(
   a: fc.Arbitrary<A>,

@@ -7,9 +7,10 @@ import { Some } from "../src/option.js";
 import { Pair } from "../src/pair.js";
 import type { Result } from "../src/result.js";
 import { Fail, Okay } from "../src/result.js";
+import { Task } from "../src/task.js";
 
 import { option, pair, result } from "./arbitraries.js";
-import { collatz, hotpo, isPowerOfTwo } from "./utils.js";
+import { collatz, hotpo, isPowerOfTwo, spawn } from "./utils.js";
 
 const toStringOkay = <A>(a: A): void => {
   try {
@@ -423,6 +424,12 @@ const extractMapOkayDefinition = <A, E>(m: Result<A, E>, a: A): void => {
 
 const extractMapFailDefinition = <A, E>(m: Result<A, E>, x: E): void => {
   expect(m.extractMapFail(() => x)).toStrictEqual(m.extractFail(x));
+};
+
+const toTaskEquivalence = async <A, E>(m: Result<A, E>): Promise<void> => {
+  expect(await spawn(m.toTask())).toStrictEqual(
+    await spawn(m.isOkay ? Task.okay(m.value) : Task.fail(m.value)),
+  );
 };
 
 const valuesDefinition = <A, E>(m: Result<A, E>): void => {
@@ -1373,6 +1380,19 @@ describe("Result", () => {
           result(fc.anything(), fc.anything()),
           fc.anything(),
           extractMapFailDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("toTask", () => {
+    it("should agree with Task.okay and Task.fail", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          result(fc.anything(), fc.anything()),
+          toTaskEquivalence,
         ),
       );
     });

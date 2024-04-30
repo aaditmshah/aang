@@ -3,6 +3,7 @@ import { None, Some } from "./option.js";
 import type { PartialOrder, Setoid, TotalOrder } from "./order.js";
 import type { Ordering } from "./ordering.js";
 import { Pair } from "./pair.js";
+import { Task } from "./task.js";
 
 export type Result<A, E> = Okay<A> | Fail<E>;
 
@@ -487,6 +488,12 @@ abstract class ResultTrait {
 
   public toOptionFail<A, E>(this: Result<A, E>): Option<E> {
     return this.isFail ? new Some(this.value) : None.instance;
+  }
+
+  public toTask<A, E>(this: Result<A, E>): Task<A, E> {
+    return new Task((signal, callback) => {
+      if (!signal.aborted) callback(this);
+    });
   }
 
   public isSame<A extends Setoid<A>, E extends Setoid<E>>(
