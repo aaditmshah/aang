@@ -4,10 +4,11 @@ import fc from "fast-check";
 import { id } from "../src/miscellaneous.js";
 import { Pair } from "../src/pair.js";
 import type { Result } from "../src/result.js";
+import { Fail, Okay } from "../src/result.js";
 import { Task } from "../src/task.js";
 
-import { task } from "./arbitraries.js";
-import { collatz, spawn } from "./utils.js";
+import { result, task } from "./arbitraries.js";
+import { collatz, hotpo, isPowerOfTwo, spawn } from "./utils.js";
 
 const mapIdentity = async <A, E>(u: Task<A, E>): Promise<void> => {
   expect(await spawn(u.map(id, id))).toStrictEqual(await spawn(u));
@@ -263,6 +264,104 @@ const flatMapFailUntilEquivalence = async <A, E, F>(
   expect(await spawn(m.flatMapFailUntil(c))).toStrictEqual(
     await spawn(m.flatMapFail(c).flatMapFail(g)),
   );
+};
+
+const commuteInverse = async <A, E>(m: Task<A, E>): Promise<void> => {
+  expect(await spawn(m.commute().commute())).toStrictEqual(await spawn(m));
+};
+
+const effectMapDefinition = async <A, B, E>(
+  m: Task<A, E>,
+  f: (a: A) => B,
+): Promise<void> => {
+  expect(
+    await spawn(
+      Task.fromGenerator(function* () {
+        const b: B = yield* m.effectMap(f);
+        return b;
+      }),
+    ),
+  ).toStrictEqual(
+    await spawn(
+      Task.fromGenerator(function* () {
+        const b: B = f(yield* m.effect());
+        return b;
+      }),
+    ),
+  );
+};
+
+const fromGeneratorEquivalence = async <A, B, E>(
+  m: Task<A, E>,
+  p: (a: A) => boolean,
+  f: (a: A) => Task<A, E>,
+  g: (a: A) => Task<B, E>,
+): Promise<void> => {
+  expect(
+    await spawn(
+      Task.fromGenerator(function* () {
+        let a: A = yield* m.effect();
+        while (!p(a)) a = yield* f(a).effect();
+        const b: B = yield* g(a).effect();
+        return b;
+      }),
+    ),
+  ).toStrictEqual(
+    await spawn(
+      m.flatMapOkayUntil((a) =>
+        p(a) ? g(a).mapOkay(Okay.of) : f(a).mapOkay(Fail.of),
+      ),
+    ),
+  );
+};
+
+const fromGeneratorThrow = async <A, E>(
+  m: Task<A, E>,
+  n: Task<A, E>,
+): Promise<void> => {
+  expect(
+    await spawn(
+      Task.fromGenerator(function* () {
+        try {
+          const a: A = yield* m.effect();
+          return a;
+        } catch {
+          const a: A = yield* n.effect();
+          return a;
+        }
+      }),
+    ),
+  ).toStrictEqual(await spawn(m.flatMapFail(() => n)));
+};
+
+const fromGeneratorCatch = async <A, E>(
+  m: Result<A, E>,
+  x: E,
+): Promise<void> => {
+  expect(
+    await spawn(
+      Task.fromGenerator(function* () {
+        if (m.isOkay) throw x;
+        const a: A = yield* m.toTask<A, E>().effect();
+        return a;
+      }),
+    ),
+  ).toStrictEqual(await spawn(m.isOkay ? Task.fail(x) : m.toTask<A, E>()));
+};
+
+const fromGeneratorReturn = async <A, E>(
+  m: Result<A, E>,
+  a: A,
+): Promise<void> => {
+  expect(
+    await spawn(
+      Task.fromGenerator(function* () {
+        if (m.isFail) return a;
+        const b: A = yield* m.toTask<A, E>().effect();
+        return b;
+      }),
+    ),
+  ).toStrictEqual(await spawn(m.isFail ? Task.okay(a) : m.toTask<A, E>()));
 };
 
 describe("Task", () => {
@@ -639,6 +738,82 @@ describe("Task", () => {
           task(fc.anything(), fc.integer({ min: 1 })),
           fc.constant((n: number) => Task.fail(collatz(n))),
           flatMapFailUntilEquivalence,
+        ),
+      );
+    });
+  });
+
+  describe("commute", () => {
+    it("should be its own inverse", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(task(fc.anything(), fc.anything()), commuteInverse),
+      );
+    });
+  });
+
+  describe("effectMap", () => {
+    it("should agree with effect", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          task(fc.anything(), fc.anything()),
+          fc.func(fc.anything()),
+          effectMapDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("fromGenerator", () => {
+    it("should be equivalent to multiple flatMap calls", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          task(fc.integer({ min: 1 }), fc.anything()),
+          fc.constant(isPowerOfTwo),
+          fc.constant((n: number) => Task.okay(hotpo(n))),
+          fc.func(task(fc.anything(), fc.anything())),
+          fromGeneratorEquivalence,
+        ),
+      );
+    });
+
+    it("should throw the value when the generator yields Task.fail", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          task(fc.anything(), fc.anything()),
+          task(fc.anything(), fc.anything()),
+          fromGeneratorThrow,
+        ),
+      );
+    });
+
+    it("should return Fail when the generator throws an Exception", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          result(fc.anything(), fc.anything()),
+          fc.anything(),
+          fromGeneratorCatch,
+        ),
+      );
+    });
+
+    it("should return Okay when the generator returns", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          result(fc.anything(), fc.anything()),
+          fc.anything(),
+          fromGeneratorReturn,
         ),
       );
     });

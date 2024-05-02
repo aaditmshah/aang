@@ -46,6 +46,56 @@ export class Task<out A, out E> {
     });
   }
 
+  // TODO: <A, B>(getGenerator: () => Generator<Task<A, unknown>, B, A>) => Task<B, unknown>
+  public static fromGenerator<A>(
+    getGenerator: () => Generator<Task<unknown, unknown>, A, unknown>,
+  ): Task<A, unknown> {
+    return new Task((signal, callback) => {
+      const generator = getGenerator();
+
+      const trampoline = (task: Task<unknown, unknown>): void => {
+        let option: Option<Task<unknown, unknown>> = new Some(task);
+
+        while (option.isSome) {
+          const task = option.value;
+
+          option = None.instance;
+
+          let isAsync = false;
+
+          task.execute(signal, (result) => {
+            let iteratorResult: IteratorResult<Task<unknown, unknown>, A>;
+
+            try {
+              iteratorResult = result.isOkay
+                ? generator.next(result.value)
+                : generator.throw(result.value);
+            } catch (error) {
+              return callback(new Fail(error));
+            }
+
+            if (iteratorResult.done) callback(new Okay(iteratorResult.value));
+            else if (isAsync) trampoline(iteratorResult.value);
+            else option = new Some(iteratorResult.value);
+          });
+
+          isAsync = true;
+        }
+      };
+
+      let iteratorResult: IteratorResult<Task<unknown, unknown>, A>;
+
+      try {
+        iteratorResult = generator.next();
+      } catch (error) {
+        return callback(new Fail(error));
+      }
+
+      if (iteratorResult.done) callback(new Okay(iteratorResult.value));
+      else trampoline(iteratorResult.value);
+    });
+  }
+
   public run<A, E>(
     this: Task<A, E>,
     callback: (result: Result<A, E>) => void,
@@ -334,5 +384,24 @@ export class Task<out A, out E> {
 
       trampoline(this);
     });
+  }
+
+  public commute<A, B>(this: Task<A, B>): Task<B, A> {
+    return new Task((signal, callback) =>
+      this.execute(signal, (result) => callback(result.commute())),
+    );
+  }
+
+  public *effectMap<A, B, E>(
+    this: Task<A, E>,
+    morphism: (value: A) => B,
+  ): Generator<Task<A, E>, B, A> {
+    const value = yield this;
+    return morphism(value);
+  }
+
+  public *effect<A, E>(this: Task<A, E>): Generator<Task<A, E>, A, A> {
+    const value = yield this;
+    return value;
   }
 }
