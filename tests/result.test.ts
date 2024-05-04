@@ -9,7 +9,7 @@ import type { Result } from "../src/result.js";
 import { Fail, Okay } from "../src/result.js";
 import { Task } from "../src/task.js";
 
-import { option, pair, result } from "./arbitraries.js";
+import { option, pair, result, task } from "./arbitraries.js";
 import { collatz, hotpo, isPowerOfTwo, spawn } from "./utils.js";
 
 const toStringOkay = <A>(a: A): void => {
@@ -400,6 +400,98 @@ const distributeInverse = <A, B, E, F>(
   m: Result<Result<A, B>, Result<E, F>>,
 ): void => {
   expect(m.distribute().distribute()).toStrictEqual(m);
+};
+
+const swapMapFailDefinition = async <X, A, E, F>(
+  m: Result<X, F>,
+  f: (x: X) => Task<A, E>,
+): Promise<void> => {
+  expect(await spawn(m.swapMapFail(f))).toStrictEqual(
+    await spawn(m.gatherMapOkay(f, Task.okay)),
+  );
+};
+
+const groupMapLeftDefinition = async <Y, A, B, C>(
+  m: Result<A, Y>,
+  g: (y: Y) => Task<B, C>,
+): Promise<void> => {
+  expect(await spawn(m.groupMapLeft(g))).toStrictEqual(
+    await spawn(m.gatherMapOkay(Task.okay, g)),
+  );
+};
+
+const gatherOkayDefinition = async <A, B, E>(
+  m: Result<Task<A, E>, Task<B, E>>,
+): Promise<void> => {
+  expect(await spawn(m.gatherOkay())).toStrictEqual(
+    await spawn(m.gatherMapOkay(id, id)),
+  );
+};
+
+const swapFailDefinition = async <A, E, F>(
+  m: Result<Task<A, E>, F>,
+): Promise<void> => {
+  expect(await spawn(m.swapFail())).toStrictEqual(
+    await spawn(m.gatherMapOkay(id, Task.okay)),
+  );
+};
+
+const groupLeftDefinition = async <A, B, C>(
+  m: Result<A, Task<B, C>>,
+): Promise<void> => {
+  expect(await spawn(m.groupLeft())).toStrictEqual(
+    await spawn(m.gatherMapOkay(Task.okay, id)),
+  );
+};
+
+const swapMapOkayDefinition = async <Y, A, B, E>(
+  m: Result<A, Y>,
+  g: (y: Y) => Task<B, E>,
+): Promise<void> => {
+  expect(await spawn(m.swapMapOkay(g))).toStrictEqual(
+    await spawn(m.gatherMapFail(Task.fail, g)),
+  );
+};
+
+const groupMapRightDefinition = async <X, A, B, C>(
+  m: Result<X, C>,
+  f: (x: X) => Task<A, B>,
+): Promise<void> => {
+  expect(await spawn(m.groupMapRight(f))).toStrictEqual(
+    await spawn(m.gatherMapFail(f, Task.fail)),
+  );
+};
+
+const gatherFailDefinition = async <A, E, F>(
+  m: Result<Task<A, E>, Task<A, F>>,
+): Promise<void> => {
+  expect(await spawn(m.gatherFail())).toStrictEqual(
+    await spawn(m.gatherMapFail(id, id)),
+  );
+};
+
+const swapOkayDefinition = async <A, B, E>(
+  m: Result<A, Task<B, E>>,
+): Promise<void> => {
+  expect(await spawn(m.swapOkay())).toStrictEqual(
+    await spawn(m.gatherMapFail(Task.fail, id)),
+  );
+};
+
+const groupRightDefinition = async <A, B, C>(
+  m: Result<Task<A, B>, C>,
+): Promise<void> => {
+  expect(await spawn(m.groupRight())).toStrictEqual(
+    await spawn(m.gatherMapFail(id, Task.fail)),
+  );
+};
+
+const interchangeDefinition = async <A, B, E, F>(
+  m: Result<Task<A, B>, Task<E, F>>,
+): Promise<void> => {
+  expect(await spawn(m.interchange())).toStrictEqual(
+    await spawn(m.interchangeMap(id, id)),
+  );
 };
 
 const extractOkayFromOkay = <A>(a: A, x: A): void => {
@@ -1324,6 +1416,162 @@ describe("Result", () => {
             result(fc.anything(), fc.anything()),
           ),
           distributeInverse,
+        ),
+      );
+    });
+  });
+
+  describe("swapMapFail", () => {
+    it("should agree with gatherMapOkay", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          result(fc.anything(), fc.anything()),
+          fc.func(task(fc.anything(), fc.anything())),
+          swapMapFailDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("groupMapLeft", () => {
+    it("should agree with gatherMapOkay", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          result(fc.anything(), fc.anything()),
+          fc.func(task(fc.anything(), fc.anything())),
+          groupMapLeftDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("gatherOkay", () => {
+    it("should agree with gatherMapOkay", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          result(
+            task(fc.anything(), fc.anything()),
+            task(fc.anything(), fc.anything()),
+          ),
+          gatherOkayDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("swapFail", () => {
+    it("should agree with gatherMapOkay", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          result(task(fc.anything(), fc.anything()), fc.anything()),
+          swapFailDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("groupLeft", () => {
+    it("should agree with gatherMapOkay", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          result(fc.anything(), task(fc.anything(), fc.anything())),
+          groupLeftDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("swapMapOkay", () => {
+    it("should agree with gatherMapFail", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          result(fc.anything(), fc.anything()),
+          fc.func(task(fc.anything(), fc.anything())),
+          swapMapOkayDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("groupMapRight", () => {
+    it("should agree with gatherMapFail", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          result(fc.anything(), fc.anything()),
+          fc.func(task(fc.anything(), fc.anything())),
+          groupMapRightDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("gatherFail", () => {
+    it("should agree with gatherMapFail", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          result(
+            task(fc.anything(), fc.anything()),
+            task(fc.anything(), fc.anything()),
+          ),
+          gatherFailDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("swapOkay", () => {
+    it("should agree with gatherMapFail", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          result(fc.anything(), task(fc.anything(), fc.anything())),
+          swapOkayDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("groupRight", () => {
+    it("should agree with gatherMapFail", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          result(task(fc.anything(), fc.anything()), fc.anything()),
+          groupRightDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("interchange", () => {
+    it("should agree with interchangeMap", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          result(
+            task(fc.anything(), fc.anything()),
+            task(fc.anything(), fc.anything()),
+          ),
+          interchangeDefinition,
         ),
       );
     });

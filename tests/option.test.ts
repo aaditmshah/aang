@@ -6,9 +6,10 @@ import type { Option } from "../src/option.js";
 import { None, Some } from "../src/option.js";
 import { Pair } from "../src/pair.js";
 import type { Result } from "../src/result.js";
+import type { Task } from "../src/task.js";
 
-import { none, option, pair, result } from "./arbitraries.js";
-import { collatz } from "./utils.js";
+import { none, option, pair, result, task } from "./arbitraries.js";
+import { collatz, spawn } from "./utils.js";
 
 const toStringSome = <A>(a: A): void => {
   try {
@@ -181,6 +182,22 @@ const transposeOkayInverse = <A, E>(m: Option<Result<A, E>>): void => {
 
 const transposeFailInverse = <A, E>(m: Option<Result<A, E>>): void => {
   expect(m.transposeFail().transposeFail()).toStrictEqual(m);
+};
+
+const exchangeOkayDefinition = async <A, E>(
+  m: Option<Task<A, E>>,
+): Promise<void> => {
+  expect(await spawn(m.exchangeOkay())).toStrictEqual(
+    await spawn(m.exchangeMapOkay(id)),
+  );
+};
+
+const exchangeFailDefinition = async <A, E>(
+  m: Option<Task<A, E>>,
+): Promise<void> => {
+  expect(await spawn(m.exchangeFail())).toStrictEqual(
+    await spawn(m.exchangeMapFail(id)),
+  );
 };
 
 const extractSomeFromSome = <A>(a: A, x: A): void => {
@@ -589,6 +606,32 @@ describe("Option", () => {
         fc.property(
           option(result(fc.anything(), fc.anything())),
           transposeFailInverse,
+        ),
+      );
+    });
+  });
+
+  describe("exchangeOkay", () => {
+    it("should agree with exchangeMapOkay", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          option(task(fc.anything(), fc.anything())),
+          exchangeOkayDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("exchangeFail", () => {
+    it("should agree with exchangeMapFail", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          option(task(fc.anything(), fc.anything())),
+          exchangeFailDefinition,
         ),
       );
     });

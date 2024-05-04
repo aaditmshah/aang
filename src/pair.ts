@@ -6,6 +6,7 @@ import { isLess, isMore, isNotLess, isNotMore, isSame } from "./ordering.js";
 import type { Result } from "./result.js";
 import { Fail, Okay } from "./result.js";
 import type { Semigroup } from "./semigroup.js";
+import { Task } from "./task.js";
 
 export class Pair<out A, out B> {
   public constructor(
@@ -302,6 +303,78 @@ export class Pair<out A, out B> {
     return new Fail(this.fst).or(this.snd);
   }
 
+  public andMapTask<X, Y, A, B, E>(
+    this: Pair<X, Y>,
+    fstMorphism: (value: X) => Task<A, E>,
+    sndMorphism: (value: Y) => Task<B, E>,
+  ): Task<Pair<A, B>, E> {
+    return fstMorphism(this.fst).and(sndMorphism(this.snd));
+  }
+
+  public andMapFstTask<X, A, B, E>(
+    this: Pair<X, B>,
+    morphism: (value: X) => Task<A, E>,
+  ): Task<Pair<A, B>, E> {
+    return morphism(this.fst).and(Task.okay(this.snd));
+  }
+
+  public andMapSndTask<Y, A, B, E>(
+    this: Pair<A, Y>,
+    morphism: (value: Y) => Task<B, E>,
+  ): Task<Pair<A, B>, E> {
+    return Task.okay(this.fst).and(morphism(this.snd));
+  }
+
+  public andTask<A, B, E>(
+    this: Pair<Task<A, E>, Task<B, E>>,
+  ): Task<Pair<A, B>, E> {
+    return this.fst.and(this.snd);
+  }
+
+  public andFstTask<A, B, E>(this: Pair<Task<A, E>, B>): Task<Pair<A, B>, E> {
+    return this.fst.and(Task.okay(this.snd));
+  }
+
+  public andSndTask<A, B, E>(this: Pair<A, Task<B, E>>): Task<Pair<A, B>, E> {
+    return Task.okay(this.fst).and(this.snd);
+  }
+
+  public orMapTask<X, Y, A, E, F>(
+    this: Pair<X, Y>,
+    fstMorphism: (value: X) => Task<A, E>,
+    sndMorphism: (value: Y) => Task<A, F>,
+  ): Task<A, Pair<E, F>> {
+    return fstMorphism(this.fst).or(sndMorphism(this.snd));
+  }
+
+  public orMapFstTask<X, A, E, F>(
+    this: Pair<X, F>,
+    morphism: (value: X) => Task<A, E>,
+  ): Task<A, Pair<E, F>> {
+    return morphism(this.fst).or(Task.fail(this.snd));
+  }
+
+  public orMapSndTask<Y, A, E, F>(
+    this: Pair<E, Y>,
+    morphism: (value: Y) => Task<A, F>,
+  ): Task<A, Pair<E, F>> {
+    return Task.fail(this.fst).or(morphism(this.snd));
+  }
+
+  public orTask<A, E, F>(
+    this: Pair<Task<A, E>, Task<A, F>>,
+  ): Task<A, Pair<E, F>> {
+    return this.fst.or(this.snd);
+  }
+
+  public orFstTask<A, E, F>(this: Pair<Task<A, E>, F>): Task<A, Pair<E, F>> {
+    return this.fst.or(Task.fail(this.snd));
+  }
+
+  public orSndTask<A, E, F>(this: Pair<E, Task<A, F>>): Task<A, Pair<E, F>> {
+    return Task.fail(this.fst).or(this.snd);
+  }
+
   public distributeMap<X, Y, A, B, C, D>(
     this: Pair<X, Y>,
     fstMorphism: (value: X) => Pair<A, B>,
@@ -439,6 +512,44 @@ export class Pair<out A, out B> {
   public distributeFail<A, B, C>(
     this: Pair<Result<A, B>, C>,
   ): Result<Pair<A, C>, Pair<B, C>> {
+    return this.fst.map(
+      (fst) => new Pair(fst, this.snd),
+      (fst) => new Pair(fst, this.snd),
+    );
+  }
+
+  public scatterMapOkay<Y, A, B, C>(
+    this: Pair<A, Y>,
+    morphism: (value: Y) => Task<B, C>,
+  ): Task<Pair<A, B>, Pair<A, C>> {
+    return morphism(this.snd).map(
+      (snd) => new Pair(this.fst, snd),
+      (snd) => new Pair(this.fst, snd),
+    );
+  }
+
+  public scatterOkay<A, B, C>(
+    this: Pair<A, Task<B, C>>,
+  ): Task<Pair<A, B>, Pair<A, C>> {
+    return this.snd.map(
+      (snd) => new Pair(this.fst, snd),
+      (snd) => new Pair(this.fst, snd),
+    );
+  }
+
+  public scatterMapFail<X, A, B, C>(
+    this: Pair<X, C>,
+    morphism: (value: X) => Task<A, B>,
+  ): Task<Pair<A, C>, Pair<B, C>> {
+    return morphism(this.fst).map(
+      (fst) => new Pair(fst, this.snd),
+      (fst) => new Pair(fst, this.snd),
+    );
+  }
+
+  public scatterFail<A, B, C>(
+    this: Pair<Task<A, B>, C>,
+  ): Task<Pair<A, C>, Pair<B, C>> {
     return this.fst.map(
       (fst) => new Pair(fst, this.snd),
       (fst) => new Pair(fst, this.snd),

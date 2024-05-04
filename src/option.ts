@@ -4,6 +4,7 @@ import { Pair } from "./pair.js";
 import type { Result } from "./result.js";
 import { Fail, Okay } from "./result.js";
 import type { Semigroup } from "./semigroup.js";
+import { Task } from "./task.js";
 
 export type Option<A> = Some<A> | None;
 
@@ -154,6 +155,32 @@ abstract class OptionTrait {
 
   public transposeFail<A, E>(this: Option<Result<A, E>>): Result<A, Option<E>> {
     return this.isNone ? new Fail(None.instance) : this.value.mapFail(Some.of);
+  }
+
+  public exchangeMapOkay<A, B, E>(
+    this: Option<A>,
+    exchange: (value: A) => Task<B, E>,
+  ): Task<Option<B>, E> {
+    return this.isNone
+      ? Task.okay(None.instance)
+      : exchange(this.value).mapOkay(Some.of);
+  }
+
+  public exchangeMapFail<A, E, F>(
+    this: Option<E>,
+    exchange: (value: E) => Task<A, F>,
+  ): Task<A, Option<F>> {
+    return this.isNone
+      ? Task.fail(None.instance)
+      : exchange(this.value).mapFail(Some.of);
+  }
+
+  public exchangeOkay<A, E>(this: Option<Task<A, E>>): Task<Option<A>, E> {
+    return this.isNone ? Task.okay(None.instance) : this.value.mapOkay(Some.of);
+  }
+
+  public exchangeFail<A, E>(this: Option<Task<A, E>>): Task<A, Option<E>> {
+    return this.isNone ? Task.fail(None.instance) : this.value.mapFail(Some.of);
   }
 
   public extractSome<A>(this: Option<A>, defaultValue: A): A {

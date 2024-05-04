@@ -9,9 +9,10 @@ import type { Result } from "../src/result.js";
 import { Fail, Okay } from "../src/result.js";
 import type { Semigroup } from "../src/semigroup.js";
 import { Text } from "../src/text.js";
+import { Task } from "../src/task.js";
 
-import { option, pair, result, text } from "./arbitraries.js";
-import { collatz, hotpo, isPowerOfTwo } from "./utils.js";
+import { option, pair, result, task, text } from "./arbitraries.js";
+import { collatz, hotpo, isPowerOfTwo, spawn } from "./utils.js";
 
 const fromDefinition = <A>(a: A): void => {
   expect(Pair.from(a)).toStrictEqual(Pair.of(a, a));
@@ -392,6 +393,90 @@ const orSndResultDefinition = <A, E, F>(u: Pair<E, Result<A, F>>): void => {
   expect(u.orSndResult()).toStrictEqual(u.orMapResult(Fail.of, id));
 };
 
+const andMapFstTaskDefinition = async <X, A, B, E>(
+  m: Pair<X, B>,
+  f: (x: X) => Task<A, E>,
+): Promise<void> => {
+  expect(await spawn(m.andMapFstTask(f))).toStrictEqual(
+    await spawn(m.andMapTask(f, Task.okay)),
+  );
+};
+
+const andMapSndTaskDefinition = async <Y, A, B, E>(
+  m: Pair<A, Y>,
+  g: (y: Y) => Task<B, E>,
+): Promise<void> => {
+  expect(await spawn(m.andMapSndTask(g))).toStrictEqual(
+    await spawn(m.andMapTask(Task.okay, g)),
+  );
+};
+
+const andTaskDefinition = async <A, B, E>(
+  m: Pair<Task<A, E>, Task<B, E>>,
+): Promise<void> => {
+  expect(await spawn(m.andTask())).toStrictEqual(
+    await spawn(m.andMapTask(id, id)),
+  );
+};
+
+const andFstTaskDefinition = async <A, B, E>(
+  m: Pair<Task<A, E>, B>,
+): Promise<void> => {
+  expect(await spawn(m.andFstTask())).toStrictEqual(
+    await spawn(m.andMapTask(id, Task.okay)),
+  );
+};
+
+const andSndTaskDefinition = async <A, B, E>(
+  m: Pair<A, Task<B, E>>,
+): Promise<void> => {
+  expect(await spawn(m.andSndTask())).toStrictEqual(
+    await spawn(m.andMapTask(Task.okay, id)),
+  );
+};
+
+const orMapFstTaskDefinition = async <X, A, E, F>(
+  m: Pair<X, F>,
+  f: (x: X) => Task<A, E>,
+): Promise<void> => {
+  expect(await spawn(m.orMapFstTask(f))).toStrictEqual(
+    await spawn(m.orMapTask(f, Task.fail)),
+  );
+};
+
+const orMapSndTaskDefinition = async <Y, A, E, F>(
+  m: Pair<E, Y>,
+  g: (y: Y) => Task<A, F>,
+): Promise<void> => {
+  expect(await spawn(m.orMapSndTask(g))).toStrictEqual(
+    await spawn(m.orMapTask(Task.fail, g)),
+  );
+};
+
+const orTaskDefinition = async <A, E, F>(
+  m: Pair<Task<A, E>, Task<A, F>>,
+): Promise<void> => {
+  expect(await spawn(m.orTask())).toStrictEqual(
+    await spawn(m.orMapTask(id, id)),
+  );
+};
+
+const orFstTaskDefinition = async <A, E, F>(
+  m: Pair<Task<A, E>, F>,
+): Promise<void> => {
+  expect(await spawn(m.orFstTask())).toStrictEqual(
+    await spawn(m.orMapTask(id, Task.fail)),
+  );
+};
+
+const orSndTaskDefinition = async <A, E, F>(
+  m: Pair<E, Task<A, F>>,
+): Promise<void> => {
+  expect(await spawn(m.orSndTask())).toStrictEqual(
+    await spawn(m.orMapTask(Task.fail, id)),
+  );
+};
+
 const distributeMapFstDefinition = <X, A, B, C>(
   u: Pair<X, C>,
   f: (x: X) => Pair<A, B>,
@@ -470,6 +555,22 @@ const distributeMapFailDefinition = <A, B, C>(
 
 const distributeFailInverse = <A, B, C>(u: Pair<Result<A, B>, C>): void => {
   expect(u.distributeFail().collectFst()).toStrictEqual(u);
+};
+
+const scatterOkayDefinition = async <A, B, C>(
+  m: Pair<A, Task<B, C>>,
+): Promise<void> => {
+  expect(await spawn(m.scatterOkay())).toStrictEqual(
+    await spawn(m.scatterMapOkay(id)),
+  );
+};
+
+const scatterFailDefinition = async <A, B, C>(
+  m: Pair<Task<A, B>, C>,
+): Promise<void> => {
+  expect(await spawn(m.scatterFail())).toStrictEqual(
+    await spawn(m.scatterMapFail(id)),
+  );
 };
 
 const valuesDefinition = <A, B>(a: A, b: B): void => {
@@ -1235,6 +1336,146 @@ describe("Pair", () => {
     });
   });
 
+  describe("andMapFstTask", () => {
+    it("should agree with andMapTask", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          pair(fc.anything(), fc.anything()),
+          fc.func(task(fc.anything(), fc.anything())),
+          andMapFstTaskDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("andMapSndTask", () => {
+    it("should agree with andMapTask", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          pair(fc.anything(), fc.anything()),
+          fc.func(task(fc.anything(), fc.anything())),
+          andMapSndTaskDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("andTask", () => {
+    it("should agree with andMapTask", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          pair(
+            task(fc.anything(), fc.anything()),
+            task(fc.anything(), fc.anything()),
+          ),
+          andTaskDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("andFstTask", () => {
+    it("should agree with andMapTask", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          pair(task(fc.anything(), fc.anything()), fc.anything()),
+          andFstTaskDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("andSndTask", () => {
+    it("should agree with andMapTask", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          pair(fc.anything(), task(fc.anything(), fc.anything())),
+          andSndTaskDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("orMapFstTask", () => {
+    it("should agree with orMapTask", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          pair(fc.anything(), fc.anything()),
+          fc.func(task(fc.anything(), fc.anything())),
+          orMapFstTaskDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("orMapSndTask", () => {
+    it("should agree with orMapTask", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          pair(fc.anything(), fc.anything()),
+          fc.func(task(fc.anything(), fc.anything())),
+          orMapSndTaskDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("orTask", () => {
+    it("should agree with orMapTask", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          pair(
+            task(fc.anything(), fc.anything()),
+            task(fc.anything(), fc.anything()),
+          ),
+          orTaskDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("orFstTask", () => {
+    it("should agree with orMapTask", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          pair(task(fc.anything(), fc.anything()), fc.anything()),
+          orFstTaskDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("orSndTask", () => {
+    it("should agree with orMapTask", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          pair(fc.anything(), task(fc.anything(), fc.anything())),
+          orSndTaskDefinition,
+        ),
+      );
+    });
+  });
+
   describe("distributeMapFst", () => {
     it("should agree with distributeMap", () => {
       expect.assertions(100);
@@ -1456,6 +1697,32 @@ describe("Pair", () => {
         fc.property(
           pair(result(fc.anything(), fc.anything()), fc.anything()),
           distributeFailInverse,
+        ),
+      );
+    });
+  });
+
+  describe("scatterOkay", () => {
+    it("should agree with scatterMapOkay", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          pair(fc.anything(), task(fc.anything(), fc.anything())),
+          scatterOkayDefinition,
+        ),
+      );
+    });
+  });
+
+  describe("scatterFail", () => {
+    it("should agree with scatterMapFail", async () => {
+      expect.assertions(100);
+
+      await fc.assert(
+        fc.asyncProperty(
+          pair(task(fc.anything(), fc.anything()), fc.anything()),
+          scatterFailDefinition,
         ),
       );
     });

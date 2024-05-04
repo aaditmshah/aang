@@ -460,6 +460,116 @@ abstract class ResultTrait {
       : this.value.map(Fail.of, Fail.of);
   }
 
+  public gatherMapOkay<X, Y, A, B, E>(
+    this: Result<X, Y>,
+    okayMorphism: (value: X) => Task<A, E>,
+    failMorphism: (value: Y) => Task<B, E>,
+  ): Task<Result<A, B>, E> {
+    return this.isOkay
+      ? okayMorphism(this.value).mapOkay(Okay.of)
+      : failMorphism(this.value).mapOkay(Fail.of);
+  }
+
+  public swapMapFail<X, A, E, F>(
+    this: Result<X, F>,
+    morphism: (value: X) => Task<A, E>,
+  ): Task<Result<A, F>, E> {
+    return this.isFail
+      ? Task.okay(this)
+      : morphism(this.value).mapOkay(Okay.of);
+  }
+
+  public groupMapLeft<Y, A, B, C>(
+    this: Result<A, Y>,
+    morphism: (value: Y) => Task<B, C>,
+  ): Task<Result<A, B>, C> {
+    return this.isOkay
+      ? Task.okay(this)
+      : morphism(this.value).mapOkay(Fail.of);
+  }
+
+  public gatherOkay<A, B, E>(
+    this: Result<Task<A, E>, Task<B, E>>,
+  ): Task<Result<A, B>, E> {
+    return this.isOkay
+      ? this.value.mapOkay(Okay.of)
+      : this.value.mapOkay(Fail.of);
+  }
+
+  public swapFail<A, E, F>(this: Result<Task<A, E>, F>): Task<Result<A, F>, E> {
+    return this.isFail ? Task.okay(this) : this.value.mapOkay(Okay.of);
+  }
+
+  public groupLeft<A, B, C>(
+    this: Result<A, Task<B, C>>,
+  ): Task<Result<A, B>, C> {
+    return this.isOkay ? Task.okay(this) : this.value.mapOkay(Fail.of);
+  }
+
+  public gatherMapFail<X, Y, A, E, F>(
+    this: Result<X, Y>,
+    okayMorphism: (value: X) => Task<A, E>,
+    failMorphism: (value: Y) => Task<A, F>,
+  ): Task<A, Result<E, F>> {
+    return this.isOkay
+      ? okayMorphism(this.value).mapFail(Okay.of)
+      : failMorphism(this.value).mapFail(Fail.of);
+  }
+
+  public swapMapOkay<Y, A, B, E>(
+    this: Result<A, Y>,
+    morphism: (value: Y) => Task<B, E>,
+  ): Task<B, Result<A, E>> {
+    return this.isOkay
+      ? Task.fail(this)
+      : morphism(this.value).mapFail(Fail.of);
+  }
+
+  public groupMapRight<X, A, B, C>(
+    this: Result<X, C>,
+    morphism: (value: X) => Task<A, B>,
+  ): Task<A, Result<B, C>> {
+    return this.isFail
+      ? Task.fail(this)
+      : morphism(this.value).mapFail(Okay.of);
+  }
+
+  public gatherFail<A, E, F>(
+    this: Result<Task<A, E>, Task<A, F>>,
+  ): Task<A, Result<E, F>> {
+    return this.isOkay
+      ? this.value.mapFail(Okay.of)
+      : this.value.mapFail(Fail.of);
+  }
+
+  public swapOkay<A, B, E>(this: Result<A, Task<B, E>>): Task<B, Result<A, E>> {
+    return this.isOkay ? Task.fail(this) : this.value.mapFail(Fail.of);
+  }
+
+  public groupRight<A, B, C>(
+    this: Result<Task<A, B>, C>,
+  ): Task<A, Result<B, C>> {
+    return this.isFail ? Task.fail(this) : this.value.mapFail(Okay.of);
+  }
+
+  public interchangeMap<X, Y, A, B, E, F>(
+    this: Result<X, Y>,
+    okayMorphism: (value: X) => Task<A, B>,
+    failMorphism: (value: Y) => Task<E, F>,
+  ): Task<Result<A, E>, Result<B, F>> {
+    return this.isOkay
+      ? okayMorphism(this.value).map(Okay.of, Okay.of)
+      : failMorphism(this.value).map(Fail.of, Fail.of);
+  }
+
+  public interchange<A, B, E, F>(
+    this: Result<Task<A, B>, Task<E, F>>,
+  ): Task<Result<A, E>, Result<B, F>> {
+    return this.isOkay
+      ? this.value.map(Okay.of, Okay.of)
+      : this.value.map(Fail.of, Fail.of);
+  }
+
   public extractOkay<A, E>(this: Result<A, E>, defaultValue: A): A {
     return this.isOkay ? this.value : defaultValue;
   }
