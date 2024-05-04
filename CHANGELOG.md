@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.30](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.29...v2.0.0-alpha.30) (2024-05-04)
+
+## ✨ New Features
+
+- [`381cb18`](https://github.com/aaditmshah/aang/commit/381cb18) Re-export the &#x60;Task&#x60; class from &#x60;index.ts&#x60;
+
 # [v2.0.0-alpha.29](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.28...v2.0.0-alpha.29) (2024-05-04)
 
 ## ✨ New Features
