@@ -1,3 +1,11 @@
+# [v2.0.0-alpha.29](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.28...v2.0.0-alpha.29) (2024-05-04)
+
+## ✨ New Features
+
+- [`2ea96df`](https://github.com/aaditmshah/aang/commit/2ea96df) Add &#x60;Task&#x60; class, methods, and related functions
+- [`6894862`](https://github.com/aaditmshah/aang/commit/6894862) Add &#x60;commute&#x60;, &#x60;fromGenerator&#x60;, and &#x60;effect&#x60;
+- [`961181a`](https://github.com/aaditmshah/aang/commit/961181a) Add &#x60;Traversable&#x60; methods for &#x60;Task&#x60;
+
 # [v2.0.0-alpha.28](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.27...v2.0.0-alpha.28) (2024-04-29)
 
 ## 💥 Breaking Changes
