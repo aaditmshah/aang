@@ -10,4 +10,5 @@ export * from "./ordering.js";
 export * from "./pair.js";
 export * from "./result.js";
 export * from "./semigroup.js";
+export * from "./task.js";
 export * from "./text.js";
