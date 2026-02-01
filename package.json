@@ -52,7 +52,7 @@
     "typecheck": "tsc --noEmit",
     "test": "rimraf coverage && jest",
     "build": "rimraf lib && tsc -p tsconfig.build.json",
-    "check": "concurrently --kill-others-on-fail 'pnpm fmt:check' 'pnpm lint' 'pnpm typecheck' 'pnpm test' 'pnpm build'",
+    "check": "concurrently --kill-others-on-fail 'pnpm run fmt:check' 'pnpm run lint' 'pnpm run typecheck' 'pnpm run test' 'pnpm run build'",
     "prepare": "is-ci || husky install"
   },
   "devDependencies": {

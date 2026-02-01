@@ -31,10 +31,10 @@ jobs:
         run: pnpm i --frozen-lockfile
 
       - name: Run checks
-        run: pnpm check
+        run: pnpm run check
 
       - name: Release on NPM
-        run: pnpm semantic-release
+        run: pnpm exec semantic-release
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
