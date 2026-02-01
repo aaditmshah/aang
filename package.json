@@ -12,6 +12,7 @@
   "bugs": "https://github.com/aaditmshah/aang/issues",
   "license": "MIT",
   "author": "Aadit M Shah <aaditmshah@aadit.codes> (https://aadit.codes/)",
+  "repository": "github:aaditmshah/aang",
   "funding": [
     {
       "type": "individual",
@@ -38,11 +39,15 @@
     "lib"
   ],
   "type": "module",
-  "exports": "./lib/index.js",
   "types": "./lib/index.d.ts",
-  "repository": "github:aaditmshah/aang",
+  "exports": "./lib/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "clean": "git clean -fdx",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
     "prettier:write": "prettier --write .",
     "prettier:check": "prettier --check .",
     "lint": "eslint .",
@@ -84,9 +89,6 @@
   },
   "engines": {
     "node": ">=16.9"
-  },
-  "publishConfig": {
-    "access": "public"
   },
   "packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264"
 }
