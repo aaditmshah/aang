@@ -1,0 +1,20 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"plugins": ["eslint", "import", "jest", "jsdoc", "oxc", "promise", "typescript", "unicorn"],
+	"categories": {
+		"correctness": "error",
+		"suspicious": "error",
+		"perf": "error"
+	},
+	"rules": {
+		"@typescript-eslint/unbound-method": ["error", { "ignoreStatic": true }]
+	},
+	"settings": {
+		"vitest": {
+			"typecheck": false
+		}
+	},
+	"env": {
+		"builtin": true
+	}
+}
