@@ -13,7 +13,7 @@ export const uncurry3 =
     morphism(a, b, c);
 
 export const uncurry4 =
-  // prettier-ignore
+  // oxfmt-ignore
   <A, B, C, D, E>(morphism: (a: A, b: B, c: C, d: D) => E) => ({
     fst: { fst: { fst: a, snd: b }, snd: c }, snd: d
   }: Pair<Pair<Pair<A, B>, C>, D>): E =>
