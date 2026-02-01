@@ -5,23 +5,20 @@ import type { Semigroup } from "../src/semigroup.js";
 
 import { all, any, option, product, sum, text } from "./arbitraries.js";
 
-const testSemigroup = <A extends Semigroup<A>>(
-  name: string,
-  value: fc.Arbitrary<A>,
-): void => {
-  const appendAssociativity = (x: A, y: A, z: A): void => {
-    expect(x.append(y.append(z))).toStrictEqual(x.append(y).append(z));
-  };
+const testSemigroup = <A extends Semigroup<A>>(name: string, value: fc.Arbitrary<A>): void => {
+	const appendAssociativity = (x: A, y: A, z: A): void => {
+		expect(x.append(y.append(z))).toStrictEqual(x.append(y).append(z));
+	};
 
-  describe(`Semigroup<${name}>`, () => {
-    describe("append", () => {
-      it("should be associative", () => {
-        expect.assertions(100);
+	describe(`Semigroup<${name}>`, () => {
+		describe("append", () => {
+			it("should be associative", () => {
+				expect.assertions(100);
 
-        fc.assert(fc.property(value, value, value, appendAssociativity));
-      });
-    });
-  });
+				fc.assert(fc.property(value, value, value, appendAssociativity));
+			});
+		});
+	});
 };
 
 testSemigroup("Text", text);
