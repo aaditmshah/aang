@@ -1,6 +1,6 @@
 {
 	"$schema": "./node_modules/oxlint/configuration_schema.json",
-	"plugins": ["eslint", "import", "jest", "jsdoc", "oxc", "promise", "typescript", "unicorn"],
+	"plugins": ["eslint", "import", "jsdoc", "oxc", "promise", "typescript", "unicorn", "vitest"],
 	"categories": {
 		"correctness": "error",
 		"suspicious": "error",
@@ -8,11 +8,6 @@
 	},
 	"rules": {
 		"@typescript-eslint/unbound-method": ["error", { "ignoreStatic": true }]
-	},
-	"settings": {
-		"vitest": {
-			"typecheck": false
-		}
 	},
 	"env": {
 		"builtin": true

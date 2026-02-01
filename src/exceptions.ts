@@ -10,6 +10,7 @@ export abstract class Exception extends Error {
 
 		Object.setPrototypeOf(this, new.target.prototype);
 
+		/* v8 ignore else -- @preserve */
 		if ("captureStackTrace" in Error) {
 			Error.captureStackTrace(this, new.target);
 		}

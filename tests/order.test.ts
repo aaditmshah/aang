@@ -1,5 +1,5 @@
-import { describe, expect, it } from "@jest/globals";
 import fc from "fast-check";
+import { describe, expect, it } from "vitest";
 
 import type { Option } from "../src/option.js";
 import type { PartialOrder, Setoid, TotalOrder } from "../src/order.js";

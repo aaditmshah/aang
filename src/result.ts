@@ -478,6 +478,7 @@ abstract class ResultTrait {
 
 	public toTask<A, E>(this: Result<A, E>): Task<A, E> {
 		return new Task((signal, callback) => {
+			/* v8 ignore else -- @preserve */
 			if (!signal.aborted) callback(this);
 		});
 	}
