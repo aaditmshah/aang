@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.31](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.30...v2.0.0-alpha.31) (2026-02-02)
+
+## 🔒 Security Issues
+
+- [`d79e875`](https://github.com/aaditmshah/aang/commit/d79e875) ️ Fix all the pnpm audit vulnerabilities
+
 # [v2.0.0-alpha.30](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.29...v2.0.0-alpha.30) (2024-05-04)
 
 ## ✨ New Features
