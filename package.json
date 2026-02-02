@@ -46,8 +46,6 @@
 	},
 	"scripts": {
 		"build": "tsgo -p tsconfig.build.json",
-		"check": "concurrently --kill-others-on-fail 'pnpm run fmt:check' 'pnpm run lint' 'pnpm run test' 'pnpm run build'",
-		"clean": "git clean -fdx",
 		"fmt": "oxfmt",
 		"fmt:check": "oxfmt --check",
 		"lint": "oxlint --type-aware --type-check --report-unused-disable-directives-severity error",
@@ -62,7 +60,6 @@
 		"@types/node": "^20.11.6",
 		"@typescript/native-preview": "7.0.0-dev.20260201.1",
 		"@vitest/coverage-v8": "^4.0.18",
-		"concurrently": "^8.2.2",
 		"fast-check": "^3.15.0",
 		"gitmoji-cli": "^9.0.0",
 		"husky": "^8.0.3",
