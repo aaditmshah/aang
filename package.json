@@ -51,21 +51,22 @@
 		"githooks:install": "git config core.hooksPath .githooks",
 		"lint": "oxlint --type-aware --type-check --report-unused-disable-directives-severity error",
 		"lint:fix": "pnpm run lint --fix",
-		"test": "vitest run"
+		"test": "vitest run",
+		"test:watch": "vitest"
 	},
 	"devDependencies": {
 		"@semantic-release/changelog": "^6.0.3",
-		"@semantic-release/exec": "^6.0.3",
+		"@semantic-release/exec": "^7.1.0",
 		"@semantic-release/git": "^10.0.1",
-		"@types/node": "^20.19.30",
+		"@types/node": "^25.2.0",
 		"@typescript/native-preview": "7.0.0-dev.20260201.1",
 		"@vitest/coverage-v8": "^4.0.18",
-		"fast-check": "^3.23.2",
+		"fast-check": "^4.5.3",
 		"gitmoji-cli": "^9.7.0",
 		"oxfmt": "^0.27.0",
 		"oxlint": "^1.42.0",
 		"oxlint-tsgolint": "^0.11.4",
-		"semantic-release": "^22.0.12",
+		"semantic-release": "^25.0.3",
 		"semantic-release-gitmoji": "^1.6.9",
 		"vitest": "^4.0.18"
 	},

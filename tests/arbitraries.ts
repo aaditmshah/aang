@@ -34,11 +34,11 @@ export const double: fc.Arbitrary<Double> = fc
 	)
 	.map(Double.of);
 
-export const integer: fc.Arbitrary<Integer> = fc.bigUint(9n).map(Integer.of);
+export const integer: fc.Arbitrary<Integer> = fc.bigInt(0n, 9n).map(Integer.of);
 
-export const sum: fc.Arbitrary<Sum> = fc.bigUint().map(Sum.of);
+export const sum: fc.Arbitrary<Sum> = fc.bigInt(0n, 9n).map(Sum.of);
 
-export const product: fc.Arbitrary<Product> = fc.bigUint().map(Product.of);
+export const product: fc.Arbitrary<Product> = fc.bigInt(0n, 9n).map(Product.of);
 
 export const text: fc.Arbitrary<Text> = fc.string().map(Text.of);
 
