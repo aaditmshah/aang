@@ -1,3 +1,14 @@
 {
-	"recommendations": ["oxc.oxc-vscode"]
+	"recommendations": [
+		"aaron-bond.better-comments",
+		"codeandstuff.package-json-upgrade",
+		"davidanson.vscode-markdownlint",
+		"editorconfig.editorconfig",
+		"jock.svg",
+		"oxc.oxc-vscode",
+		"ryu1kn.partial-diff",
+		"typescriptteam.native-preview",
+		"vitest.explorer",
+		"yzhang.markdown-all-in-one"
+	]
 }
