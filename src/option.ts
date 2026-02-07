@@ -240,7 +240,7 @@ export class None extends OptionTrait {
 
 	public override readonly isNone = true;
 
-	public static readonly instance = new None();
+	public static readonly instance: None = new None();
 
 	public static fromNullish<A>(value: A): Option<NonNullable<A>> {
 		return value == null ? None.instance : new Some(value);

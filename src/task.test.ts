@@ -1,14 +1,14 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
-import type { Result } from "../src/result.js";
+import type { Result } from "./result.js";
 
-import { id } from "../src/miscellaneous.js";
-import { Pair } from "../src/pair.js";
-import { Fail, Okay } from "../src/result.js";
-import { Task } from "../src/task.js";
-import { result, task } from "./arbitraries.js";
-import { collatz, hotpo, isPowerOfTwo, spawn } from "./utils.js";
+import { result, task } from "./arbitraries.test-util.js";
+import { id } from "./miscellaneous.js";
+import { Pair } from "./pair.js";
+import { Fail, Okay } from "./result.js";
+import { Task } from "./task.js";
+import { collatz, hotpo, isPowerOfTwo, spawn } from "./utils.test-util.js";
 
 const mapIdentity = async <A, E>(u: Task<A, E>): Promise<void> => {
 	expect(await spawn(u.map(id, id))).toStrictEqual(await spawn(u));

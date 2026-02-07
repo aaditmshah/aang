@@ -1,9 +1,9 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
-import type { All, Any, Bool } from "../src/bool.js";
+import type { All, Any, Bool } from "./bool.js";
 
-import { all, any, bool } from "./arbitraries.js";
+import { all, any, bool } from "./arbitraries.test-util.js";
 
 const boolToStringDefinition = (m: Bool): void => {
 	expect(m.toString()).toStrictEqual(`Bool(${m.value})`);

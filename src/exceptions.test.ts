@@ -1,7 +1,7 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
-import { Exception } from "../src/exceptions.js";
+import { Exception } from "./exceptions.js";
 
 class MyCustomException extends Exception {
 	public constructor(message: string) {

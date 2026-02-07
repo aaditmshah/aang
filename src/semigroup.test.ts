@@ -1,9 +1,9 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
-import type { Semigroup } from "../src/semigroup.js";
+import type { Semigroup } from "./semigroup.js";
 
-import { all, any, option, product, sum, text } from "./arbitraries.js";
+import { all, any, option, product, sum, text } from "./arbitraries.test-util.js";
 
 const testSemigroup = <A extends Semigroup<A>>(name: string, value: fc.Arbitrary<A>): void => {
 	const appendAssociativity = (x: A, y: A, z: A): void => {

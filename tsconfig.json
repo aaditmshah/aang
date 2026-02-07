@@ -1,5 +1,5 @@
 {
-	"include": ["src", "tests"],
+	"include": ["src"],
 	"compilerOptions": {
 		"outDir": "lib",
 		"rootDir": "src",
@@ -7,6 +7,7 @@
 		"lib": ["ESNext"],
 		"module": "NodeNext",
 		"moduleResolution": "NodeNext",
+		"isolatedDeclarations": true,
 		"verbatimModuleSyntax": true,
 		"resolveJsonModule": false, // ESM doesn't support JSON modules yet.
 		"esModuleInterop": true,

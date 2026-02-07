@@ -1,16 +1,16 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
-import type { Option } from "../src/option.js";
-import type { Result } from "../src/result.js";
+import type { Option } from "./option.js";
+import type { Result } from "./result.js";
 
-import { id } from "../src/miscellaneous.js";
-import { Some } from "../src/option.js";
-import { Pair } from "../src/pair.js";
-import { Fail, Okay } from "../src/result.js";
-import { Task } from "../src/task.js";
-import { option, pair, result, task } from "./arbitraries.js";
-import { collatz, hotpo, isPowerOfTwo, spawn } from "./utils.js";
+import { option, pair, result, task } from "./arbitraries.test-util.js";
+import { id } from "./miscellaneous.js";
+import { Some } from "./option.js";
+import { Pair } from "./pair.js";
+import { Fail, Okay } from "./result.js";
+import { Task } from "./task.js";
+import { collatz, hotpo, isPowerOfTwo, spawn } from "./utils.test-util.js";
 
 const toStringOkay = <A>(a: A): void => {
 	try {

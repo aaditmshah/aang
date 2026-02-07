@@ -1,10 +1,10 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
-import type { Ordering } from "../src/ordering.js";
+import type { Ordering } from "./ordering.js";
 
-import { isLess, isMore, isNotLess, isNotMore, isNotSame, isSame } from "../src/ordering.js";
-import { ordering } from "./arbitraries.js";
+import { ordering } from "./arbitraries.test-util.js";
+import { isLess, isMore, isNotLess, isNotMore, isNotSame, isSame } from "./ordering.js";
 
 const isSameDefinition = (x: Ordering): void => {
 	expect(isSame(x)).toStrictEqual(!isNotSame(x));

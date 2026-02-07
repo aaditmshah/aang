@@ -1,10 +1,10 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
-import type { Option } from "../src/option.js";
+import type { Option } from "./option.js";
 
-import { uncurry2, uncurry3, uncurry4 } from "../src/miscellaneous.js";
-import { option } from "./arbitraries.js";
+import { option } from "./arbitraries.test-util.js";
+import { uncurry2, uncurry3, uncurry4 } from "./miscellaneous.js";
 
 const uncurry2Equivalence = <A, B, C>(u: Option<A>, v: Option<B>, f: (a: A, b: B) => C): void => {
 	expect(u.and(v).map(uncurry2(f))).toStrictEqual(u.and(v).map((x) => x.fold(f)));

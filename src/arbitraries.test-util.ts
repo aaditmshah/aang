@@ -1,18 +1,18 @@
 import fc from "fast-check";
 
-import type { Option } from "../src/option.js";
-import type { Ordering } from "../src/ordering.js";
-import type { Result } from "../src/result.js";
+import type { Option } from "./option.js";
+import type { Ordering } from "./ordering.js";
+import type { Result } from "./result.js";
 
-import { All, Any, Bool } from "../src/bool.js";
-import { DateTime } from "../src/datetime.js";
-import { Double } from "../src/double.js";
-import { Integer, Product, Sum } from "../src/integer.js";
-import { None, Some } from "../src/option.js";
-import { Pair } from "../src/pair.js";
-import { Fail, Okay } from "../src/result.js";
-import { Task } from "../src/task.js";
-import { Text } from "../src/text.js";
+import { All, Any, Bool } from "./bool.js";
+import { DateTime } from "./datetime.js";
+import { Double } from "./double.js";
+import { Integer, Product, Sum } from "./integer.js";
+import { None, Some } from "./option.js";
+import { Pair } from "./pair.js";
+import { Fail, Okay } from "./result.js";
+import { Task } from "./task.js";
+import { Text } from "./text.js";
 
 export const bool: fc.Arbitrary<Bool> = fc.boolean().map(Bool.of);
 

@@ -1,12 +1,21 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
-import type { Option } from "../src/option.js";
-import type { PartialOrder, Setoid, TotalOrder } from "../src/order.js";
-import type { Ordering } from "../src/ordering.js";
+import type { Option } from "./option.js";
+import type { PartialOrder, Setoid, TotalOrder } from "./order.js";
+import type { Ordering } from "./ordering.js";
 
-import { None, Some } from "../src/option.js";
-import { bool, datetime, double, integer, option, pair, result, text } from "./arbitraries.js";
+import {
+	bool,
+	datetime,
+	double,
+	integer,
+	option,
+	pair,
+	result,
+	text,
+} from "./arbitraries.test-util.js";
+import { None, Some } from "./option.js";
 
 const testSetoid = <A extends Setoid<A>>(name: string, value: fc.Arbitrary<A>): void => {
 	const isSameReflexivity = (x: A): void => {

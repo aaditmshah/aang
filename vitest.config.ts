@@ -5,7 +5,6 @@ export default defineConfig({
 		coverage: {
 			enabled: true,
 			include: ["src/**/*.ts"],
-			exclude: ["tests/**/*.ts"],
 			thresholds: { "100": true },
 		},
 	},

@@ -1,7 +1,7 @@
-import type { Result } from "../src/result.js";
-import type { Task } from "../src/task.js";
+import type { Result } from "./result.js";
+import type { Task } from "./task.js";
 
-import { Fail, Okay } from "../src/result.js";
+import { Fail, Okay } from "./result.js";
 
 export const isPowerOfTwo = (n: number): boolean => (Math.log(n) / Math.log(2)) % 1 === 0;
 

@@ -1,9 +1,9 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
-import type { Double } from "../src/double.js";
+import type { Double } from "./double.js";
 
-import { double } from "./arbitraries.js";
+import { double } from "./arbitraries.test-util.js";
 
 const toStringDefinition = (m: Double): void => {
 	expect(m.toString()).toStrictEqual(`Double(${m.value})`);

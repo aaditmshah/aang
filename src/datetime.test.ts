@@ -1,9 +1,9 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
-import type { DateTime } from "../src/datetime.js";
+import type { DateTime } from "./datetime.js";
 
-import { datetime } from "./arbitraries.js";
+import { datetime } from "./arbitraries.test-util.js";
 
 const toStringDefinition = (m: DateTime): void => {
 	expect(m.toString()).toStrictEqual(`DateTime(${m.value.getTime()})`);

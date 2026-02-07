@@ -1,9 +1,9 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
-import type { Integer, Product, Sum } from "../src/integer.js";
+import type { Integer, Product, Sum } from "./integer.js";
 
-import { integer, product, sum } from "./arbitraries.js";
+import { integer, product, sum } from "./arbitraries.test-util.js";
 
 const integerToStringDefinition = (m: Integer): void => {
 	expect(m.toString()).toStrictEqual(`Integer(${m.value})`);
