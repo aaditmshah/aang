@@ -1,3 +1,9 @@
+# [v2.0.0-alpha.32](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.31...v2.0.0-alpha.32) (2026-02-07)
+
+## 💥 Breaking Changes
+
+- [`c33b3e7`](https://github.com/aaditmshah/aang/commit/c33b3e7) Integrate tsdown and remove the index entrypoint
+
 # [v2.0.0-alpha.31](https://github.com/aaditmshah/aang/compare/v2.0.0-alpha.30...v2.0.0-alpha.31) (2026-02-02)
 
 ## 🔒 Security Issues
