@@ -13,6 +13,9 @@ import { Pair } from "./pair.js";
 import { Fail, Okay } from "./result.js";
 import { Task } from "./task.js";
 import { Text } from "./text.js";
+import { isStringable } from "./utils.test-util.js";
+
+export const stringable: fc.Arbitrary<unknown> = fc.anything().filter(isStringable);
 
 export const bool: fc.Arbitrary<Bool> = fc.boolean().map(Bool.of);
 

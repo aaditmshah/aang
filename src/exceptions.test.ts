@@ -10,44 +10,44 @@ class MyCustomException extends Exception {
 	}
 }
 
-const exceptionName = (message: string): void => {
-	expect(new MyCustomException(message).name).toStrictEqual("MyCustomException");
-};
-
-const exceptionMessage = (message: string): void => {
-	expect(new MyCustomException(message).message).toStrictEqual(message);
-};
-
-const exceptionError = (message: string): void => {
-	expect(new MyCustomException(message)).toBeInstanceOf(Error);
-};
-
-const exceptionStack = (message: string): void => {
-	expect(new MyCustomException(message).stack).toBeDefined();
-};
-
 describe("Exception", () => {
 	it("should have the specified name", () => {
 		expect.assertions(100);
 
-		fc.assert(fc.property(fc.string(), exceptionName));
+		fc.assert(
+			fc.property(fc.string(), (message) => {
+				expect(new MyCustomException(message).name).toStrictEqual("MyCustomException");
+			}),
+		);
 	});
 
 	it("should have the given message", () => {
 		expect.assertions(100);
 
-		fc.assert(fc.property(fc.string(), exceptionMessage));
+		fc.assert(
+			fc.property(fc.string(), (message) => {
+				expect(new MyCustomException(message).message).toStrictEqual(message);
+			}),
+		);
 	});
 
 	it("should be an instance of Error", () => {
 		expect.assertions(100);
 
-		fc.assert(fc.property(fc.string(), exceptionError));
+		fc.assert(
+			fc.property(fc.string(), (message) => {
+				expect(new MyCustomException(message)).toBeInstanceOf(Error);
+			}),
+		);
 	});
 
 	it("should have a stack trace", () => {
 		expect.assertions(100);
 
-		fc.assert(fc.property(fc.string(), exceptionStack));
+		fc.assert(
+			fc.property(fc.string(), (message) => {
+				expect(new MyCustomException(message).stack).toBeDefined();
+			}),
+		);
 	});
 });

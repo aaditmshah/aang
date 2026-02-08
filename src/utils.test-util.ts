@@ -3,6 +3,15 @@ import type { Task } from "./task.js";
 
 import { Fail, Okay } from "./result.js";
 
+export const isStringable = (value: unknown): boolean => {
+	try {
+		const result = String(value);
+		return typeof result === "string";
+	} catch (error) {
+		return !(error instanceof TypeError);
+	}
+};
+
 export const isPowerOfTwo = (n: number): boolean => (Math.log(n) / Math.log(2)) % 1 === 0;
 
 export const hotpo = (n: number): number => (n % 2 === 0 ? n / 2 : 3 * n + 1);

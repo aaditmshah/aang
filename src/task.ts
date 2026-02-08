@@ -52,7 +52,7 @@ export class Task<out A, out E> {
 		return new Task((signal, callback) => {
 			const generator = getGenerator();
 
-			const trampoline = (task: Task<unknown, unknown>): void => {
+			const trampoline = (task: Task<unknown, unknown>) => {
 				let option: Option<Task<unknown, unknown>> = new Some(task);
 
 				while (option.isSome) {
@@ -269,7 +269,7 @@ export class Task<out A, out E> {
 		failArrow: (value: E) => Task<Result<B, A>, Result<F, E>>,
 	): Task<B, F> {
 		return new Task((signal, callback) => {
-			const trampoline = (task: Task<A, E>): void => {
+			const trampoline = (task: Task<A, E>) => {
 				let option: Option<Task<A, E>> = new Some(task);
 
 				while (option.isSome) {
@@ -299,7 +299,7 @@ export class Task<out A, out E> {
 		arrow: (value: A) => Task<Result<B, A>, E>,
 	): Task<B, E> {
 		return new Task((signal, callback) => {
-			const trampoline = (task: Task<A, E>): void => {
+			const trampoline = (task: Task<A, E>) => {
 				let option: Option<Task<A, E>> = new Some(task);
 
 				while (option.isSome) {
@@ -329,7 +329,7 @@ export class Task<out A, out E> {
 		arrow: (value: E) => Task<A, Result<F, E>>,
 	): Task<A, F> {
 		return new Task((signal, callback) => {
-			const trampoline = (task: Task<A, E>): void => {
+			const trampoline = (task: Task<A, E>) => {
 				let option: Option<Task<A, E>> = new Some(task);
 
 				while (option.isSome) {

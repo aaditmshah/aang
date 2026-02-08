@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import type { Option } from "./option.js";
 import type { Result } from "./result.js";
 
-import { option, pair, result, task } from "./arbitraries.test-util.js";
+import { option, pair, result, stringable, task } from "./arbitraries.test-util.js";
 import { id } from "./miscellaneous.js";
 import { Some } from "./option.js";
 import { Pair } from "./pair.js";
@@ -12,478 +12,26 @@ import { Fail, Okay } from "./result.js";
 import { Task } from "./task.js";
 import { collatz, hotpo, isPowerOfTwo, spawn } from "./utils.test-util.js";
 
-const toStringOkay = <A>(a: A): void => {
-	try {
-		expect(new Okay(a).toString()).toStrictEqual(`Okay(${String(a)})`);
-	} catch (error) {
-		expect(error).toBeInstanceOf(TypeError);
-	}
-};
-
-const toStringFail = <E>(x: E): void => {
-	try {
-		expect(new Fail(x).toString()).toStrictEqual(`Fail(${String(x)})`);
-	} catch (error) {
-		expect(error).toBeInstanceOf(TypeError);
-	}
-};
-
-const foldEquivalence = <A, E, T>(u: Result<A, E>, f: (a: A) => T, g: (x: E) => T): void => {
-	expect(u.fold(f, g)).toStrictEqual(u.isOkay ? f(u.value) : g(u.value));
-};
-
-const mapIdentity = <A, E>(u: Result<A, E>): void => {
-	expect(u.map(id, id)).toStrictEqual(u);
-};
-
-const mapOkayIdentity = <A, E>(u: Result<A, E>): void => {
-	expect(u.mapOkay(id)).toStrictEqual(u);
-};
-
-const mapFailIdentity = <A, E>(u: Result<A, E>): void => {
-	expect(u.mapFail(id)).toStrictEqual(u);
-};
-
-const replaceDefinition = <A, B, E, F>(u: Result<A, E>, b: B, f: F): void => {
-	expect(u.replace(b, f)).toStrictEqual(
-		u.map(
-			() => b,
-			() => f,
-		),
-	);
-};
-
-const replaceOkayDefinition = <A, B, E>(u: Result<A, E>, b: B): void => {
-	expect(u.replaceOkay(b)).toStrictEqual(u.mapOkay(() => b));
-};
-
-const replaceFailDefinition = <A, E, F>(u: Result<A, E>, f: F): void => {
-	expect(u.replaceFail(f)).toStrictEqual(u.mapFail(() => f));
-};
-
-const andLeftIdentity = <A, E>(v: Result<A, E>): void => {
-	expect(new Okay(undefined).and(v)).toStrictEqual(v.mapOkay((y) => new Pair(undefined, y)));
-};
-
-const andRightIdentity = <A, E>(u: Result<A, E>): void => {
-	expect(u.and(new Okay(undefined))).toStrictEqual(u.mapOkay((x) => new Pair(x, undefined)));
-};
-
-const andAssociativity = <A, B, C, E>(u: Result<A, E>, v: Result<B, E>, w: Result<C, E>): void => {
-	expect(u.and(v.and(w)).mapOkay((x) => x.associateLeft())).toStrictEqual(u.and(v).and(w));
-};
-
-const andLeftAnnihilation = <A, E>(v: Result<A, E>): void => {
-	expect(new Fail(undefined).and(v)).toStrictEqual(new Fail(undefined));
-};
-
-const andThenDefinition = <A, B, E>(u: Result<A, E>, v: Result<B, E>): void => {
-	expect(u.andThen(v)).toStrictEqual(u.and(v).mapOkay((x) => x.snd));
-};
-
-const andWhenDefinition = <A, B, E>(u: Result<A, E>, v: Result<B, E>): void => {
-	expect(u.andWhen(v)).toStrictEqual(u.and(v).mapOkay((x) => x.fst));
-};
-
-const orLeftIdentity = <A, E>(v: Result<A, E>): void => {
-	expect(new Fail(undefined).or(v)).toStrictEqual(v.mapFail((y) => new Pair(undefined, y)));
-};
-
-const orRightIdentity = <A, E>(u: Result<A, E>): void => {
-	expect(u.or(new Fail(undefined))).toStrictEqual(u.mapFail((x) => new Pair(x, undefined)));
-};
-
-const orAssociativity = <A, E, F, G>(u: Result<A, E>, v: Result<A, F>, w: Result<A, G>): void => {
-	expect(u.or(v.or(w)).mapFail((x) => x.associateLeft())).toStrictEqual(u.or(v).or(w));
-};
-
-const orLeftAnnihilation = <A, E>(v: Result<A, E>): void => {
-	expect(new Okay(undefined).or(v)).toStrictEqual(new Okay(undefined));
-};
-
-const orElseDefinition = <A, E, F>(u: Result<A, E>, v: Result<A, F>): void => {
-	expect(u.orElse(v)).toStrictEqual(u.or(v).mapFail((x) => x.snd));
-};
-
-const orErstDefinition = <A, E, F>(u: Result<A, E>, v: Result<A, F>): void => {
-	expect(u.orErst(v)).toStrictEqual(u.or(v).mapFail((x) => x.fst));
-};
-
-const flatMapLeftIdentityOkay = <A, B, E>(a: A, k: (a: A) => Result<B, E>): void => {
-	expect(new Okay(a).flatMap<A, B, E, E>(k, Fail.of)).toStrictEqual(k(a));
-};
-
-const flatMapLeftIdentityFail = <A, E, F>(x: E, k: (x: E) => Result<A, F>): void => {
-	expect(new Fail(x).flatMap<A, A, E, F>(Okay.of, k)).toStrictEqual(k(x));
-};
-
-const flatMapRightIdentity = <A, E>(m: Result<A, E>): void => {
-	expect(m.flatMap(Okay.of, Fail.of)).toStrictEqual(m);
-};
-
-const flatMapAssociativity = <A, B, C, E, F, G>(
-	m: Result<A, E>,
-	k: (a: A) => Result<B, F>,
-	c: (x: E) => Result<B, F>,
-	h: (b: B) => Result<C, G>,
-	g: (f: F) => Result<C, G>,
-): void => {
-	expect(
-		m.flatMap(
-			(a) => k(a).flatMap(h, g),
-			(x) => c(x).flatMap(h, g),
-		),
-	).toStrictEqual(m.flatMap(k, c).flatMap(h, g));
-};
-
-const flatMapOkayDefinition = <A, B, E>(m: Result<A, E>, k: (a: A) => Result<B, E>): void => {
-	expect(m.flatMapOkay(k)).toStrictEqual(m.flatMap(k, Fail.of));
-};
-
-const flatMapFailDefnition = <A, E, F>(m: Result<A, E>, k: (x: E) => Result<A, F>): void => {
-	expect(m.flatMapFail(k)).toStrictEqual(m.flatMap(Okay.of, k));
-};
-
-const flattenOkayDefinition = <A, E>(m: Result<Result<A, E>, E>): void => {
-	expect(m.flattenOkay()).toStrictEqual(m.flatMapOkay(id));
-};
-
-const flattenFailDefinition = <A, E>(m: Result<A, Result<A, E>>): void => {
-	expect(m.flattenFail()).toStrictEqual(m.flatMapFail(id));
-};
-
-const flatMapUntilEquivalence = <A, B, E, F>(
-	m: Result<A, E>,
-	k: (a: A) => Result<Result<B, A>, Result<F, E>>,
-	c: (x: E) => Result<Result<B, A>, Result<F, E>>,
-): void => {
-	const f = (x: Result<B, A>): Result<B, F> => (x.isOkay ? x : k(x.value).flatMap(f, g));
-	const g = (y: Result<F, E>): Result<B, F> =>
-		y.isOkay ? new Fail(y.value) : c(y.value).flatMap(f, g);
-	expect(m.flatMapUntil(k, c)).toStrictEqual(m.flatMap(k, c).flatMap(f, g));
-};
-
-const flatMapOkayUntilEquivalence = <A, B, E>(
-	m: Result<A, E>,
-	k: (a: A) => Result<Result<B, A>, E>,
-): void => {
-	const f = (x: Result<B, A>): Result<B, E> => (x.isOkay ? x : k(x.value).flatMapOkay(f));
-	expect(m.flatMapOkayUntil(k)).toStrictEqual(m.flatMapOkay(k).flatMapOkay(f));
-};
-
-const flatMapFailUntilEquivalence = <A, E, F>(
-	m: Result<A, E>,
-	c: (x: E) => Result<A, Result<F, E>>,
-): void => {
-	const g = (y: Result<F, E>): Result<A, F> =>
-		y.isOkay ? new Fail(y.value) : c(y.value).flatMapFail(g);
-	expect(m.flatMapFailUntil(c)).toStrictEqual(m.flatMapFail(c).flatMapFail(g));
-};
-
-const commuteInverse = <A, E>(m: Result<A, E>): void => {
-	expect(m.commute().commute()).toStrictEqual(m);
-};
-
-const isOkayAndDefinition = <A, E>(m: Result<A, E>, p: (a: A) => boolean): void => {
-	expect(m.isOkayAnd(p)).toStrictEqual(m.toOptionOkay().isSomeAnd(p));
-};
-
-const isFailAndDefinition = <A, E>(m: Result<A, E>, p: (x: E) => boolean): void => {
-	expect(m.isFailAnd(p)).toStrictEqual(m.toOptionFail().isSomeAnd(p));
-};
-
-const isOkayOrDefinition = <A, E>(m: Result<A, E>, p: (x: E) => boolean): void => {
-	expect(m.isOkayOr(p)).toStrictEqual(m.toOptionFail().isNoneOr(p));
-};
-
-const isFailOrDefinition = <A, E>(m: Result<A, E>, p: (a: A) => boolean): void => {
-	expect(m.isFailOr(p)).toStrictEqual(m.toOptionOkay().isNoneOr(p));
-};
-
-const transposeMapOkayDefinition = <A, B, E>(m: Result<A, E>, f: (a: A) => Option<B>): void => {
-	expect(m.transposeMapOkay(f)).toStrictEqual(m.transposeMap(f, Some.of));
-};
-
-const transposeMapFailDefinition = <A, E, F>(m: Result<A, E>, g: (x: E) => Option<F>): void => {
-	expect(m.transposeMapFail(g)).toStrictEqual(m.transposeMap(Some.of, g));
-};
-
-const transposeDefinition = <A, E>(m: Result<Option<A>, Option<E>>): void => {
-	expect(m.transpose()).toStrictEqual(m.transposeMap(id, id));
-};
-
-const transposeOkayDefinition = <A, E>(m: Result<Option<A>, E>): void => {
-	expect(m.transposeOkay()).toStrictEqual(m.transposeMap(id, Some.of));
-};
-
-const transposeFailDefinition = <A, E>(m: Result<A, Option<E>>): void => {
-	expect(m.transposeFail()).toStrictEqual(m.transposeMap(Some.of, id));
-};
-
-const unzipWithOkayDefinition = <A, B, C, E>(m: Result<A, E>, f: (a: A) => Pair<B, C>): void => {
-	expect(m.unzipWithOkay(f)).toStrictEqual(m.unzipWith(f, Pair.from));
-};
-
-const unzipWithFailDefinition = <A, E, F, G>(m: Result<A, E>, g: (x: E) => Pair<F, G>): void => {
-	expect(m.unzipWithFail(g)).toStrictEqual(m.unzipWith(Pair.from, g));
-};
-
-const unzipDefinition = <A, B, E, F>(m: Result<Pair<A, B>, Pair<E, F>>): void => {
-	expect(m.unzip()).toStrictEqual(m.unzipWith(id, id));
-};
-
-const unzipOkayDefinition = <A, B, E>(m: Result<Pair<A, B>, E>): void => {
-	expect(m.unzipOkay()).toStrictEqual(m.unzipWith(id, Pair.from));
-};
-
-const unzipFailDefinition = <A, E, F>(m: Result<A, Pair<E, F>>): void => {
-	expect(m.unzipFail()).toStrictEqual(m.unzipWith(Pair.from, id));
-};
-
-const collectFstDefinition = <A, B, C>(m: Result<Pair<A, C>, Pair<B, C>>): void => {
-	expect(m.collectFst()).toStrictEqual(m.collectMapFst(id, id));
-};
-
-const collectSndDefinition = <A, B, C>(m: Result<Pair<A, B>, Pair<A, C>>): void => {
-	expect(m.collectSnd()).toStrictEqual(m.collectMapSnd(id, id));
-};
-
-const exchangeMapFailDefinition = <A, B, E, F>(
-	m: Result<A, E>,
-	f: (a: A) => Result<B, F>,
-): void => {
-	expect(m.exchangeMapFail(f)).toStrictEqual(m.collectMapOkay(f, Okay.of));
-};
-
-const associateMapLeftDefinition = <Y, A, B, C>(
-	m: Result<A, Y>,
-	g: (x: Y) => Result<B, C>,
-): void => {
-	expect(m.associateMapLeft(g)).toStrictEqual(m.collectMapOkay(Okay.of, g));
-};
-
-const collectOkayDefinition = <A, B, E>(m: Result<Result<A, E>, Result<B, E>>): void => {
-	expect(m.collectOkay()).toStrictEqual(m.collectMapOkay(id, id));
-};
-
-const exchangeFailDefinition = <A, E, F>(m: Result<Result<A, E>, F>): void => {
-	expect(m.exchangeFail()).toStrictEqual(m.collectMapOkay(id, Okay.of));
-};
-
-const exchangeFailInverse = <A, E, F>(m: Result<Result<A, E>, F>): void => {
-	expect(m.exchangeFail().exchangeFail()).toStrictEqual(m);
-};
-
-const associateLeftDefinition = <A, B, C>(m: Result<A, Result<B, C>>): void => {
-	expect(m.associateLeft()).toStrictEqual(m.collectMapOkay(Okay.of, id));
-};
-
-const associateLeftInverse = <A, B, C>(m: Result<Result<A, B>, C>): void => {
-	expect(m.associateRight().associateLeft()).toStrictEqual(m);
-};
-
-const exchangeMapOkayDefinition = <A, B, E, F>(
-	m: Result<A, E>,
-	g: (x: E) => Result<B, F>,
-): void => {
-	expect(m.exchangeMapOkay(g)).toStrictEqual(m.collectMapFail(Fail.of, g));
-};
-
-const associateMapRightDefinition = <X, A, B, C>(
-	m: Result<X, C>,
-	f: (x: X) => Result<A, B>,
-): void => {
-	expect(m.associateMapRight(f)).toStrictEqual(m.collectMapFail(f, Fail.of));
-};
-
-const collectFailDefinition = <A, E, F>(m: Result<Result<A, E>, Result<A, F>>): void => {
-	expect(m.collectFail()).toStrictEqual(m.collectMapFail(id, id));
-};
-
-const exchangeOkayDefinition = <A, B, E>(m: Result<A, Result<B, E>>): void => {
-	expect(m.exchangeOkay()).toStrictEqual(m.collectMapFail(Fail.of, id));
-};
-
-const exchangeOkayInverse = <A, B, E>(m: Result<A, Result<B, E>>): void => {
-	expect(m.exchangeOkay().exchangeOkay()).toStrictEqual(m);
-};
-
-const associateRightDefinition = <A, B, C>(m: Result<Result<A, B>, C>): void => {
-	expect(m.associateRight()).toStrictEqual(m.collectMapFail(id, Fail.of));
-};
-
-const associateRightInverse = <A, B, C>(m: Result<A, Result<B, C>>): void => {
-	expect(m.associateLeft().associateRight()).toStrictEqual(m);
-};
-
-const distributeMapDefinition = <A, B, E, F>(m: Result<Result<A, B>, Result<E, F>>): void => {
-	expect(m.distributeMap(id, id)).toStrictEqual(m.distribute());
-};
-
-const distributeInverse = <A, B, E, F>(m: Result<Result<A, B>, Result<E, F>>): void => {
-	expect(m.distribute().distribute()).toStrictEqual(m);
-};
-
-const swapMapFailDefinition = async <X, A, E, F>(
-	m: Result<X, F>,
-	f: (x: X) => Task<A, E>,
-): Promise<void> => {
-	expect(await spawn(m.swapMapFail(f))).toStrictEqual(await spawn(m.gatherMapOkay(f, Task.okay)));
-};
-
-const groupMapLeftDefinition = async <Y, A, B, C>(
-	m: Result<A, Y>,
-	g: (y: Y) => Task<B, C>,
-): Promise<void> => {
-	expect(await spawn(m.groupMapLeft(g))).toStrictEqual(await spawn(m.gatherMapOkay(Task.okay, g)));
-};
-
-const gatherOkayDefinition = async <A, B, E>(m: Result<Task<A, E>, Task<B, E>>): Promise<void> => {
-	expect(await spawn(m.gatherOkay())).toStrictEqual(await spawn(m.gatherMapOkay(id, id)));
-};
-
-const swapFailDefinition = async <A, E, F>(m: Result<Task<A, E>, F>): Promise<void> => {
-	expect(await spawn(m.swapFail())).toStrictEqual(await spawn(m.gatherMapOkay(id, Task.okay)));
-};
-
-const groupLeftDefinition = async <A, B, C>(m: Result<A, Task<B, C>>): Promise<void> => {
-	expect(await spawn(m.groupLeft())).toStrictEqual(await spawn(m.gatherMapOkay(Task.okay, id)));
-};
-
-const swapMapOkayDefinition = async <Y, A, B, E>(
-	m: Result<A, Y>,
-	g: (y: Y) => Task<B, E>,
-): Promise<void> => {
-	expect(await spawn(m.swapMapOkay(g))).toStrictEqual(await spawn(m.gatherMapFail(Task.fail, g)));
-};
-
-const groupMapRightDefinition = async <X, A, B, C>(
-	m: Result<X, C>,
-	f: (x: X) => Task<A, B>,
-): Promise<void> => {
-	expect(await spawn(m.groupMapRight(f))).toStrictEqual(await spawn(m.gatherMapFail(f, Task.fail)));
-};
-
-const gatherFailDefinition = async <A, E, F>(m: Result<Task<A, E>, Task<A, F>>): Promise<void> => {
-	expect(await spawn(m.gatherFail())).toStrictEqual(await spawn(m.gatherMapFail(id, id)));
-};
-
-const swapOkayDefinition = async <A, B, E>(m: Result<A, Task<B, E>>): Promise<void> => {
-	expect(await spawn(m.swapOkay())).toStrictEqual(await spawn(m.gatherMapFail(Task.fail, id)));
-};
-
-const groupRightDefinition = async <A, B, C>(m: Result<Task<A, B>, C>): Promise<void> => {
-	expect(await spawn(m.groupRight())).toStrictEqual(await spawn(m.gatherMapFail(id, Task.fail)));
-};
-
-const interchangeDefinition = async <A, B, E, F>(
-	m: Result<Task<A, B>, Task<E, F>>,
-): Promise<void> => {
-	expect(await spawn(m.interchange())).toStrictEqual(await spawn(m.interchangeMap(id, id)));
-};
-
-const extractOkayFromOkay = <A>(a: A, x: A): void => {
-	expect(new Okay(a).extractOkay(x)).toStrictEqual(a);
-};
-
-const extractOkayFromFail = <A, E>(x: E, y: A): void => {
-	expect(new Fail(x).extractOkay(y)).toStrictEqual(y);
-};
-
-const extractFailFromFail = <E>(x: E, y: E): void => {
-	expect(new Fail(x).extractFail(y)).toStrictEqual(x);
-};
-
-const extractFailFromOkay = <A, E>(a: A, x: E): void => {
-	expect(new Okay(a).extractFail(x)).toStrictEqual(x);
-};
-
-const extractMapOkayDefinition = <A, E>(m: Result<A, E>, a: A): void => {
-	expect(m.extractMapOkay(() => a)).toStrictEqual(m.extractOkay(a));
-};
-
-const extractMapFailDefinition = <A, E>(m: Result<A, E>, x: E): void => {
-	expect(m.extractMapFail(() => x)).toStrictEqual(m.extractFail(x));
-};
-
-const toTaskEquivalence = async <A, E>(m: Result<A, E>): Promise<void> => {
-	expect(await spawn(m.toTask())).toStrictEqual(
-		await spawn(m.isOkay ? Task.okay(m.value) : Task.fail(m.value)),
-	);
-};
-
-const valuesDefinition = <A, E>(m: Result<A, E>): void => {
-	expect([...m.values()]).toStrictEqual([...m.okayValues(), ...m.failValues()]);
-};
-
-const effectMapDefinition = <A, B, E>(m: Result<A, E>, f: (a: A) => B): void => {
-	expect(
-		Okay.fromGenerator(function* () {
-			const b: B = yield* m.effectMap(f);
-			return b;
-		}),
-	).toStrictEqual(
-		Okay.fromGenerator(function* () {
-			const b: B = f(yield* m.effect());
-			return b;
-		}),
-	);
-};
-
-const fromGeneratorEquivalence = <A, B, E>(
-	m: Result<A, E>,
-	p: (a: A) => boolean,
-	f: (a: A) => Result<A, E>,
-	g: (a: A) => Result<B, E>,
-): void => {
-	expect(
-		Okay.fromGenerator(function* () {
-			let a: A = yield* m.effect();
-			while (!p(a)) a = yield* f(a).effect();
-			const b: B = yield* g(a).effect();
-			return b;
-		}),
-	).toStrictEqual(
-		m.flatMapOkayUntil((a) => (p(a) ? g(a).mapOkay(Okay.of) : f(a).mapOkay(Fail.of))),
-	);
-};
-
-const fromGeneratorThrow = <A, E>(m: Result<A, E>, n: Result<A, E>): void => {
-	expect(
-		Okay.fromGenerator(function* () {
-			try {
-				const a: A = yield* m.effect();
-				return a;
-			} catch {
-				const a: A = yield* n.effect();
-				return a;
-			}
-		}),
-	).toStrictEqual(m.orElse(n));
-};
-
-const fromGeneratorCatch = <A, E>(m: Result<A, E>, x: E): void => {
-	expect(
-		Okay.fromGenerator(function* () {
-			if (m.isOkay) throw x;
-			const a: A = yield* m.effect<A, E>();
-			return a;
-		}),
-	).toStrictEqual(m.isOkay ? new Fail(x) : m);
-};
-
 describe("Result", () => {
 	describe("toString", () => {
 		it("should convert Okay to a string", () => {
 			expect.assertions(100);
 
-			fc.assert(fc.property(fc.anything(), toStringOkay));
+			fc.assert(
+				fc.property(stringable, <A>(a: A) => {
+					expect(new Okay(a).toString()).toStrictEqual(`Okay(${String(a)})`);
+				}),
+			);
 		});
 
 		it("should convert Fail to a string", () => {
 			expect.assertions(100);
 
-			fc.assert(fc.property(fc.anything(), toStringFail));
+			fc.assert(
+				fc.property(stringable, <E>(x: E) => {
+					expect(new Fail(x).toString()).toStrictEqual(`Fail(${String(x)})`);
+				}),
+			);
 		});
 	});
 
@@ -496,7 +44,9 @@ describe("Result", () => {
 					result(fc.anything(), fc.anything()),
 					fc.func(fc.anything()),
 					fc.func(fc.anything()),
-					foldEquivalence,
+					<A, E, T>(u: Result<A, E>, f: (a: A) => T, g: (x: E) => T) => {
+						expect(u.fold(f, g)).toStrictEqual(u.isOkay ? f(u.value) : g(u.value));
+					},
 				),
 			);
 		});
@@ -506,7 +56,11 @@ describe("Result", () => {
 		it("should preserve identity morphisms", () => {
 			expect.assertions(100);
 
-			fc.assert(fc.property(result(fc.anything(), fc.anything()), mapIdentity));
+			fc.assert(
+				fc.property(result(fc.anything(), fc.anything()), <A, E>(u: Result<A, E>) => {
+					expect(u.map(id, id)).toStrictEqual(u);
+				}),
+			);
 		});
 	});
 
@@ -514,7 +68,11 @@ describe("Result", () => {
 		it("should preserve identity morphisms", () => {
 			expect.assertions(100);
 
-			fc.assert(fc.property(result(fc.anything(), fc.anything()), mapOkayIdentity));
+			fc.assert(
+				fc.property(result(fc.anything(), fc.anything()), <A, E>(u: Result<A, E>) => {
+					expect(u.mapOkay(id)).toStrictEqual(u);
+				}),
+			);
 		});
 	});
 
@@ -522,7 +80,11 @@ describe("Result", () => {
 		it("should preserve identity morphisms", () => {
 			expect.assertions(100);
 
-			fc.assert(fc.property(result(fc.anything(), fc.anything()), mapFailIdentity));
+			fc.assert(
+				fc.property(result(fc.anything(), fc.anything()), <A, E>(u: Result<A, E>) => {
+					expect(u.mapFail(id)).toStrictEqual(u);
+				}),
+			);
 		});
 	});
 
@@ -535,7 +97,14 @@ describe("Result", () => {
 					result(fc.anything(), fc.anything()),
 					fc.anything(),
 					fc.anything(),
-					replaceDefinition,
+					<A, B, E, F>(u: Result<A, E>, b: B, f: F) => {
+						expect(u.replace(b, f)).toStrictEqual(
+							u.map(
+								() => b,
+								() => f,
+							),
+						);
+					},
 				),
 			);
 		});
@@ -546,7 +115,13 @@ describe("Result", () => {
 			expect.assertions(100);
 
 			fc.assert(
-				fc.property(result(fc.anything(), fc.anything()), fc.anything(), replaceOkayDefinition),
+				fc.property(
+					result(fc.anything(), fc.anything()),
+					fc.anything(),
+					<A, B, E>(u: Result<A, E>, b: B) => {
+						expect(u.replaceOkay(b)).toStrictEqual(u.mapOkay(() => b));
+					},
+				),
 			);
 		});
 	});
@@ -556,7 +131,13 @@ describe("Result", () => {
 			expect.assertions(100);
 
 			fc.assert(
-				fc.property(result(fc.anything(), fc.anything()), fc.anything(), replaceFailDefinition),
+				fc.property(
+					result(fc.anything(), fc.anything()),
+					fc.anything(),
+					<A, E, F>(u: Result<A, E>, f: F) => {
+						expect(u.replaceFail(f)).toStrictEqual(u.mapFail(() => f));
+					},
+				),
 			);
 		});
 	});
@@ -565,13 +146,25 @@ describe("Result", () => {
 		it("should have a left identity", () => {
 			expect.assertions(100);
 
-			fc.assert(fc.property(result(fc.anything(), fc.anything()), andLeftIdentity));
+			fc.assert(
+				fc.property(result(fc.anything(), fc.anything()), <A, E>(v: Result<A, E>) => {
+					expect(new Okay(undefined).and(v)).toStrictEqual(
+						v.mapOkay((y) => new Pair(undefined, y)),
+					);
+				}),
+			);
 		});
 
 		it("should have a right identity", () => {
 			expect.assertions(100);
 
-			fc.assert(fc.property(result(fc.anything(), fc.anything()), andRightIdentity));
+			fc.assert(
+				fc.property(result(fc.anything(), fc.anything()), <A, E>(u: Result<A, E>) => {
+					expect(u.and(new Okay(undefined))).toStrictEqual(
+						u.mapOkay((x) => new Pair(x, undefined)),
+					);
+				}),
+			);
 		});
 
 		it("should be associative", () => {
@@ -582,7 +175,11 @@ describe("Result", () => {
 					result(fc.anything(), fc.anything()),
 					result(fc.anything(), fc.anything()),
 					result(fc.anything(), fc.anything()),
-					andAssociativity,
+					<A, B, C, E>(u: Result<A, E>, v: Result<B, E>, w: Result<C, E>) => {
+						expect(u.and(v.and(w)).mapOkay((x) => x.associateLeft())).toStrictEqual(
+							u.and(v).and(w),
+						);
+					},
 				),
 			);
 		});
@@ -590,7 +187,11 @@ describe("Result", () => {
 		it("should have a left annihilator", () => {
 			expect.assertions(100);
 
-			fc.assert(fc.property(result(fc.anything(), fc.anything()), andLeftAnnihilation));
+			fc.assert(
+				fc.property(result(fc.anything(), fc.anything()), <A, E>(v: Result<A, E>) => {
+					expect(new Fail(undefined).and(v)).toStrictEqual(new Fail(undefined));
+				}),
+			);
 		});
 	});
 
@@ -602,7 +203,9 @@ describe("Result", () => {
 				fc.property(
 					result(fc.anything(), fc.anything()),
 					result(fc.anything(), fc.anything()),
-					andThenDefinition,
+					<A, B, E>(u: Result<A, E>, v: Result<B, E>) => {
+						expect(u.andThen(v)).toStrictEqual(u.and(v).mapOkay((x) => x.snd));
+					},
 				),
 			);
 		});
@@ -616,7 +219,9 @@ describe("Result", () => {
 				fc.property(
 					result(fc.anything(), fc.anything()),
 					result(fc.anything(), fc.anything()),
-					andWhenDefinition,
+					<A, B, E>(u: Result<A, E>, v: Result<B, E>) => {
+						expect(u.andWhen(v)).toStrictEqual(u.and(v).mapOkay((x) => x.fst));
+					},
 				),
 			);
 		});
@@ -626,13 +231,21 @@ describe("Result", () => {
 		it("should have a left identity", () => {
 			expect.assertions(100);
 
-			fc.assert(fc.property(result(fc.anything(), fc.anything()), orLeftIdentity));
+			fc.assert(
+				fc.property(result(fc.anything(), fc.anything()), <A, E>(v: Result<A, E>) => {
+					expect(new Fail(undefined).or(v)).toStrictEqual(v.mapFail((y) => new Pair(undefined, y)));
+				}),
+			);
 		});
 
 		it("should have a right identity", () => {
 			expect.assertions(100);
 
-			fc.assert(fc.property(result(fc.anything(), fc.anything()), orRightIdentity));
+			fc.assert(
+				fc.property(result(fc.anything(), fc.anything()), <A, E>(u: Result<A, E>) => {
+					expect(u.or(new Fail(undefined))).toStrictEqual(u.mapFail((x) => new Pair(x, undefined)));
+				}),
+			);
 		});
 
 		it("should be associative", () => {
@@ -643,7 +256,9 @@ describe("Result", () => {
 					result(fc.anything(), fc.anything()),
 					result(fc.anything(), fc.anything()),
 					result(fc.anything(), fc.anything()),
-					orAssociativity,
+					<A, E, F, G>(u: Result<A, E>, v: Result<A, F>, w: Result<A, G>) => {
+						expect(u.or(v.or(w)).mapFail((x) => x.associateLeft())).toStrictEqual(u.or(v).or(w));
+					},
 				),
 			);
 		});
@@ -651,7 +266,11 @@ describe("Result", () => {
 		it("should have a left annihilator", () => {
 			expect.assertions(100);
 
-			fc.assert(fc.property(result(fc.anything(), fc.anything()), orLeftAnnihilation));
+			fc.assert(
+				fc.property(result(fc.anything(), fc.anything()), <A, E>(v: Result<A, E>) => {
+					expect(new Okay(undefined).or(v)).toStrictEqual(new Okay(undefined));
+				}),
+			);
 		});
 	});
 
@@ -663,7 +282,9 @@ describe("Result", () => {
 				fc.property(
 					result(fc.anything(), fc.anything()),
 					result(fc.anything(), fc.anything()),
-					orElseDefinition,
+					<A, E, F>(u: Result<A, E>, v: Result<A, F>) => {
+						expect(u.orElse(v)).toStrictEqual(u.or(v).mapFail((x) => x.snd));
+					},
 				),
 			);
 		});
@@ -677,7 +298,9 @@ describe("Result", () => {
 				fc.property(
 					result(fc.anything(), fc.anything()),
 					result(fc.anything(), fc.anything()),
-					orErstDefinition,
+					<A, E, F>(u: Result<A, E>, v: Result<A, F>) => {
+						expect(u.orErst(v)).toStrictEqual(u.or(v).mapFail((x) => x.fst));
+					},
 				),
 			);
 		});
@@ -691,7 +314,9 @@ describe("Result", () => {
 				fc.property(
 					fc.anything(),
 					fc.func(result(fc.anything(), fc.anything())),
-					flatMapLeftIdentityOkay,
+					<A, B, E>(a: A, k: (a: A) => Result<B, E>) => {
+						expect(new Okay(a).flatMap<A, B, E, E>(k, Fail.of)).toStrictEqual(k(a));
+					},
 				),
 			);
 		});
@@ -703,7 +328,9 @@ describe("Result", () => {
 				fc.property(
 					fc.anything(),
 					fc.func(result(fc.anything(), fc.anything())),
-					flatMapLeftIdentityFail,
+					<A, E, F>(x: E, k: (x: E) => Result<A, F>) => {
+						expect(new Fail(x).flatMap<A, A, E, F>(Okay.of, k)).toStrictEqual(k(x));
+					},
 				),
 			);
 		});
@@ -711,7 +338,11 @@ describe("Result", () => {
 		it("should have a right okay and a right fail identity", () => {
 			expect.assertions(100);
 
-			fc.assert(fc.property(result(fc.anything(), fc.anything()), flatMapRightIdentity));
+			fc.assert(
+				fc.property(result(fc.anything(), fc.anything()), <A, E>(m: Result<A, E>) => {
+					expect(m.flatMap(Okay.of, Fail.of)).toStrictEqual(m);
+				}),
+			);
 		});
 
 		it("should be associative", () => {
@@ -724,7 +355,20 @@ describe("Result", () => {
 					fc.func(result(fc.anything(), fc.anything())),
 					fc.func(result(fc.anything(), fc.anything())),
 					fc.func(result(fc.anything(), fc.anything())),
-					flatMapAssociativity,
+					<A, B, C, E, F, G>(
+						m: Result<A, E>,
+						k: (a: A) => Result<B, F>,
+						c: (x: E) => Result<B, F>,
+						h: (b: B) => Result<C, G>,
+						g: (f: F) => Result<C, G>,
+					) => {
+						expect(
+							m.flatMap(
+								(a) => k(a).flatMap(h, g),
+								(x) => c(x).flatMap(h, g),
+							),
+						).toStrictEqual(m.flatMap(k, c).flatMap(h, g));
+					},
 				),
 			);
 		});
@@ -738,7 +382,9 @@ describe("Result", () => {
 				fc.property(
 					result(fc.anything(), fc.anything()),
 					fc.func(result(fc.anything(), fc.anything())),
-					flatMapOkayDefinition,
+					<A, B, E>(m: Result<A, E>, k: (a: A) => Result<B, E>) => {
+						expect(m.flatMapOkay(k)).toStrictEqual(m.flatMap(k, Fail.of));
+					},
 				),
 			);
 		});
@@ -752,7 +398,9 @@ describe("Result", () => {
 				fc.property(
 					result(fc.anything(), fc.anything()),
 					fc.func(result(fc.anything(), fc.anything())),
-					flatMapFailDefnition,
+					<A, E, F>(m: Result<A, E>, k: (x: E) => Result<A, F>) => {
+						expect(m.flatMapFail(k)).toStrictEqual(m.flatMap(Okay.of, k));
+					},
 				),
 			);
 		});
@@ -765,7 +413,9 @@ describe("Result", () => {
 			fc.assert(
 				fc.property(
 					result(result(fc.anything(), fc.anything()), fc.anything()),
-					flattenOkayDefinition,
+					<A, E>(m: Result<Result<A, E>, E>) => {
+						expect(m.flattenOkay()).toStrictEqual(m.flatMapOkay(id));
+					},
 				),
 			);
 		});
@@ -778,7 +428,9 @@ describe("Result", () => {
 			fc.assert(
 				fc.property(
 					result(fc.anything(), result(fc.anything(), fc.anything())),
-					flattenFailDefinition,
+					<A, E>(m: Result<A, Result<A, E>>) => {
+						expect(m.flattenFail()).toStrictEqual(m.flatMapFail(id));
+					},
 				),
 			);
 		});
@@ -793,7 +445,16 @@ describe("Result", () => {
 					result(fc.integer({ min: 1 }), fc.integer({ min: 1 })),
 					fc.constant((n: number) => new Okay(collatz(n))),
 					fc.constant((n: number) => new Fail(collatz(n))),
-					flatMapUntilEquivalence,
+					<A, B, E, F>(
+						m: Result<A, E>,
+						k: (a: A) => Result<Result<B, A>, Result<F, E>>,
+						c: (x: E) => Result<Result<B, A>, Result<F, E>>,
+					) => {
+						const f = (x: Result<B, A>): Result<B, F> => (x.isOkay ? x : k(x.value).flatMap(f, g));
+						const g = (y: Result<F, E>): Result<B, F> =>
+							y.isOkay ? new Fail(y.value) : c(y.value).flatMap(f, g);
+						expect(m.flatMapUntil(k, c)).toStrictEqual(m.flatMap(k, c).flatMap(f, g));
+					},
 				),
 			);
 		});
@@ -807,7 +468,10 @@ describe("Result", () => {
 				fc.property(
 					result(fc.integer({ min: 1 }), fc.anything()),
 					fc.constant((n: number) => new Okay(collatz(n))),
-					flatMapOkayUntilEquivalence,
+					<A, B, E>(m: Result<A, E>, k: (a: A) => Result<Result<B, A>, E>) => {
+						const f = (x: Result<B, A>): Result<B, E> => (x.isOkay ? x : k(x.value).flatMapOkay(f));
+						expect(m.flatMapOkayUntil(k)).toStrictEqual(m.flatMapOkay(k).flatMapOkay(f));
+					},
 				),
 			);
 		});
@@ -821,7 +485,11 @@ describe("Result", () => {
 				fc.property(
 					result(fc.anything(), fc.integer({ min: 1 })),
 					fc.constant((n: number) => new Fail(collatz(n))),
-					flatMapFailUntilEquivalence,
+					<A, E, F>(m: Result<A, E>, c: (x: E) => Result<A, Result<F, E>>) => {
+						const g = (y: Result<F, E>): Result<A, F> =>
+							y.isOkay ? new Fail(y.value) : c(y.value).flatMapFail(g);
+						expect(m.flatMapFailUntil(c)).toStrictEqual(m.flatMapFail(c).flatMapFail(g));
+					},
 				),
 			);
 		});
@@ -831,7 +499,11 @@ describe("Result", () => {
 		it("should be its own inverse", () => {
 			expect.assertions(100);
 
-			fc.assert(fc.property(result(fc.anything(), fc.anything()), commuteInverse));
+			fc.assert(
+				fc.property(result(fc.anything(), fc.anything()), <A, E>(m: Result<A, E>) => {
+					expect(m.commute().commute()).toStrictEqual(m);
+				}),
+			);
 		});
 	});
 
@@ -843,7 +515,9 @@ describe("Result", () => {
 				fc.property(
 					result(fc.anything(), fc.anything()),
 					fc.func(fc.boolean()),
-					isOkayAndDefinition,
+					<A, E>(m: Result<A, E>, p: (a: A) => boolean) => {
+						expect(m.isOkayAnd(p)).toStrictEqual(m.toOptionOkay().isSomeAnd(p));
+					},
 				),
 			);
 		});
@@ -857,7 +531,9 @@ describe("Result", () => {
 				fc.property(
 					result(fc.anything(), fc.anything()),
 					fc.func(fc.boolean()),
-					isFailAndDefinition,
+					<A, E>(m: Result<A, E>, p: (x: E) => boolean) => {
+						expect(m.isFailAnd(p)).toStrictEqual(m.toOptionFail().isSomeAnd(p));
+					},
 				),
 			);
 		});
@@ -871,7 +547,9 @@ describe("Result", () => {
 				fc.property(
 					result(fc.anything(), fc.anything()),
 					fc.func(fc.boolean()),
-					isOkayOrDefinition,
+					<A, E>(m: Result<A, E>, p: (x: E) => boolean) => {
+						expect(m.isOkayOr(p)).toStrictEqual(m.toOptionFail().isNoneOr(p));
+					},
 				),
 			);
 		});
@@ -885,7 +563,9 @@ describe("Result", () => {
 				fc.property(
 					result(fc.anything(), fc.anything()),
 					fc.func(fc.boolean()),
-					isFailOrDefinition,
+					<A, E>(m: Result<A, E>, p: (a: A) => boolean) => {
+						expect(m.isFailOr(p)).toStrictEqual(m.toOptionOkay().isNoneOr(p));
+					},
 				),
 			);
 		});
@@ -899,7 +579,9 @@ describe("Result", () => {
 				fc.property(
 					result(fc.anything(), fc.anything()),
 					fc.func(option(fc.anything())),
-					transposeMapOkayDefinition,
+					<A, B, E>(m: Result<A, E>, f: (a: A) => Option<B>) => {
+						expect(m.transposeMapOkay(f)).toStrictEqual(m.transposeMap(f, Some.of));
+					},
 				),
 			);
 		});
@@ -913,7 +595,9 @@ describe("Result", () => {
 				fc.property(
 					result(fc.anything(), fc.anything()),
 					fc.func(option(fc.anything())),
-					transposeMapFailDefinition,
+					<A, E, F>(m: Result<A, E>, g: (x: E) => Option<F>) => {
+						expect(m.transposeMapFail(g)).toStrictEqual(m.transposeMap(Some.of, g));
+					},
 				),
 			);
 		});
@@ -924,7 +608,12 @@ describe("Result", () => {
 			expect.assertions(100);
 
 			fc.assert(
-				fc.property(result(option(fc.anything()), option(fc.anything())), transposeDefinition),
+				fc.property(
+					result(option(fc.anything()), option(fc.anything())),
+					<A, E>(m: Result<Option<A>, Option<E>>) => {
+						expect(m.transpose()).toStrictEqual(m.transposeMap(id, id));
+					},
+				),
 			);
 		});
 	});
@@ -933,7 +622,14 @@ describe("Result", () => {
 		it("should agree with transposeMap", () => {
 			expect.assertions(100);
 
-			fc.assert(fc.property(result(option(fc.anything()), fc.anything()), transposeOkayDefinition));
+			fc.assert(
+				fc.property(
+					result(option(fc.anything()), fc.anything()),
+					<A, E>(m: Result<Option<A>, E>) => {
+						expect(m.transposeOkay()).toStrictEqual(m.transposeMap(id, Some.of));
+					},
+				),
+			);
 		});
 	});
 
@@ -941,7 +637,14 @@ describe("Result", () => {
 		it("should agree with transposeMap", () => {
 			expect.assertions(100);
 
-			fc.assert(fc.property(result(fc.anything(), option(fc.anything())), transposeFailDefinition));
+			fc.assert(
+				fc.property(
+					result(fc.anything(), option(fc.anything())),
+					<A, E>(m: Result<A, Option<E>>) => {
+						expect(m.transposeFail()).toStrictEqual(m.transposeMap(Some.of, id));
+					},
+				),
+			);
 		});
 	});
 
@@ -953,7 +656,9 @@ describe("Result", () => {
 				fc.property(
 					result(fc.anything(), fc.anything()),
 					fc.func(pair(fc.anything(), fc.anything())),
-					unzipWithOkayDefinition,
+					<A, B, C, E>(m: Result<A, E>, f: (a: A) => Pair<B, C>) => {
+						expect(m.unzipWithOkay(f)).toStrictEqual(m.unzipWith(f, Pair.from));
+					},
 				),
 			);
 		});
@@ -967,7 +672,9 @@ describe("Result", () => {
 				fc.property(
 					result(fc.anything(), fc.anything()),
 					fc.func(pair(fc.anything(), fc.anything())),
-					unzipWithFailDefinition,
+					<A, E, F, G>(m: Result<A, E>, g: (x: E) => Pair<F, G>) => {
+						expect(m.unzipWithFail(g)).toStrictEqual(m.unzipWith(Pair.from, g));
+					},
 				),
 			);
 		});
@@ -980,7 +687,9 @@ describe("Result", () => {
 			fc.assert(
 				fc.property(
 					result(pair(fc.anything(), fc.anything()), pair(fc.anything(), fc.anything())),
-					unzipDefinition,
+					<A, B, E, F>(m: Result<Pair<A, B>, Pair<E, F>>) => {
+						expect(m.unzip()).toStrictEqual(m.unzipWith(id, id));
+					},
 				),
 			);
 		});
@@ -991,7 +700,12 @@ describe("Result", () => {
 			expect.assertions(100);
 
 			fc.assert(
-				fc.property(result(pair(fc.anything(), fc.anything()), fc.anything()), unzipOkayDefinition),
+				fc.property(
+					result(pair(fc.anything(), fc.anything()), fc.anything()),
+					<A, B, E>(m: Result<Pair<A, B>, E>) => {
+						expect(m.unzipOkay()).toStrictEqual(m.unzipWith(id, Pair.from));
+					},
+				),
 			);
 		});
 	});
@@ -1001,7 +715,12 @@ describe("Result", () => {
 			expect.assertions(100);
 
 			fc.assert(
-				fc.property(result(fc.anything(), pair(fc.anything(), fc.anything())), unzipFailDefinition),
+				fc.property(
+					result(fc.anything(), pair(fc.anything(), fc.anything())),
+					<A, E, F>(m: Result<A, Pair<E, F>>) => {
+						expect(m.unzipFail()).toStrictEqual(m.unzipWith(Pair.from, id));
+					},
+				),
 			);
 		});
 	});
@@ -1013,7 +732,9 @@ describe("Result", () => {
 			fc.assert(
 				fc.property(
 					result(pair(fc.anything(), fc.anything()), pair(fc.anything(), fc.anything())),
-					collectFstDefinition,
+					<A, B, C>(m: Result<Pair<A, C>, Pair<B, C>>) => {
+						expect(m.collectFst()).toStrictEqual(m.collectMapFst(id, id));
+					},
 				),
 			);
 		});
@@ -1026,7 +747,9 @@ describe("Result", () => {
 			fc.assert(
 				fc.property(
 					result(pair(fc.anything(), fc.anything()), pair(fc.anything(), fc.anything())),
-					collectSndDefinition,
+					<A, B, C>(m: Result<Pair<A, B>, Pair<A, C>>) => {
+						expect(m.collectSnd()).toStrictEqual(m.collectMapSnd(id, id));
+					},
 				),
 			);
 		});
@@ -1040,7 +763,9 @@ describe("Result", () => {
 				fc.property(
 					result(fc.anything(), fc.anything()),
 					fc.func(result(fc.anything(), fc.anything())),
-					exchangeMapFailDefinition,
+					<A, B, E, F>(m: Result<A, E>, f: (a: A) => Result<B, F>) => {
+						expect(m.exchangeMapFail(f)).toStrictEqual(m.collectMapOkay(f, Okay.of));
+					},
 				),
 			);
 		});
@@ -1054,7 +779,9 @@ describe("Result", () => {
 				fc.property(
 					result(fc.anything(), fc.anything()),
 					fc.func(result(fc.anything(), fc.anything())),
-					associateMapLeftDefinition,
+					<Y, A, B, C>(m: Result<A, Y>, g: (x: Y) => Result<B, C>) => {
+						expect(m.associateMapLeft(g)).toStrictEqual(m.collectMapOkay(Okay.of, g));
+					},
 				),
 			);
 		});
@@ -1067,7 +794,9 @@ describe("Result", () => {
 			fc.assert(
 				fc.property(
 					result(result(fc.anything(), fc.anything()), result(fc.anything(), fc.anything())),
-					collectOkayDefinition,
+					<A, B, E>(m: Result<Result<A, E>, Result<B, E>>) => {
+						expect(m.collectOkay()).toStrictEqual(m.collectMapOkay(id, id));
+					},
 				),
 			);
 		});
@@ -1080,7 +809,9 @@ describe("Result", () => {
 			fc.assert(
 				fc.property(
 					result(result(fc.anything(), fc.anything()), fc.anything()),
-					exchangeFailDefinition,
+					<A, E, F>(m: Result<Result<A, E>, F>) => {
+						expect(m.exchangeFail()).toStrictEqual(m.collectMapOkay(id, Okay.of));
+					},
 				),
 			);
 		});
@@ -1091,7 +822,9 @@ describe("Result", () => {
 			fc.assert(
 				fc.property(
 					result(result(fc.anything(), fc.anything()), fc.anything()),
-					exchangeFailInverse,
+					<A, E, F>(m: Result<Result<A, E>, F>) => {
+						expect(m.exchangeFail().exchangeFail()).toStrictEqual(m);
+					},
 				),
 			);
 		});
@@ -1104,7 +837,9 @@ describe("Result", () => {
 			fc.assert(
 				fc.property(
 					result(fc.anything(), result(fc.anything(), fc.anything())),
-					associateLeftDefinition,
+					<A, B, C>(m: Result<A, Result<B, C>>) => {
+						expect(m.associateLeft()).toStrictEqual(m.collectMapOkay(Okay.of, id));
+					},
 				),
 			);
 		});
@@ -1115,7 +850,9 @@ describe("Result", () => {
 			fc.assert(
 				fc.property(
 					result(result(fc.anything(), fc.anything()), fc.anything()),
-					associateLeftInverse,
+					<A, B, C>(m: Result<Result<A, B>, C>) => {
+						expect(m.associateRight().associateLeft()).toStrictEqual(m);
+					},
 				),
 			);
 		});
@@ -1129,7 +866,9 @@ describe("Result", () => {
 				fc.property(
 					result(fc.anything(), fc.anything()),
 					fc.func(result(fc.anything(), fc.anything())),
-					exchangeMapOkayDefinition,
+					<A, B, E, F>(m: Result<A, E>, g: (x: E) => Result<B, F>) => {
+						expect(m.exchangeMapOkay(g)).toStrictEqual(m.collectMapFail(Fail.of, g));
+					},
 				),
 			);
 		});
@@ -1143,7 +882,9 @@ describe("Result", () => {
 				fc.property(
 					result(fc.anything(), fc.anything()),
 					fc.func(result(fc.anything(), fc.anything())),
-					associateMapRightDefinition,
+					<X, A, B, C>(m: Result<X, C>, f: (x: X) => Result<A, B>) => {
+						expect(m.associateMapRight(f)).toStrictEqual(m.collectMapFail(f, Fail.of));
+					},
 				),
 			);
 		});
@@ -1156,7 +897,9 @@ describe("Result", () => {
 			fc.assert(
 				fc.property(
 					result(result(fc.anything(), fc.anything()), result(fc.anything(), fc.anything())),
-					collectFailDefinition,
+					<A, E, F>(m: Result<Result<A, E>, Result<A, F>>) => {
+						expect(m.collectFail()).toStrictEqual(m.collectMapFail(id, id));
+					},
 				),
 			);
 		});
@@ -1169,7 +912,9 @@ describe("Result", () => {
 			fc.assert(
 				fc.property(
 					result(fc.anything(), result(fc.anything(), fc.anything())),
-					exchangeOkayDefinition,
+					<A, B, E>(m: Result<A, Result<B, E>>) => {
+						expect(m.exchangeOkay()).toStrictEqual(m.collectMapFail(Fail.of, id));
+					},
 				),
 			);
 		});
@@ -1180,7 +925,9 @@ describe("Result", () => {
 			fc.assert(
 				fc.property(
 					result(fc.anything(), result(fc.anything(), fc.anything())),
-					exchangeOkayInverse,
+					<A, B, E>(m: Result<A, Result<B, E>>) => {
+						expect(m.exchangeOkay().exchangeOkay()).toStrictEqual(m);
+					},
 				),
 			);
 		});
@@ -1193,7 +940,9 @@ describe("Result", () => {
 			fc.assert(
 				fc.property(
 					result(result(fc.anything(), fc.anything()), fc.anything()),
-					associateRightDefinition,
+					<A, B, C>(m: Result<Result<A, B>, C>) => {
+						expect(m.associateRight()).toStrictEqual(m.collectMapFail(id, Fail.of));
+					},
 				),
 			);
 		});
@@ -1204,7 +953,9 @@ describe("Result", () => {
 			fc.assert(
 				fc.property(
 					result(fc.anything(), result(fc.anything(), fc.anything())),
-					associateRightInverse,
+					<A, B, C>(m: Result<A, Result<B, C>>) => {
+						expect(m.associateLeft().associateRight()).toStrictEqual(m);
+					},
 				),
 			);
 		});
@@ -1217,7 +968,9 @@ describe("Result", () => {
 			fc.assert(
 				fc.property(
 					result(result(fc.anything(), fc.anything()), result(fc.anything(), fc.anything())),
-					distributeMapDefinition,
+					<A, B, E, F>(m: Result<Result<A, B>, Result<E, F>>) => {
+						expect(m.distributeMap(id, id)).toStrictEqual(m.distribute());
+					},
 				),
 			);
 		});
@@ -1230,7 +983,9 @@ describe("Result", () => {
 			fc.assert(
 				fc.property(
 					result(result(fc.anything(), fc.anything()), result(fc.anything(), fc.anything())),
-					distributeInverse,
+					<A, B, E, F>(m: Result<Result<A, B>, Result<E, F>>) => {
+						expect(m.distribute().distribute()).toStrictEqual(m);
+					},
 				),
 			);
 		});
@@ -1244,7 +999,11 @@ describe("Result", () => {
 				fc.asyncProperty(
 					result(fc.anything(), fc.anything()),
 					fc.func(task(fc.anything(), fc.anything())),
-					swapMapFailDefinition,
+					async <X, A, E, F>(m: Result<X, F>, f: (x: X) => Task<A, E>) => {
+						expect(await spawn(m.swapMapFail(f))).toStrictEqual(
+							await spawn(m.gatherMapOkay(f, Task.okay)),
+						);
+					},
 				),
 			);
 		});
@@ -1258,7 +1017,11 @@ describe("Result", () => {
 				fc.asyncProperty(
 					result(fc.anything(), fc.anything()),
 					fc.func(task(fc.anything(), fc.anything())),
-					groupMapLeftDefinition,
+					async <Y, A, B, C>(m: Result<A, Y>, g: (y: Y) => Task<B, C>) => {
+						expect(await spawn(m.groupMapLeft(g))).toStrictEqual(
+							await spawn(m.gatherMapOkay(Task.okay, g)),
+						);
+					},
 				),
 			);
 		});
@@ -1271,7 +1034,9 @@ describe("Result", () => {
 			await fc.assert(
 				fc.asyncProperty(
 					result(task(fc.anything(), fc.anything()), task(fc.anything(), fc.anything())),
-					gatherOkayDefinition,
+					async <A, B, E>(m: Result<Task<A, E>, Task<B, E>>) => {
+						expect(await spawn(m.gatherOkay())).toStrictEqual(await spawn(m.gatherMapOkay(id, id)));
+					},
 				),
 			);
 		});
@@ -1284,7 +1049,11 @@ describe("Result", () => {
 			await fc.assert(
 				fc.asyncProperty(
 					result(task(fc.anything(), fc.anything()), fc.anything()),
-					swapFailDefinition,
+					async <A, E, F>(m: Result<Task<A, E>, F>) => {
+						expect(await spawn(m.swapFail())).toStrictEqual(
+							await spawn(m.gatherMapOkay(id, Task.okay)),
+						);
+					},
 				),
 			);
 		});
@@ -1297,7 +1066,11 @@ describe("Result", () => {
 			await fc.assert(
 				fc.asyncProperty(
 					result(fc.anything(), task(fc.anything(), fc.anything())),
-					groupLeftDefinition,
+					async <A, B, C>(m: Result<A, Task<B, C>>) => {
+						expect(await spawn(m.groupLeft())).toStrictEqual(
+							await spawn(m.gatherMapOkay(Task.okay, id)),
+						);
+					},
 				),
 			);
 		});
@@ -1311,7 +1084,11 @@ describe("Result", () => {
 				fc.asyncProperty(
 					result(fc.anything(), fc.anything()),
 					fc.func(task(fc.anything(), fc.anything())),
-					swapMapOkayDefinition,
+					async <Y, A, B, E>(m: Result<A, Y>, g: (y: Y) => Task<B, E>) => {
+						expect(await spawn(m.swapMapOkay(g))).toStrictEqual(
+							await spawn(m.gatherMapFail(Task.fail, g)),
+						);
+					},
 				),
 			);
 		});
@@ -1325,7 +1102,11 @@ describe("Result", () => {
 				fc.asyncProperty(
 					result(fc.anything(), fc.anything()),
 					fc.func(task(fc.anything(), fc.anything())),
-					groupMapRightDefinition,
+					async <X, A, B, C>(m: Result<X, C>, f: (x: X) => Task<A, B>) => {
+						expect(await spawn(m.groupMapRight(f))).toStrictEqual(
+							await spawn(m.gatherMapFail(f, Task.fail)),
+						);
+					},
 				),
 			);
 		});
@@ -1338,7 +1119,9 @@ describe("Result", () => {
 			await fc.assert(
 				fc.asyncProperty(
 					result(task(fc.anything(), fc.anything()), task(fc.anything(), fc.anything())),
-					gatherFailDefinition,
+					async <A, E, F>(m: Result<Task<A, E>, Task<A, F>>) => {
+						expect(await spawn(m.gatherFail())).toStrictEqual(await spawn(m.gatherMapFail(id, id)));
+					},
 				),
 			);
 		});
@@ -1351,7 +1134,11 @@ describe("Result", () => {
 			await fc.assert(
 				fc.asyncProperty(
 					result(fc.anything(), task(fc.anything(), fc.anything())),
-					swapOkayDefinition,
+					async <A, B, E>(m: Result<A, Task<B, E>>) => {
+						expect(await spawn(m.swapOkay())).toStrictEqual(
+							await spawn(m.gatherMapFail(Task.fail, id)),
+						);
+					},
 				),
 			);
 		});
@@ -1364,7 +1151,11 @@ describe("Result", () => {
 			await fc.assert(
 				fc.asyncProperty(
 					result(task(fc.anything(), fc.anything()), fc.anything()),
-					groupRightDefinition,
+					async <A, B, C>(m: Result<Task<A, B>, C>) => {
+						expect(await spawn(m.groupRight())).toStrictEqual(
+							await spawn(m.gatherMapFail(id, Task.fail)),
+						);
+					},
 				),
 			);
 		});
@@ -1377,7 +1168,11 @@ describe("Result", () => {
 			await fc.assert(
 				fc.asyncProperty(
 					result(task(fc.anything(), fc.anything()), task(fc.anything(), fc.anything())),
-					interchangeDefinition,
+					async <A, B, E, F>(m: Result<Task<A, B>, Task<E, F>>) => {
+						expect(await spawn(m.interchange())).toStrictEqual(
+							await spawn(m.interchangeMap(id, id)),
+						);
+					},
 				),
 			);
 		});
@@ -1387,13 +1182,21 @@ describe("Result", () => {
 		it("should extract the value from Okay", () => {
 			expect.assertions(100);
 
-			fc.assert(fc.property(fc.anything(), fc.anything(), extractOkayFromOkay));
+			fc.assert(
+				fc.property(fc.anything(), fc.anything(), <A>(a: A, x: A) => {
+					expect(new Okay(a).extractOkay(x)).toStrictEqual(a);
+				}),
+			);
 		});
 
 		it("should return the default value for Fail", () => {
 			expect.assertions(100);
 
-			fc.assert(fc.property(fc.anything(), fc.anything(), extractOkayFromFail));
+			fc.assert(
+				fc.property(fc.anything(), fc.anything(), <A, E>(x: E, y: A) => {
+					expect(new Fail(x).extractOkay(y)).toStrictEqual(y);
+				}),
+			);
 		});
 	});
 
@@ -1401,13 +1204,21 @@ describe("Result", () => {
 		it("should extract the value from Fail", () => {
 			expect.assertions(100);
 
-			fc.assert(fc.property(fc.anything(), fc.anything(), extractFailFromFail));
+			fc.assert(
+				fc.property(fc.anything(), fc.anything(), <E>(x: E, y: E) => {
+					expect(new Fail(x).extractFail(y)).toStrictEqual(x);
+				}),
+			);
 		});
 
 		it("should return the default value for Okay", () => {
 			expect.assertions(100);
 
-			fc.assert(fc.property(fc.anything(), fc.anything(), extractFailFromOkay));
+			fc.assert(
+				fc.property(fc.anything(), fc.anything(), <A, E>(a: A, x: E) => {
+					expect(new Okay(a).extractFail(x)).toStrictEqual(x);
+				}),
+			);
 		});
 	});
 
@@ -1416,7 +1227,13 @@ describe("Result", () => {
 			expect.assertions(100);
 
 			fc.assert(
-				fc.property(result(fc.anything(), fc.anything()), fc.anything(), extractMapOkayDefinition),
+				fc.property(
+					result(fc.anything(), fc.anything()),
+					fc.anything(),
+					<A, E>(m: Result<A, E>, a: A) => {
+						expect(m.extractMapOkay(() => a)).toStrictEqual(m.extractOkay(a));
+					},
+				),
 			);
 		});
 	});
@@ -1426,7 +1243,13 @@ describe("Result", () => {
 			expect.assertions(100);
 
 			fc.assert(
-				fc.property(result(fc.anything(), fc.anything()), fc.anything(), extractMapFailDefinition),
+				fc.property(
+					result(fc.anything(), fc.anything()),
+					fc.anything(),
+					<A, E>(m: Result<A, E>, x: E) => {
+						expect(m.extractMapFail(() => x)).toStrictEqual(m.extractFail(x));
+					},
+				),
 			);
 		});
 	});
@@ -1435,7 +1258,13 @@ describe("Result", () => {
 		it("should agree with Task.okay and Task.fail", async () => {
 			expect.assertions(100);
 
-			await fc.assert(fc.asyncProperty(result(fc.anything(), fc.anything()), toTaskEquivalence));
+			await fc.assert(
+				fc.asyncProperty(result(fc.anything(), fc.anything()), async <A, E>(m: Result<A, E>) => {
+					expect(await spawn(m.toTask())).toStrictEqual(
+						await spawn(m.isOkay ? Task.okay(m.value) : Task.fail(m.value)),
+					);
+				}),
+			);
 		});
 	});
 
@@ -1443,7 +1272,11 @@ describe("Result", () => {
 		it("should agree with okayValues and failValues", () => {
 			expect.assertions(100);
 
-			fc.assert(fc.property(result(fc.anything(), fc.anything()), valuesDefinition));
+			fc.assert(
+				fc.property(result(fc.anything(), fc.anything()), <A, E>(m: Result<A, E>) => {
+					expect([...m.values()]).toStrictEqual([...m.okayValues(), ...m.failValues()]);
+				}),
+			);
 		});
 	});
 
@@ -1455,7 +1288,19 @@ describe("Result", () => {
 				fc.property(
 					result(fc.anything(), fc.anything()),
 					fc.func(fc.anything()),
-					effectMapDefinition,
+					<A, B, E>(m: Result<A, E>, f: (a: A) => B) => {
+						expect(
+							Okay.fromGenerator(function* () {
+								const b: B = yield* m.effectMap(f);
+								return b;
+							}),
+						).toStrictEqual(
+							Okay.fromGenerator(function* () {
+								const b: B = f(yield* m.effect());
+								return b;
+							}),
+						);
+					},
 				),
 			);
 		});
@@ -1473,7 +1318,23 @@ describe("Okay", () => {
 					fc.constant(isPowerOfTwo),
 					fc.constant((n: number) => new Okay(hotpo(n))),
 					fc.func(result(fc.anything(), fc.anything())),
-					fromGeneratorEquivalence,
+					<A, B, E>(
+						m: Result<A, E>,
+						p: (a: A) => boolean,
+						f: (a: A) => Result<A, E>,
+						g: (a: A) => Result<B, E>,
+					) => {
+						expect(
+							Okay.fromGenerator(function* () {
+								let a: A = yield* m.effect();
+								while (!p(a)) a = yield* f(a).effect();
+								const b: B = yield* g(a).effect();
+								return b;
+							}),
+						).toStrictEqual(
+							m.flatMapOkayUntil((a) => (p(a) ? g(a).mapOkay(Okay.of) : f(a).mapOkay(Fail.of))),
+						);
+					},
 				),
 			);
 		});
@@ -1485,7 +1346,19 @@ describe("Okay", () => {
 				fc.property(
 					result(fc.anything(), fc.anything()),
 					result(fc.anything(), fc.anything()),
-					fromGeneratorThrow,
+					<A, E>(m: Result<A, E>, n: Result<A, E>) => {
+						expect(
+							Okay.fromGenerator(function* () {
+								try {
+									const a: A = yield* m.effect();
+									return a;
+								} catch {
+									const a: A = yield* n.effect();
+									return a;
+								}
+							}),
+						).toStrictEqual(m.orElse(n));
+					},
 				),
 			);
 		});
@@ -1494,7 +1367,19 @@ describe("Okay", () => {
 			expect.assertions(100);
 
 			fc.assert(
-				fc.property(result(fc.anything(), fc.anything()), fc.anything(), fromGeneratorCatch),
+				fc.property(
+					result(fc.anything(), fc.anything()),
+					fc.anything(),
+					<A, E>(m: Result<A, E>, x: E) => {
+						expect(
+							Okay.fromGenerator(function* () {
+								if (m.isOkay) throw x;
+								const a: A = yield* m.effect<A, E>();
+								return a;
+							}),
+						).toStrictEqual(m.isOkay ? new Fail(x) : m);
+					},
+				),
 			);
 		});
 	});
